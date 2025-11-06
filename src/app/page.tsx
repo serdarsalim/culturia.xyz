@@ -15,7 +15,6 @@ export default function Home() {
   const [user, setUser] = useState<any>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSubmissionForm, setShowSubmissionForm] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Check authentication
   useEffect(() => {
@@ -35,14 +34,12 @@ export default function Home() {
   function handleCountryClick(countryCode: string) {
     console.log('handleCountryClick called with:', countryCode);
     setSelectedCountry(countryCode);
-    setSidebarOpen(true);
     setCurrentVideo(null);
-    console.log('Sidebar should now be open');
+    console.log('Country selected:', countryCode);
   }
 
   function handleCloseSidebar() {
     setSelectedCountry(null);
-    setSidebarOpen(false);
     setCurrentVideo(null);
   }
 
@@ -114,32 +111,36 @@ export default function Home() {
           />
         </div>
 
-        {/* Sidebar - overlay on left */}
-        {sidebarOpen && selectedCountry && (
-          <div
-            className="fixed left-0 top-0 bottom-0 w-80 shadow-2xl bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 z-50"
-            style={{ border: '3px solid red' }} // Debug: make it visible
-          >
+        {/* Sidebar - always visible */}
+        <div className="fixed left-0 top-0 bottom-0 w-80 shadow-2xl bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 z-50">
+          {selectedCountry ? (
             <CountrySidebar
               countryCode={selectedCountry}
               onClose={handleCloseSidebar}
               onVideoSelect={handleVideoSelect}
               onSubmitClick={handleSubmitClick}
             />
-          </div>
-        )}
-
-        {/* Mobile Bottom Sheet */}
-        {sidebarOpen && selectedCountry && (
-          <div className="lg:hidden fixed inset-x-0 bottom-0 h-1/2 bg-white shadow-2xl z-40 overflow-hidden rounded-t-3xl">
-            <CountrySidebar
-              countryCode={selectedCountry}
-              onClose={handleCloseSidebar}
-              onVideoSelect={handleVideoSelect}
-              onSubmitClick={handleSubmitClick}
-            />
-          </div>
-        )}
+          ) : (
+            <div className="h-full flex flex-col items-center justify-center p-8 text-center">
+              <h1 className="text-4xl font-bold text-white mb-4">
+                🌍 CULTURIA
+              </h1>
+              <p className="text-slate-300 text-lg mb-6">
+                Discover authentic cultural content from around the world
+              </p>
+              <div className="text-slate-400 text-sm space-y-3">
+                <p>👆 Click on any country to explore:</p>
+                <ul className="text-left space-y-2">
+                  <li>💡 Inspiration</li>
+                  <li>🎵 Music</li>
+                  <li>😄 Comedy</li>
+                  <li>🍳 Cooking</li>
+                  <li>🎤 Street Voices</li>
+                </ul>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Video Player Overlay */}
