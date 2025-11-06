@@ -65,15 +65,37 @@ export default function WorldMap({ onCountryClick, selectedCountry, onBackground
       {/* Tooltip */}
       {tooltip && (
         <div
-          className="absolute z-50 px-3 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm rounded-lg shadow-xl pointer-events-none"
           style={{
-            left: tooltip.x,
-            top: tooltip.y,
-            transform: 'translate(-50%, -100%)',
-            marginTop: '-8px',
+            position: 'fixed',
+            zIndex: 1000,
+            left: tooltip.x + 'px',
+            top: tooltip.y + 'px',
+            transform: 'translate(-50%, calc(-100% - 12px))',
+            padding: '10px 16px',
+            backgroundColor: '#000000',
+            color: '#ffffff',
+            fontSize: '15px',
+            fontWeight: '600',
+            borderRadius: '8px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
+            pointerEvents: 'none',
+            whiteSpace: 'nowrap',
+            letterSpacing: '0.01em'
           }}
         >
           {tooltip.name}
+          {/* Arrow pointing down */}
+          <div style={{
+            position: 'absolute',
+            bottom: '-4px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: 0,
+            height: 0,
+            borderLeft: '6px solid transparent',
+            borderRight: '6px solid transparent',
+            borderTop: '6px solid #000000'
+          }} />
         </div>
       )}
 
