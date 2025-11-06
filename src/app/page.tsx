@@ -17,6 +17,13 @@ export default function Home() {
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('signup');
   const [showSubmissionForm, setShowSubmissionForm] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [categoryCounts, setCategoryCounts] = useState<Record<VideoCategory, number>>({
+    inspiration: 0,
+    music: 0,
+    comedy: 0,
+    cooking: 0,
+    street_voices: 0,
+  });
 
   // Check authentication
   useEffect(() => {
@@ -31,6 +38,40 @@ export default function Home() {
     });
 
     return () => subscription.unsubscribe();
+  }, []);
+
+  // Fetch video counts per category
+  useEffect(() => {
+    async function fetchCategoryCounts() {
+      try {
+        const categories: VideoCategory[] = ['inspiration', 'music', 'comedy', 'cooking', 'street_voices'];
+        const counts: Record<VideoCategory, number> = {
+          inspiration: 0,
+          music: 0,
+          comedy: 0,
+          cooking: 0,
+          street_voices: 0,
+        };
+
+        for (const category of categories) {
+          const { count, error } = await supabase
+            .from('video_submissions')
+            .select('*', { count: 'exact', head: true })
+            .eq('status', 'approved')
+            .eq('category', category);
+
+          if (!error && count !== null) {
+            counts[category] = count;
+          }
+        }
+
+        setCategoryCounts(counts);
+      } catch (error) {
+        console.error('Error fetching category counts:', error);
+      }
+    }
+
+    fetchCategoryCounts();
   }, []);
 
   function handleCountryClick(countryCode: string) {
@@ -86,6 +127,35 @@ export default function Home() {
       }
     } catch (error) {
       console.error('Error fetching next video:', error);
+    }
+  }
+
+  async function handleCategoryClick(category: VideoCategory) {
+    try {
+      // Fetch a random video from this category from any country
+      const { data, error } = await supabase
+        .from('video_submissions')
+        .select('*')
+        .eq('category', category)
+        .eq('status', 'approved')
+        .order('created_at', { ascending: false })
+        .limit(50); // Get 50 videos to have better randomness
+
+      if (error) {
+        console.error('Error fetching random video:', error);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        const randomVideo = data[Math.floor(Math.random() * data.length)];
+        setCurrentVideo({ video: randomVideo, category });
+        // Close country sidebar if open
+        setSelectedCountry(null);
+      } else {
+        alert('No videos available in this category yet');
+      }
+    } catch (error) {
+      console.error('Error fetching random video:', error);
     }
   }
 
@@ -235,24 +305,149 @@ export default function Home() {
                   color: '#6b7280',
                   marginBottom: '16px'
                 }}>
-                  Click on any country to explore
+                  Click on any country or category to explore
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', color: '#000000' }}>
-                    <span style={{ fontSize: '20px' }}>💡</span> Inspiration
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', color: '#000000' }}>
-                    <span style={{ fontSize: '20px' }}>🎵</span> Music
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', color: '#000000' }}>
-                    <span style={{ fontSize: '20px' }}>😄</span> Comedy
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', color: '#000000' }}>
-                    <span style={{ fontSize: '20px' }}>🍳</span> Cooking
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', color: '#000000' }}>
-                    <span style={{ fontSize: '20px' }}>🎤</span> Street Voices
-                  </div>
+                  <button
+                    onClick={() => handleCategoryClick('inspiration')}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '12px',
+                      fontSize: '14px',
+                      color: '#000000',
+                      border: 'none',
+                      backgroundColor: 'transparent',
+                      cursor: 'pointer',
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      transition: 'background-color 0.2s',
+                      width: '100%',
+                      textAlign: 'left'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <span style={{ fontSize: '20px' }}>💡</span> Inspiration
+                    </div>
+                    <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: '600' }}>
+                      {categoryCounts.inspiration}
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => handleCategoryClick('music')}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '12px',
+                      fontSize: '14px',
+                      color: '#000000',
+                      border: 'none',
+                      backgroundColor: 'transparent',
+                      cursor: 'pointer',
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      transition: 'background-color 0.2s',
+                      width: '100%',
+                      textAlign: 'left'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <span style={{ fontSize: '20px' }}>🎵</span> Music
+                    </div>
+                    <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: '600' }}>
+                      {categoryCounts.music}
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => handleCategoryClick('comedy')}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '12px',
+                      fontSize: '14px',
+                      color: '#000000',
+                      border: 'none',
+                      backgroundColor: 'transparent',
+                      cursor: 'pointer',
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      transition: 'background-color 0.2s',
+                      width: '100%',
+                      textAlign: 'left'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <span style={{ fontSize: '20px' }}>😄</span> Comedy
+                    </div>
+                    <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: '600' }}>
+                      {categoryCounts.comedy}
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => handleCategoryClick('cooking')}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '12px',
+                      fontSize: '14px',
+                      color: '#000000',
+                      border: 'none',
+                      backgroundColor: 'transparent',
+                      cursor: 'pointer',
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      transition: 'background-color 0.2s',
+                      width: '100%',
+                      textAlign: 'left'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <span style={{ fontSize: '20px' }}>🍳</span> Cooking
+                    </div>
+                    <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: '600' }}>
+                      {categoryCounts.cooking}
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => handleCategoryClick('street_voices')}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '12px',
+                      fontSize: '14px',
+                      color: '#000000',
+                      border: 'none',
+                      backgroundColor: 'transparent',
+                      cursor: 'pointer',
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      transition: 'background-color 0.2s',
+                      width: '100%',
+                      textAlign: 'left'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <span style={{ fontSize: '20px' }}>🎤</span> Street Voices
+                    </div>
+                    <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: '600' }}>
+                      {categoryCounts.street_voices}
+                    </span>
+                  </button>
                 </div>
               </div>
             </div>
