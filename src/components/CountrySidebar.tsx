@@ -137,7 +137,12 @@ export default function CountrySidebar({
     }
   }
 
-  if (!country) return null;
+  if (!country) {
+    console.log('CountrySidebar: No country found for code:', countryCode);
+    return null;
+  }
+
+  console.log('CountrySidebar rendering for:', country.name);
 
   return (
     <div className="h-full flex flex-col">

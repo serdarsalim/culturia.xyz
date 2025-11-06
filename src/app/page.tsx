@@ -116,7 +116,10 @@ export default function Home() {
 
         {/* Sidebar - overlay on left */}
         {sidebarOpen && selectedCountry && (
-          <div className="absolute left-0 top-0 bottom-0 w-80 shadow-2xl bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 z-50">
+          <div
+            className="fixed left-0 top-0 bottom-0 w-80 shadow-2xl bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 z-50"
+            style={{ border: '3px solid red' }} // Debug: make it visible
+          >
             <CountrySidebar
               countryCode={selectedCountry}
               onClose={handleCloseSidebar}
