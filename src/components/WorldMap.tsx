@@ -61,6 +61,7 @@ export default function WorldMap({ onCountryClick, selectedCountry, onBackground
     <div
       className="relative w-full h-full"
       style={{ backgroundColor: '#475569' }} // Darker greyish-blue ocean (slate-600)
+      onClick={onBackgroundClick}
     >
       {/* Tooltip */}
       {tooltip && (

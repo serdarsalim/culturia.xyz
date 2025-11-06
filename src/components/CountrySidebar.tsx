@@ -184,25 +184,29 @@ export default function CountrySidebar({
         <button
           onClick={onClose}
           style={{
-            color: '#9ca3af',
+            width: '28px',
+            height: '28px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#6b7280',
             cursor: 'pointer',
-            padding: '6px',
             borderRadius: '50%',
             border: 'none',
-            backgroundColor: 'transparent',
+            backgroundColor: '#e5e7eb',
             transition: 'all 0.2s'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#d1d5db';
+            e.currentTarget.style.color = '#000000';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = '#e5e7eb';
+            e.currentTarget.style.color = '#6b7280';
           }}
           aria-label="Close"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            style={{ width: '20px', height: '20px' }}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          ✕
         </button>
       </div>
 

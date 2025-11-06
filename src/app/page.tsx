@@ -14,7 +14,9 @@ export default function Home() {
   const [currentVideo, setCurrentVideo] = useState<{ video: VideoSubmission; category: VideoCategory } | null>(null);
   const [user, setUser] = useState<any>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('signup');
   const [showSubmissionForm, setShowSubmissionForm] = useState(false);
+  const [showToast, setShowToast] = useState(false);
 
   // Check authentication
   useEffect(() => {
@@ -39,6 +41,11 @@ export default function Home() {
   }
 
   function handleCloseSidebar() {
+    setSelectedCountry(null);
+    setCurrentVideo(null);
+  }
+
+  function handleBackgroundClick() {
     setSelectedCountry(null);
     setCurrentVideo(null);
   }
@@ -95,13 +102,24 @@ export default function Home() {
 
   function handleSubmissionSuccess() {
     setShowSubmissionForm(false);
-    alert('Thank you! Your submission will be reviewed by our team.');
+    setShowToast(true);
+    setTimeout(() => {
+      setShowToast(false);
+    }, 3000);
   }
 
   return (
     <div className="h-screen flex overflow-hidden">
       {/* Sidebar - always visible on the left */}
-      <div className="w-80 h-full shadow-2xl flex-shrink-0 overflow-y-auto" style={{ backgroundColor: '#f3f4f6', color: '#000000' }}>
+      <div style={{
+        width: '280px',
+        height: '100%',
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+        flexShrink: 0,
+        overflowY: 'auto',
+        backgroundColor: '#f3f4f6',
+        color: '#000000'
+      }}>
         {selectedCountry ? (
           <CountrySidebar
             countryCode={selectedCountry}
@@ -110,49 +128,131 @@ export default function Home() {
             onSubmitClick={handleSubmitClick}
           />
         ) : (
-          <div className="h-full flex flex-col justify-center" style={{ padding: '48px 32px' }}>
-            <h1 style={{
-              fontSize: '32px',
-              fontWeight: '600',
-              color: '#000000',
-              marginBottom: '12px',
-              letterSpacing: '-0.02em'
-            }}>
-              🌍 CULTURIA
-            </h1>
-            <p style={{
-              fontSize: '15px',
-              color: '#4b5563',
-              marginBottom: '32px',
-              lineHeight: '1.6',
-              maxWidth: '100%'
-            }}>
-              Discover authentic cultural content from around the world
-            </p>
-            <div>
-              <p style={{
-                fontSize: '13px',
-                fontWeight: '500',
-                color: '#6b7280',
-                marginBottom: '16px'
+          <div className="h-full flex flex-col" style={{ padding: '32px' }}>
+            {/* Auth Links at top left */}
+            <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', fontSize: '14px' }}>
+              {!user ? (
+                <>
+                  <button
+                    onClick={() => {
+                      setAuthMode('signup');
+                      setShowAuthModal(true);
+                    }}
+                    style={{
+                      color: '#6b7280',
+                      cursor: 'pointer',
+                      border: 'none',
+                      backgroundColor: 'transparent',
+                      textDecoration: 'underline',
+                      padding: 0,
+                      transition: 'color 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = '#000000';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = '#6b7280';
+                    }}
+                  >
+                    Sign Up
+                  </button>
+                  <span style={{ color: '#d1d5db' }}>|</span>
+                  <button
+                    onClick={() => {
+                      setAuthMode('login');
+                      setShowAuthModal(true);
+                    }}
+                    style={{
+                      color: '#6b7280',
+                      cursor: 'pointer',
+                      border: 'none',
+                      backgroundColor: 'transparent',
+                      textDecoration: 'underline',
+                      padding: 0,
+                      transition: 'color 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = '#000000';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = '#6b7280';
+                    }}
+                  >
+                    Log In
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={async () => {
+                    await supabase.auth.signOut();
+                    setUser(null);
+                  }}
+                  style={{
+                    color: '#6b7280',
+                    cursor: 'pointer',
+                    border: 'none',
+                    backgroundColor: 'transparent',
+                    textDecoration: 'underline',
+                    padding: 0,
+                    transition: 'color 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = '#000000';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = '#6b7280';
+                  }}
+                >
+                  Log Out
+                </button>
+              )}
+            </div>
+
+            {/* Main Content */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', paddingTop: '80px' }}>
+              <h1 style={{
+                fontSize: '32px',
+                fontWeight: '600',
+                color: '#000000',
+                marginBottom: '12px',
+                letterSpacing: '-0.02em'
               }}>
-                Click on any country to explore
+                🌍 CULTURIA
+              </h1>
+              <p style={{
+                fontSize: '15px',
+                color: '#4b5563',
+                marginBottom: '32px',
+                lineHeight: '1.6',
+                maxWidth: '100%'
+              }}>
+                Discover authentic cultural content from around the world
               </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', color: '#000000' }}>
-                  <span style={{ fontSize: '20px' }}>💡</span> Inspiration
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', color: '#000000' }}>
-                  <span style={{ fontSize: '20px' }}>🎵</span> Music
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', color: '#000000' }}>
-                  <span style={{ fontSize: '20px' }}>😄</span> Comedy
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', color: '#000000' }}>
-                  <span style={{ fontSize: '20px' }}>🍳</span> Cooking
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', color: '#000000' }}>
-                  <span style={{ fontSize: '20px' }}>🎤</span> Street Voices
+              <div>
+                <p style={{
+                  fontSize: '13px',
+                  fontWeight: '500',
+                  color: '#6b7280',
+                  marginBottom: '16px'
+                }}>
+                  Click on any country to explore
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', color: '#000000' }}>
+                    <span style={{ fontSize: '20px' }}>💡</span> Inspiration
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', color: '#000000' }}>
+                    <span style={{ fontSize: '20px' }}>🎵</span> Music
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', color: '#000000' }}>
+                    <span style={{ fontSize: '20px' }}>😄</span> Comedy
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', color: '#000000' }}>
+                    <span style={{ fontSize: '20px' }}>🍳</span> Cooking
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', color: '#000000' }}>
+                    <span style={{ fontSize: '20px' }}>🎤</span> Street Voices
+                  </div>
                 </div>
               </div>
             </div>
@@ -165,7 +265,7 @@ export default function Home() {
         <WorldMap
           onCountryClick={handleCountryClick}
           selectedCountry={selectedCountry}
-          onBackgroundClick={handleCloseSidebar}
+          onBackgroundClick={handleBackgroundClick}
         />
       </div>
 
@@ -184,6 +284,7 @@ export default function Home() {
         <AuthModal
           onClose={() => setShowAuthModal(false)}
           onSuccess={handleAuthSuccess}
+          initialMode={authMode}
         />
       )}
 
@@ -196,6 +297,48 @@ export default function Home() {
           onAuthRequired={() => setShowAuthModal(true)}
         />
       )}
+
+      {/* Toast Notification */}
+      {showToast && (
+        <div style={{
+          position: 'fixed',
+          bottom: '32px',
+          right: '32px',
+          zIndex: 100,
+          backgroundColor: '#10b981',
+          color: '#ffffff',
+          padding: '16px 24px',
+          borderRadius: '12px',
+          boxShadow: '0 10px 40px rgba(0, 0, 0, 0.3)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          fontSize: '15px',
+          fontWeight: '500',
+          animation: 'slideIn 0.3s ease-out'
+        }}>
+          <span style={{ fontSize: '20px' }}>✓</span>
+          <div>
+            <div style={{ fontWeight: '600' }}>Submitted for Review</div>
+            <div style={{ fontSize: '13px', opacity: 0.9, marginTop: '2px' }}>
+              Your submission will be reviewed by our team
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style jsx>{`
+        @keyframes slideIn {
+          from {
+            transform: translateY(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateY(0);
+            opacity: 1;
+          }
+        }
+      `}</style>
     </div>
   );
 }
