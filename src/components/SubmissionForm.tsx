@@ -50,9 +50,12 @@ export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuth
         }
 
         if (!user) {
+          console.log('No user logged in');
           setLoadingSubmissions(false);
           return;
         }
+
+        console.log('Fetching submissions for:', { userId: user.id, countryCode });
 
         const { data: submissions, error } = await supabase
           .from('video_submissions')
@@ -61,18 +64,18 @@ export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuth
           .eq('user_id', user.id);
 
         if (error) {
-          console.error('Supabase error details:', {
+          console.warn('Could not fetch submissions (this is normal if you have no submissions yet):', {
             message: error.message,
             details: error.details,
             hint: error.hint,
             code: error.code
           });
-          // Don't return - just log and continue with empty form
+          // Continue with empty form - this is not a critical error
           setLoadingSubmissions(false);
           return;
         }
 
-        console.log('Fetched submissions:', submissions);
+        console.log('Successfully fetched submissions:', submissions);
 
         if (submissions && submissions.length > 0) {
           const newFormData: FormData = {
