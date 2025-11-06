@@ -130,18 +130,9 @@ export default function Home() {
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden relative">
-        {/* Map Container */}
-        <div className={`transition-all duration-300 ${sidebarOpen ? 'w-full lg:w-3/5' : 'w-full'} relative`}>
-          <WorldMap
-            onCountryClick={handleCountryClick}
-            selectedCountry={selectedCountry}
-            onBackgroundClick={handleCloseSidebar}
-          />
-        </div>
-
-        {/* Desktop Sidebar */}
+        {/* Desktop Sidebar - on left */}
         {sidebarOpen && selectedCountry && (
-          <div className="hidden lg:block w-2/5 border-l border-gray-200 shadow-2xl bg-white">
+          <div className="hidden lg:block w-2/5 border-r border-gray-200 shadow-2xl bg-white">
             <CountrySidebar
               countryCode={selectedCountry}
               onClose={handleCloseSidebar}
@@ -150,6 +141,15 @@ export default function Home() {
             />
           </div>
         )}
+
+        {/* Map Container */}
+        <div className={`transition-all duration-300 ${sidebarOpen ? 'w-full lg:w-3/5' : 'w-full'} relative`}>
+          <WorldMap
+            onCountryClick={handleCountryClick}
+            selectedCountry={selectedCountry}
+            onBackgroundClick={handleCloseSidebar}
+          />
+        </div>
 
         {/* Mobile Bottom Sheet */}
         {sidebarOpen && selectedCountry && (
