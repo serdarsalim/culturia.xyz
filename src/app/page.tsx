@@ -110,7 +110,7 @@ export default function Home() {
       </div>
 
       {/* Sidebar - always visible, on top of map */}
-      <div className="fixed left-0 top-0 bottom-0 w-80 shadow-2xl bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 z-[100]">
+      <div className="fixed left-0 top-0 bottom-0 w-80 shadow-2xl bg-gradient-to-b from-zinc-900 via-zinc-800 to-zinc-900 border-r-2 border-amber-500 z-[100]">
         {selectedCountry ? (
           <CountrySidebar
             countryCode={selectedCountry}
@@ -120,20 +120,20 @@ export default function Home() {
           />
         ) : (
           <div className="h-full flex flex-col items-center justify-center p-8 text-center">
-            <h1 className="text-4xl font-bold text-white mb-4">
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent mb-4">
               🌍 CULTURIA
             </h1>
-            <p className="text-slate-300 text-lg mb-6">
+            <p className="text-slate-200 text-lg mb-6 font-medium">
               Discover authentic cultural content from around the world
             </p>
-            <div className="text-slate-400 text-sm space-y-3">
-              <p>👆 Click on any country to explore:</p>
-              <ul className="text-left space-y-2">
-                <li>💡 Inspiration</li>
-                <li>🎵 Music</li>
-                <li>😄 Comedy</li>
-                <li>🍳 Cooking</li>
-                <li>🎤 Street Voices</li>
+            <div className="text-slate-300 space-y-4 mt-4">
+              <p className="text-amber-400 font-semibold">👆 Click on any country to explore:</p>
+              <ul className="text-left space-y-2 bg-zinc-800/50 p-4 rounded-lg">
+                <li className="flex items-center gap-2"><span className="text-2xl">💡</span> Inspiration</li>
+                <li className="flex items-center gap-2"><span className="text-2xl">🎵</span> Music</li>
+                <li className="flex items-center gap-2"><span className="text-2xl">😄</span> Comedy</li>
+                <li className="flex items-center gap-2"><span className="text-2xl">🍳</span> Cooking</li>
+                <li className="flex items-center gap-2"><span className="text-2xl">🎤</span> Street Voices</li>
               </ul>
             </div>
           </div>

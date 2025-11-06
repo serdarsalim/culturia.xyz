@@ -147,7 +147,7 @@ export default function CountrySidebar({
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between p-6 border-b border-slate-700">
+      <div className="flex items-center justify-between p-6 border-b-2 border-amber-500">
         <div className="flex items-center gap-3">
           <span className="text-5xl drop-shadow-lg">{country.flag}</span>
           <div>
@@ -161,7 +161,7 @@ export default function CountrySidebar({
         </div>
         <button
           onClick={onClose}
-          className="text-slate-400 hover:text-white transition-colors p-2 hover:bg-slate-700 rounded-lg"
+          className="text-slate-400 hover:text-amber-400 transition-colors p-2 hover:bg-zinc-700 rounded-lg"
           aria-label="Close"
         >
           <svg
@@ -192,7 +192,7 @@ export default function CountrySidebar({
                 className={`w-full text-left p-5 rounded-xl border-2 transition-all transform hover:scale-105 shadow-lg ${
                   hasVideos
                     ? `bg-gradient-to-br ${colors.bg} ${colors.border} ${colors.hoverBg} ${colors.hoverBorder} cursor-pointer hover:shadow-xl`
-                    : 'border-slate-600 bg-slate-700/50 cursor-not-allowed opacity-50'
+                    : 'border-zinc-600 bg-zinc-700/50 cursor-not-allowed opacity-50'
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -220,7 +220,7 @@ export default function CountrySidebar({
         {/* Submit Button */}
         <button
           onClick={onSubmitClick}
-          className="w-full mt-6 px-6 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg hover:shadow-2xl"
+          className="w-full mt-6 px-6 py-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold rounded-xl hover:from-amber-600 hover:to-orange-700 transition-all transform hover:scale-105 shadow-lg hover:shadow-2xl"
         >
           ✨ Submit Videos
         </button>
