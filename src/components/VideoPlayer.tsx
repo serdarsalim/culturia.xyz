@@ -205,24 +205,38 @@ export default function VideoPlayer({ video, category, onClose, onNext }: VideoP
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      zIndex: 60,
-      backgroundColor: 'rgba(0, 0, 0, 0.9)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '16px'
-    }}>
-      <div style={{ width: '100%', maxWidth: '1024px' }}>
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 60,
+        backgroundColor: 'rgba(0, 0, 0, 0.95)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '16px'
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '1024px',
+          backgroundColor: '#1a1a1a',
+          borderRadius: '16px',
+          padding: '24px',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8)'
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Video Container */}
         <div style={{
           position: 'relative',
           backgroundColor: '#000000',
-          borderRadius: '8px',
+          borderRadius: '12px',
           overflow: 'hidden',
-          aspectRatio: '16/9'
+          aspectRatio: '16/9',
+          boxShadow: '0 10px 40px rgba(0, 0, 0, 0.5)'
         }}>
           <YouTube
             videoId={video.youtube_video_id}
@@ -273,16 +287,18 @@ export default function VideoPlayer({ video, category, onClose, onNext }: VideoP
               onClick={toggleFavorite}
               disabled={favoriting}
               style={{
-                padding: '8px 16px',
+                padding: '10px 20px',
+                height: '40px',
                 backgroundColor: isFavorited ? '#ef4444' : '#374151',
                 color: '#ffffff',
                 borderRadius: '8px',
                 border: 'none',
-                fontSize: '20px',
+                fontSize: '16px',
                 cursor: favoriting ? 'not-allowed' : 'pointer',
                 transition: 'all 0.2s',
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'center',
                 gap: '6px'
               }}
               onMouseEnter={(e) => {
@@ -305,23 +321,31 @@ export default function VideoPlayer({ video, category, onClose, onNext }: VideoP
               <button
                 onClick={() => setShowFlagModal(true)}
                 style={{
-                  padding: '8px 16px',
+                  padding: '10px 20px',
+                  height: '40px',
                   backgroundColor: '#374151',
                   color: '#ffffff',
                   borderRadius: '8px',
                   border: 'none',
                   fontSize: '14px',
+                  fontWeight: '500',
                   cursor: 'pointer',
-                  transition: 'background-color 0.2s'
+                  transition: 'background-color 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
                 }}
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#4b5563'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#374151'}
               >
-                Report Issue
+                Report
               </button>
             ) : (
               <span style={{
-                padding: '8px 16px',
+                padding: '10px 20px',
+                height: '40px',
+                display: 'flex',
+                alignItems: 'center',
                 fontSize: '14px',
                 color: '#9ca3af'
               }}>Reported</span>
@@ -331,14 +355,19 @@ export default function VideoPlayer({ video, category, onClose, onNext }: VideoP
             <button
               onClick={onNext}
               style={{
-                padding: '8px 24px',
+                padding: '10px 24px',
+                height: '40px',
                 backgroundColor: '#2563eb',
                 color: '#ffffff',
                 borderRadius: '8px',
                 border: 'none',
+                fontSize: '14px',
                 fontWeight: '600',
                 cursor: 'pointer',
-                transition: 'background-color 0.2s'
+                transition: 'background-color 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
               }}
               onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1d4ed8'}
               onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
@@ -350,7 +379,8 @@ export default function VideoPlayer({ video, category, onClose, onNext }: VideoP
             <button
               onClick={onClose}
               style={{
-                padding: '8px 16px',
+                padding: '10px 20px',
+                height: '40px',
                 backgroundColor: '#374151',
                 color: '#ffffff',
                 borderRadius: '8px',
@@ -367,7 +397,7 @@ export default function VideoPlayer({ video, category, onClose, onNext }: VideoP
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                style={{ height: '20px', width: '20px' }}
+                style={{ height: '18px', width: '18px' }}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
