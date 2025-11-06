@@ -20,6 +20,7 @@ export default function Home() {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState({ title: '', description: '' });
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [categoryCounts, setCategoryCounts] = useState<Record<VideoCategory, number>>({
     inspiration: 0,
     music: 0,
@@ -27,6 +28,18 @@ export default function Home() {
     cooking: 0,
     street_voices: 0,
   });
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Check authentication
   useEffect(() => {
@@ -203,16 +216,19 @@ export default function Home() {
   }
 
   return (
-    <div className="h-screen flex overflow-hidden">
-      {/* Sidebar - always visible on the left */}
+    <div className="h-screen flex overflow-hidden" style={{
+      flexDirection: isMobile ? 'column' : 'row'
+    }}>
+      {/* Sidebar - bottom on mobile, left on desktop */}
       <div style={{
-        width: '280px',
-        height: '100%',
+        width: isMobile ? '100%' : '280px',
+        height: isMobile ? '50%' : '100%',
         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
         flexShrink: 0,
         overflowY: 'auto',
         backgroundColor: '#f3f4f6',
-        color: '#000000'
+        color: '#000000',
+        order: isMobile ? 2 : 0
       }}>
         {selectedCountry ? (
           <CountrySidebar
@@ -503,7 +519,9 @@ export default function Home() {
       </div>
 
       {/* Map Container - takes remaining space */}
-      <div className="flex-1 relative overflow-hidden bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900">
+      <div className="flex-1 relative overflow-hidden bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900" style={{
+        order: isMobile ? 1 : 0
+      }}>
         <WorldMap
           onCountryClick={handleCountryClick}
           selectedCountry={selectedCountry}
