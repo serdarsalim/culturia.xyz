@@ -61,10 +61,18 @@ export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuth
           .eq('user_id', user.id);
 
         if (error) {
-          console.error('Error fetching submissions:', error);
+          console.error('Supabase error details:', {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code
+          });
+          // Don't return - just log and continue with empty form
           setLoadingSubmissions(false);
           return;
         }
+
+        console.log('Fetched submissions:', submissions);
 
         if (submissions && submissions.length > 0) {
           const newFormData: FormData = {
@@ -86,8 +94,14 @@ export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuth
           });
           setFormData(newFormData);
         }
-      } catch (err) {
-        console.error('Error fetching submissions:', err);
+      } catch (err: any) {
+        // Only log if there's actual error info
+        if (err && Object.keys(err).length > 0) {
+          console.error('Error fetching submissions:', {
+            message: err.message || 'Unknown error',
+            error: err
+          });
+        }
       } finally {
         setLoadingSubmissions(false);
       }
