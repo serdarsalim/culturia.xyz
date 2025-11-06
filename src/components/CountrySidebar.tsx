@@ -140,23 +140,23 @@ export default function CountrySidebar({
   if (!country) return null;
 
   return (
-    <div className="h-full flex flex-col bg-gradient-to-br from-white to-gray-50">
+    <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-white/80 backdrop-blur-sm">
+      <div className="flex items-center justify-between p-6 border-b border-slate-700">
         <div className="flex items-center gap-3">
-          <span className="text-4xl">{country.flag}</span>
+          <span className="text-5xl drop-shadow-lg">{country.flag}</span>
           <div>
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <h2 className="text-2xl font-bold text-white drop-shadow-md">
               {country.name}
             </h2>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-slate-300">
               {country.languages.slice(0, 2).join(', ')}
             </p>
           </div>
         </div>
         <button
           onClick={onClose}
-          className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-lg"
+          className="text-slate-400 hover:text-white transition-colors p-2 hover:bg-slate-700 rounded-lg"
           aria-label="Close"
         >
           <svg
@@ -172,7 +172,7 @@ export default function CountrySidebar({
       </div>
 
       {/* Categories */}
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
         <div className="space-y-3">
           {(Object.entries(CATEGORY_LABELS) as [VideoCategory, string][]).map(([category, label]) => {
             const count = videoCounts[category];
@@ -184,27 +184,27 @@ export default function CountrySidebar({
                 key={category}
                 onClick={() => hasVideos && handleCategoryClick(category)}
                 disabled={!hasVideos || loading}
-                className={`w-full text-left p-5 rounded-xl border-2 transition-all transform hover:scale-105 shadow-sm ${
+                className={`w-full text-left p-5 rounded-xl border-2 transition-all transform hover:scale-105 shadow-lg ${
                   hasVideos
-                    ? `bg-gradient-to-br ${colors.bg} ${colors.border} ${colors.hoverBg} ${colors.hoverBorder} cursor-pointer hover:shadow-md`
-                    : 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
+                    ? `bg-gradient-to-br ${colors.bg} ${colors.border} ${colors.hoverBg} ${colors.hoverBorder} cursor-pointer hover:shadow-xl`
+                    : 'border-slate-600 bg-slate-700/50 cursor-not-allowed opacity-50'
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <span className="text-2xl">{colors.icon}</span>
-                    <span className={`font-semibold ${hasVideos ? colors.text : 'text-gray-500'}`}>
+                    <span className="text-3xl">{colors.icon}</span>
+                    <span className={`font-semibold ${hasVideos ? colors.text : 'text-slate-500'}`}>
                       {label}
                     </span>
                   </div>
                   {loading ? (
-                    <span className="text-sm text-gray-400">Loading...</span>
+                    <span className="text-sm text-slate-400">Loading...</span>
                   ) : hasVideos ? (
                     <span className={`text-sm font-semibold ${colors.text}`}>
                       {count} video{count !== 1 ? 's' : ''}
                     </span>
                   ) : (
-                    <span className="text-sm text-gray-400">No videos yet</span>
+                    <span className="text-sm text-slate-500">No videos yet</span>
                   )}
                 </div>
               </button>
@@ -215,16 +215,33 @@ export default function CountrySidebar({
         {/* Submit Button */}
         <button
           onClick={onSubmitClick}
-          className="w-full mt-6 px-6 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
+          className="w-full mt-6 px-6 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg hover:shadow-2xl"
         >
           ✨ Submit Videos
         </button>
 
         {/* Info Text */}
-        <p className="mt-4 text-sm text-gray-500 text-center">
+        <p className="mt-4 text-sm text-slate-400 text-center">
           Help build our cultural library by submitting videos
         </p>
       </div>
+
+      <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(51, 65, 85, 0.3);
+          border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(148, 163, 184, 0.5);
+          border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(148, 163, 184, 0.7);
+        }
+      `}</style>
     </div>
   );
 }

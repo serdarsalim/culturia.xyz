@@ -104,10 +104,19 @@ export default function Home() {
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden relative">
-        {/* Sidebar - on left */}
+      <div className="flex-1 relative overflow-hidden">
+        {/* Map Container - full width */}
+        <div className="w-full h-full">
+          <WorldMap
+            onCountryClick={handleCountryClick}
+            selectedCountry={selectedCountry}
+            onBackgroundClick={handleCloseSidebar}
+          />
+        </div>
+
+        {/* Sidebar - overlay on left */}
         {sidebarOpen && selectedCountry && (
-          <div className="w-96 border-r border-gray-200 shadow-2xl bg-white z-50">
+          <div className="absolute left-0 top-0 bottom-0 w-80 shadow-2xl bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 z-50">
             <CountrySidebar
               countryCode={selectedCountry}
               onClose={handleCloseSidebar}
@@ -116,15 +125,6 @@ export default function Home() {
             />
           </div>
         )}
-
-        {/* Map Container */}
-        <div className="flex-1 relative">
-          <WorldMap
-            onCountryClick={handleCountryClick}
-            selectedCountry={selectedCountry}
-            onBackgroundClick={handleCloseSidebar}
-          />
-        </div>
 
         {/* Mobile Bottom Sheet */}
         {sidebarOpen && selectedCountry && (

@@ -54,14 +54,18 @@ interface WorldMapProps {
 
 export default function WorldMap({ onCountryClick, selectedCountry, onBackgroundClick }: WorldMapProps) {
   const [tooltip, setTooltip] = useState<{ name: string; x: number; y: number } | null>(null);
+  const [zoom, setZoom] = useState(1);
+  const [center, setCenter] = useState<[number, number]>([0, 20]);
 
   return (
     <div
       className="relative w-full h-full"
-      style={{ backgroundColor: '#60a5fa' }} // Solid blue ocean color
+      style={{ backgroundColor: '#1e40af' }} // Darker ocean color (blue-700)
       onClick={(e) => {
-        // Close sidebar when clicking on background (not on a country)
-        if (e.target === e.currentTarget || (e.target as HTMLElement).tagName === 'svg') {
+        // Close sidebar when clicking on background/ocean (not on a country)
+        const target = e.target as HTMLElement;
+        // Only close if clicking on the container div or SVG/g elements (not path which are countries)
+        if (target === e.currentTarget || target.tagName.toLowerCase() === 'svg' || target.tagName.toLowerCase() === 'g') {
           onBackgroundClick?.();
         }
       }}
