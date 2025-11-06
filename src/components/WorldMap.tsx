@@ -9,17 +9,26 @@ const geoUrl = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
 interface WorldMapProps {
   onCountryClick: (countryCode: string) => void;
   selectedCountry?: string | null;
+  onBackgroundClick?: () => void;
 }
 
-export default function WorldMap({ onCountryClick, selectedCountry }: WorldMapProps) {
+export default function WorldMap({ onCountryClick, selectedCountry, onBackgroundClick }: WorldMapProps) {
   const [tooltip, setTooltip] = useState<{ name: string; x: number; y: number } | null>(null);
 
   return (
-    <div className="relative w-full h-full bg-gray-50">
+    <div
+      className="relative w-full h-full bg-gradient-to-br from-blue-100 via-indigo-50 to-purple-100"
+      onClick={(e) => {
+        // Close sidebar when clicking on background (not on a country)
+        if (e.target === e.currentTarget || (e.target as HTMLElement).tagName === 'svg') {
+          onBackgroundClick?.();
+        }
+      }}
+    >
       {/* Tooltip */}
       {tooltip && (
         <div
-          className="absolute z-50 px-3 py-2 bg-black text-white text-sm rounded shadow-lg pointer-events-none"
+          className="absolute z-50 px-3 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm rounded-lg shadow-xl pointer-events-none"
           style={{
             left: tooltip.x,
             top: tooltip.y,
@@ -50,6 +59,38 @@ export default function WorldMap({ onCountryClick, selectedCountry }: WorldMapPr
               geographies.map((geo) => {
                 // Match country by name from GeoJSON properties
                 const geoName = geo.properties?.name || '';
+
+                // Exclude Antarctica (no permanent residents)
+                if (geoName === 'Antarctica') {
+                  return (
+                    <Geography
+                      key={geo.rsmKey}
+                      geography={geo}
+                      style={{
+                        default: {
+                          fill: '#e5e7eb',
+                          stroke: '#fff',
+                          strokeWidth: 0.75,
+                          outline: 'none',
+                        },
+                        hover: {
+                          fill: '#e5e7eb',
+                          stroke: '#fff',
+                          strokeWidth: 0.75,
+                          outline: 'none',
+                          cursor: 'default',
+                        },
+                        pressed: {
+                          fill: '#e5e7eb',
+                          stroke: '#fff',
+                          strokeWidth: 0.75,
+                          outline: 'none',
+                        },
+                      }}
+                    />
+                  );
+                }
+
                 const country = countries.find(c =>
                   c.name.toLowerCase() === geoName.toLowerCase() ||
                   // Handle some common naming differences
@@ -63,7 +104,8 @@ export default function WorldMap({ onCountryClick, selectedCountry }: WorldMapPr
                   <Geography
                     key={geo.rsmKey}
                     geography={geo}
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       if (country) {
                         onCountryClick(country.code);
                       }
@@ -93,23 +135,27 @@ export default function WorldMap({ onCountryClick, selectedCountry }: WorldMapPr
                     }}
                     style={{
                       default: {
-                        fill: isSelected ? '#3b82f6' : '#d1d5db',
+                        fill: isSelected
+                          ? '#8b5cf6' // Purple for selected
+                          : '#60a5fa', // Blue for unselected
                         stroke: '#fff',
-                        strokeWidth: 0.5,
+                        strokeWidth: 0.75,
                         outline: 'none',
-                        transition: 'fill 0.2s ease',
+                        transition: 'all 0.2s ease',
                       },
                       hover: {
-                        fill: isSelected ? '#2563eb' : '#9ca3af',
+                        fill: isSelected
+                          ? '#7c3aed' // Darker purple for selected hover
+                          : '#3b82f6', // Darker blue for hover
                         stroke: '#fff',
-                        strokeWidth: 0.5,
+                        strokeWidth: 1,
                         outline: 'none',
                         cursor: 'pointer',
                       },
                       pressed: {
-                        fill: '#1d4ed8',
+                        fill: '#6d28d9', // Even darker purple for pressed
                         stroke: '#fff',
-                        strokeWidth: 0.5,
+                        strokeWidth: 1,
                         outline: 'none',
                       },
                     }}

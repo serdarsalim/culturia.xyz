@@ -12,6 +12,50 @@ interface CountrySidebarProps {
   onSubmitClick: () => void;
 }
 
+// Color schemes for each category
+const CATEGORY_COLORS = {
+  inspiration: {
+    bg: 'from-yellow-50 to-orange-50',
+    border: 'border-orange-300',
+    hoverBg: 'hover:bg-gradient-to-br hover:from-yellow-100 hover:to-orange-100',
+    hoverBorder: 'hover:border-orange-400',
+    text: 'text-orange-700',
+    icon: '💡',
+  },
+  music: {
+    bg: 'from-pink-50 to-rose-50',
+    border: 'border-pink-300',
+    hoverBg: 'hover:bg-gradient-to-br hover:from-pink-100 hover:to-rose-100',
+    hoverBorder: 'hover:border-pink-400',
+    text: 'text-pink-700',
+    icon: '🎵',
+  },
+  comedy: {
+    bg: 'from-green-50 to-emerald-50',
+    border: 'border-green-300',
+    hoverBg: 'hover:bg-gradient-to-br hover:from-green-100 hover:to-emerald-100',
+    hoverBorder: 'hover:border-green-400',
+    text: 'text-green-700',
+    icon: '😄',
+  },
+  cooking: {
+    bg: 'from-red-50 to-orange-50',
+    border: 'border-red-300',
+    hoverBg: 'hover:bg-gradient-to-br hover:from-red-100 hover:to-orange-100',
+    hoverBorder: 'hover:border-red-400',
+    text: 'text-red-700',
+    icon: '🍳',
+  },
+  street_voices: {
+    bg: 'from-blue-50 to-indigo-50',
+    border: 'border-blue-300',
+    hoverBg: 'hover:bg-gradient-to-br hover:from-blue-100 hover:to-indigo-100',
+    hoverBorder: 'hover:border-blue-400',
+    text: 'text-blue-700',
+    icon: '🎤',
+  },
+};
+
 export default function CountrySidebar({
   countryCode,
   onClose,
@@ -96,13 +140,15 @@ export default function CountrySidebar({
   if (!country) return null;
 
   return (
-    <div className="h-full flex flex-col bg-white">
+    <div className="h-full flex flex-col bg-gradient-to-br from-white to-gray-50">
       {/* Header */}
-      <div className="flex items-center justify-between p-6 border-b">
+      <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-white/80 backdrop-blur-sm">
         <div className="flex items-center gap-3">
           <span className="text-4xl">{country.flag}</span>
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">{country.name}</h2>
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              {country.name}
+            </h2>
             <p className="text-sm text-gray-500">
               {country.languages.slice(0, 2).join(', ')}
             </p>
@@ -110,7 +156,7 @@ export default function CountrySidebar({
         </div>
         <button
           onClick={onClose}
-          className="text-gray-400 hover:text-gray-600 transition-colors"
+          className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-lg"
           aria-label="Close"
         >
           <svg
@@ -131,24 +177,32 @@ export default function CountrySidebar({
           {(Object.entries(CATEGORY_LABELS) as [VideoCategory, string][]).map(([category, label]) => {
             const count = videoCounts[category];
             const hasVideos = count > 0;
+            const colors = CATEGORY_COLORS[category];
 
             return (
               <button
                 key={category}
                 onClick={() => hasVideos && handleCategoryClick(category)}
                 disabled={!hasVideos || loading}
-                className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                className={`w-full text-left p-5 rounded-xl border-2 transition-all transform hover:scale-105 shadow-sm ${
                   hasVideos
-                    ? 'border-blue-200 hover:border-blue-400 hover:bg-blue-50 cursor-pointer'
+                    ? `bg-gradient-to-br ${colors.bg} ${colors.border} ${colors.hoverBg} ${colors.hoverBorder} cursor-pointer hover:shadow-md`
                     : 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-semibold text-gray-900">{label}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{colors.icon}</span>
+                    <span className={`font-semibold ${hasVideos ? colors.text : 'text-gray-500'}`}>
+                      {label}
+                    </span>
+                  </div>
                   {loading ? (
                     <span className="text-sm text-gray-400">Loading...</span>
                   ) : hasVideos ? (
-                    <span className="text-sm text-blue-600">{count} video{count !== 1 ? 's' : ''}</span>
+                    <span className={`text-sm font-semibold ${colors.text}`}>
+                      {count} video{count !== 1 ? 's' : ''}
+                    </span>
                   ) : (
                     <span className="text-sm text-gray-400">No videos yet</span>
                   )}
@@ -161,9 +215,9 @@ export default function CountrySidebar({
         {/* Submit Button */}
         <button
           onClick={onSubmitClick}
-          className="w-full mt-6 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+          className="w-full mt-6 px-6 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
         >
-          Submit Videos
+          ✨ Submit Videos
         </button>
 
         {/* Info Text */}

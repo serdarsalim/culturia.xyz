@@ -102,68 +102,65 @@ export default function Home() {
   }
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden">
+    <div className="h-screen flex flex-col overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
+      <header className="bg-white/90 backdrop-blur-sm border-b border-gray-200 px-6 py-3 flex items-center justify-between z-10 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
             <span className="text-white text-xl font-bold">C</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">CULTURIA</h1>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            CULTURIA
+          </h1>
         </div>
 
-        <nav className="flex items-center gap-4">
-          {user ? (
-            <>
-              <span className="text-sm text-gray-600">{user.email}</span>
-              <button
-                onClick={() => supabase.auth.signOut()}
-                className="text-sm text-gray-600 hover:text-gray-900"
-              >
-                Sign Out
-              </button>
-            </>
-          ) : (
+        {/* Only show user info when logged in, hide sign in button */}
+        {user && (
+          <nav className="flex items-center gap-4">
+            <span className="text-sm text-gray-600">{user.email}</span>
             <button
-              onClick={() => setShowAuthModal(true)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-semibold"
+              onClick={() => supabase.auth.signOut()}
+              className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
             >
-              Sign In
+              Sign Out
             </button>
-          )}
-        </nav>
+          </nav>
+        )}
       </header>
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden relative">
         {/* Map Container */}
-        <div className={`transition-all duration-300 ${sidebarOpen ? 'w-3/5' : 'w-full'} lg:${sidebarOpen ? 'w-3/5' : 'w-full'}`}>
-          <WorldMap onCountryClick={handleCountryClick} selectedCountry={selectedCountry} />
+        <div className={`transition-all duration-300 ${sidebarOpen ? 'w-full lg:w-3/5' : 'w-full'} relative`}>
+          <WorldMap
+            onCountryClick={handleCountryClick}
+            selectedCountry={selectedCountry}
+            onBackgroundClick={handleCloseSidebar}
+          />
         </div>
 
-        {/* Sidebar */}
+        {/* Desktop Sidebar */}
         {sidebarOpen && selectedCountry && (
-          <>
-            {/* Desktop Sidebar */}
-            <div className="hidden lg:block w-2/5 border-l border-gray-200">
-              <CountrySidebar
-                countryCode={selectedCountry}
-                onClose={handleCloseSidebar}
-                onVideoSelect={handleVideoSelect}
-                onSubmitClick={handleSubmitClick}
-              />
-            </div>
+          <div className="hidden lg:block w-2/5 border-l border-gray-200 shadow-2xl bg-white">
+            <CountrySidebar
+              countryCode={selectedCountry}
+              onClose={handleCloseSidebar}
+              onVideoSelect={handleVideoSelect}
+              onSubmitClick={handleSubmitClick}
+            />
+          </div>
+        )}
 
-            {/* Mobile Bottom Sheet */}
-            <div className="lg:hidden fixed inset-x-0 bottom-0 h-1/2 bg-white shadow-2xl z-40 overflow-hidden">
-              <CountrySidebar
-                countryCode={selectedCountry}
-                onClose={handleCloseSidebar}
-                onVideoSelect={handleVideoSelect}
-                onSubmitClick={handleSubmitClick}
-              />
-            </div>
-          </>
+        {/* Mobile Bottom Sheet */}
+        {sidebarOpen && selectedCountry && (
+          <div className="lg:hidden fixed inset-x-0 bottom-0 h-1/2 bg-white shadow-2xl z-40 overflow-hidden rounded-t-3xl">
+            <CountrySidebar
+              countryCode={selectedCountry}
+              onClose={handleCloseSidebar}
+              onVideoSelect={handleVideoSelect}
+              onSubmitClick={handleSubmitClick}
+            />
+          </div>
         )}
       </div>
 
@@ -195,11 +192,11 @@ export default function Home() {
       )}
 
       {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 px-6 py-3 text-center text-sm text-gray-600 z-10">
+      <footer className="bg-white/90 backdrop-blur-sm border-t border-gray-200 px-6 py-2 text-center text-xs text-gray-600 z-10">
         <p>
-          © {new Date().getFullYear()} CULTURIA • Discover authentic cultural content from around the world
+          © {new Date().getFullYear()} CULTURIA • Discover authentic cultural content
           {' • '}
-          <a href="/terms" className="text-blue-600 hover:text-blue-700">Terms of Service</a>
+          <a href="/terms" className="text-blue-600 hover:text-blue-700 transition-colors">Terms</a>
         </p>
       </footer>
     </div>
