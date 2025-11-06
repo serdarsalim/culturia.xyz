@@ -60,15 +60,7 @@ export default function WorldMap({ onCountryClick, selectedCountry, onBackground
   return (
     <div
       className="relative w-full h-full"
-      style={{ backgroundColor: '#1e40af' }} // Darker ocean color (blue-700)
-      onClick={(e) => {
-        // Close sidebar when clicking on background/ocean (not on a country)
-        const target = e.target as HTMLElement;
-        // Only close if clicking on the container div or SVG/g elements (not path which are countries)
-        if (target === e.currentTarget || target.tagName.toLowerCase() === 'svg' || target.tagName.toLowerCase() === 'g') {
-          onBackgroundClick?.();
-        }
-      }}
+      style={{ backgroundColor: '#add1ff' }} // Light blue ocean
     >
       {/* Tooltip */}
       {tooltip && (
@@ -117,6 +109,14 @@ export default function WorldMap({ onCountryClick, selectedCountry, onBackground
                   country = countries.find(c => c.code === GEO_NAME_TO_CODE[geoName]);
                 }
 
+                // If still no match, try to find by partial name match
+                if (!country) {
+                  country = countries.find(c =>
+                    c.name.toLowerCase().includes(geoName.toLowerCase()) ||
+                    geoName.toLowerCase().includes(c.name.toLowerCase())
+                  );
+                }
+
                 const isSelected = selectedCountry === country?.code;
                 const countryColor = getCountryColor(geoName);
 
@@ -128,6 +128,8 @@ export default function WorldMap({ onCountryClick, selectedCountry, onBackground
                       e.stopPropagation();
                       if (country) {
                         onCountryClick(country.code);
+                      } else {
+                        console.log('No match found for:', geoName);
                       }
                     }}
                     onMouseEnter={(evt) => {
