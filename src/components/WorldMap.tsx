@@ -6,18 +6,18 @@ import countries from '@/lib/countries';
 
 const geoUrl = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
 
-// Color palette for countries
+// Color palette for countries (no blue colors to avoid blending with ocean)
 const COUNTRY_COLORS = [
   '#FCA5A5', // red-300
   '#FCD34D', // yellow-300
   '#86EFAC', // green-300
-  '#7DD3FC', // sky-300
   '#C4B5FD', // violet-300
   '#F9A8D4', // pink-300
   '#FDBA74', // orange-300
   '#6EE7B7', // emerald-300
-  '#93C5FD', // blue-300
   '#D8B4FE', // purple-300
+  '#FDE047', // yellow-400
+  '#FB923C', // orange-400
 ];
 
 // Generate consistent color for a country based on its name
