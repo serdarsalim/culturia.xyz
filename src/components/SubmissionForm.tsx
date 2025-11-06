@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { getCountryName, getCountryFlag } from '@/lib/countries';
 import { extractYouTubeVideoId, isValidYouTubeUrl } from '@/lib/youtube';
@@ -13,30 +13,104 @@ interface SubmissionFormProps {
   onAuthRequired?: () => void;
 }
 
+type SubmissionStatus = 'pending' | 'approved' | 'rejected' | null;
+
 type FormData = {
   [key in VideoCategory]: {
     url: string;
     title: string;
+    status: SubmissionStatus;
+    originalUrl: string; // Track original URL to detect changes
   };
 };
 
 export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuthRequired }: SubmissionFormProps) {
   const [formData, setFormData] = useState<FormData>({
-    inspiration: { url: '', title: '' },
-    music: { url: '', title: '' },
-    comedy: { url: '', title: '' },
-    cooking: { url: '', title: '' },
-    street_voices: { url: '', title: '' },
+    inspiration: { url: '', title: '', status: null, originalUrl: '' },
+    music: { url: '', title: '', status: null, originalUrl: '' },
+    comedy: { url: '', title: '', status: null, originalUrl: '' },
+    cooking: { url: '', title: '', status: null, originalUrl: '' },
+    street_voices: { url: '', title: '', status: null, originalUrl: '' },
   });
   const [loading, setLoading] = useState(false);
+  const [loadingSubmissions, setLoadingSubmissions] = useState(true);
   const [error, setError] = useState('');
   const [showGuidelines, setShowGuidelines] = useState(false);
 
+  // Fetch existing submissions for this country
+  useEffect(() => {
+    async function fetchExistingSubmissions() {
+      try {
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+        if (userError) {
+          console.error('Error getting user:', userError);
+          setLoadingSubmissions(false);
+          return;
+        }
+
+        if (!user) {
+          setLoadingSubmissions(false);
+          return;
+        }
+
+        const { data: submissions, error } = await supabase
+          .from('video_submissions')
+          .select('category, youtube_url, title, status')
+          .eq('country_code', countryCode)
+          .eq('user_id', user.id);
+
+        if (error) {
+          console.error('Error fetching submissions:', error);
+          setLoadingSubmissions(false);
+          return;
+        }
+
+        if (submissions && submissions.length > 0) {
+          const newFormData: FormData = {
+            inspiration: { url: '', title: '', status: null, originalUrl: '' },
+            music: { url: '', title: '', status: null, originalUrl: '' },
+            comedy: { url: '', title: '', status: null, originalUrl: '' },
+            cooking: { url: '', title: '', status: null, originalUrl: '' },
+            street_voices: { url: '', title: '', status: null, originalUrl: '' },
+          };
+
+          submissions.forEach((submission) => {
+            const category = submission.category as VideoCategory;
+            newFormData[category] = {
+              url: submission.youtube_url,
+              title: submission.title || '',
+              status: submission.status as SubmissionStatus,
+              originalUrl: submission.youtube_url,
+            };
+          });
+          setFormData(newFormData);
+        }
+      } catch (err) {
+        console.error('Error fetching submissions:', err);
+      } finally {
+        setLoadingSubmissions(false);
+      }
+    }
+
+    fetchExistingSubmissions();
+  }, [countryCode]);
+
   function handleUrlChange(category: VideoCategory, value: string) {
-    setFormData(prev => ({
-      ...prev,
-      [category]: { ...prev[category], url: value }
-    }));
+    setFormData(prev => {
+      const currentData = prev[category];
+      const urlChanged = value !== currentData.originalUrl;
+
+      return {
+        ...prev,
+        [category]: {
+          ...currentData,
+          url: value,
+          // Reset status to pending if URL changed from original
+          status: urlChanged && currentData.originalUrl ? 'pending' : currentData.status
+        }
+      };
+    });
   }
 
   function handleTitleChange(category: VideoCategory, value: string) {
@@ -83,9 +157,10 @@ export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuth
           const videoId = extractYouTubeVideoId(data.url);
           if (!videoId) continue;
 
+          // Use upsert to update existing or insert new
           await supabase
             .from('video_submissions')
-            .insert({
+            .upsert({
               country_code: countryCode,
               category: category as VideoCategory,
               youtube_url: data.url,
@@ -93,7 +168,9 @@ export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuth
               title: data.title,
               user_id: user.id,
               user_email: user.email!,
-              status: 'pending',
+              status: 'pending', // Always reset to pending on resubmission
+            }, {
+              onConflict: 'user_id,country_code,category'
             });
         }
       }
@@ -109,6 +186,33 @@ export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuth
 
   const categories: VideoCategory[] = ['inspiration', 'music', 'comedy', 'cooking', 'street_voices'];
 
+  function renderStatus(status: SubmissionStatus) {
+    if (!status) return null;
+
+    const statusConfig = {
+      pending: { text: 'Pending', bg: '#fef3c7', color: '#92400e' },
+      approved: { text: 'Approved', bg: '#d1fae5', color: '#065f46' },
+      rejected: { text: 'Rejected', bg: '#fee2e2', color: '#991b1b' }
+    };
+
+    const config = statusConfig[status];
+
+    return (
+      <div style={{
+        display: 'inline-block',
+        padding: '4px 10px',
+        borderRadius: '6px',
+        backgroundColor: config.bg,
+        color: config.color,
+        fontSize: '12px',
+        fontWeight: '600',
+        textAlign: 'center'
+      }}>
+        {config.text}
+      </div>
+    );
+  }
+
   return (
     <div style={{
       position: 'fixed',
@@ -123,7 +227,7 @@ export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuth
       <div style={{
         backgroundColor: '#ffffff',
         borderRadius: '16px',
-        maxWidth: '800px',
+        maxWidth: '920px',
         width: '100%',
         padding: '32px',
         position: 'relative',
@@ -227,13 +331,19 @@ export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuth
           </div>
         )}
 
-        {/* Form */}
+        {/* Loading State */}
+        {loadingSubmissions ? (
+          <div style={{ padding: '48px', textAlign: 'center' }}>
+            <p style={{ fontSize: '15px', color: '#6b7280' }}>Loading your submissions...</p>
+          </div>
+        ) : (
+        /* Form */
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '0 48px' }}>
 
           {/* Table Header */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: '140px 1.5fr 1.5fr',
+            gridTemplateColumns: '140px 1.5fr 1.5fr 100px',
             gap: '12px',
             padding: '0 4px',
             marginBottom: '8px'
@@ -241,6 +351,7 @@ export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuth
             <div style={{ fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>Category</div>
             <div style={{ fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>YouTube URL</div>
             <div style={{ fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>Title (Optional)</div>
+            <div style={{ fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>Status</div>
           </div>
 
           {/* Category Rows */}
@@ -249,7 +360,7 @@ export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuth
               key={category}
               style={{
                 display: 'grid',
-                gridTemplateColumns: '140px 1.5fr 1.5fr',
+                gridTemplateColumns: '140px 1.5fr 1.5fr 100px',
                 gap: '12px',
                 alignItems: 'center'
               }}
@@ -296,6 +407,15 @@ export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuth
                   outline: 'none'
                 }}
               />
+
+              {/* Status */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                {renderStatus(formData[category].status)}
+              </div>
             </div>
           ))}
 
@@ -346,6 +466,7 @@ export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuth
             </button>
           </div>
         </form>
+        )}
       </div>
     </div>
   );
