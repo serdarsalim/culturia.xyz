@@ -18,10 +18,10 @@ export default function AdminNav({ pendingCount = 0, adminEmail }: AdminNavProps
   }
 
   const navItems = [
-    { href: '/admin/dashboard', label: 'Dashboard', icon: '📊', badge: null },
-    { href: '/admin/pending', label: 'Pending', icon: '⏳', badge: pendingCount > 0 ? pendingCount : null },
-    { href: '/admin/all', label: 'All Submissions', icon: '📹', badge: null },
-    { href: '/admin/rejected', label: 'Rejected', icon: '❌', badge: null },
+    { href: '/admin/dashboard', label: 'Dashboard', icon: '📊', showDot: false },
+    { href: '/admin/pending', label: 'Pending', icon: '⏳', showDot: pendingCount > 0 },
+    { href: '/admin/all', label: 'All Submissions', icon: '📹', showDot: false },
+    { href: '/admin/rejected', label: 'Rejected', icon: '❌', showDot: false },
   ];
 
   return (
@@ -105,17 +105,14 @@ export default function AdminNav({ pendingCount = 0, adminEmail }: AdminNavProps
                 <span style={{ fontSize: '20px' }}>{item.icon}</span>
                 <span style={{ fontWeight: '500' }}>{item.label}</span>
               </div>
-              {item.badge !== null && (
-                <span style={{
-                  padding: '4px 8px',
-                  fontSize: '12px',
-                  fontWeight: 'bold',
-                  borderRadius: '999px',
+              {item.showDot && (
+                <div style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
                   background: isActive ? 'white' : '#f59e0b',
-                  color: isActive ? '#ea580c' : 'white',
-                }}>
-                  {item.badge}
-                </span>
+                  boxShadow: isActive ? 'none' : '0 0 8px rgba(245, 158, 11, 0.6)',
+                }} />
               )}
             </a>
           );
