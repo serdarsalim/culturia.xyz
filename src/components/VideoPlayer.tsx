@@ -222,7 +222,7 @@ export default function VideoPlayer({ video, category, onClose, onNext }: VideoP
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 60,
+        zIndex: 120,
         backgroundColor: 'rgba(0, 0, 0, 0.95)',
         display: 'flex',
         alignItems: 'center',
