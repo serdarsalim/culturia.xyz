@@ -34,16 +34,30 @@ export default function Home() {
     cooking: 0,
     street_voices: 0,
   });
+  const [mapFilter, setMapFilter] = useState<'all' | 'favorites' | 'mine'>('all');
 
   // Set of countries that currently have at least one approved video
   const countriesWithVideos = useMemo(() => {
-    if (!videoCacheReady) return new Set<string>();
     const set = new Set<string>();
-    for (const v of videoCache) {
-      if (v.country_code) set.add(v.country_code);
+
+    if (mapFilter === 'all') {
+      if (videoCacheReady) {
+        for (const v of videoCache) {
+          if (v.country_code) set.add(v.country_code);
+        }
+      }
+    } else if (mapFilter === 'favorites' && profileData) {
+      for (const fav of profileData.favorites) {
+        if (fav.video?.country_code) set.add(fav.video.country_code);
+      }
+    } else if (mapFilter === 'mine' && profileData) {
+      for (const sub of profileData.submissions) {
+        if (sub.country_code) set.add(sub.country_code);
+      }
     }
+
     return set;
-  }, [videoCache, videoCacheReady]);
+  }, [mapFilter, videoCache, videoCacheReady, profileData]);
 
   // Detect mobile screen size
   useEffect(() => {
@@ -551,6 +565,45 @@ export default function Home() {
                 </div>
               )}
               <div style={{ marginTop: isMobile ? '12px' : '0' }}>
+                {/* Map Filter Controls */}
+                <div style={{
+                  display: 'flex',
+                  gap: '8px',
+                  alignItems: 'center',
+                  marginBottom: isMobile ? '6px' : '8px',
+                  flexWrap: 'wrap'
+                }}>
+                  <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: 600 }}>Map:</span>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#374151' }}>
+                    <input
+                      type="radio"
+                      name="mapFilter"
+                      checked={mapFilter === 'all'}
+                      onChange={() => setMapFilter('all')}
+                    />
+                    All Videos
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: profileData ? '#374151' : '#9ca3af' }}>
+                    <input
+                      type="radio"
+                      name="mapFilter"
+                      checked={mapFilter === 'favorites'}
+                      onChange={() => profileData && setMapFilter('favorites')}
+                      disabled={!profileData}
+                    />
+                    Only Favorites
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: profileData ? '#374151' : '#9ca3af' }}>
+                    <input
+                      type="radio"
+                      name="mapFilter"
+                      checked={mapFilter === 'mine'}
+                      onChange={() => profileData && setMapFilter('mine')}
+                      disabled={!profileData}
+                    />
+                    My Submissions
+                  </label>
+                </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '8px' : '12px' }}>
                   <button
                     onClick={() => handleCategoryClick('inspiration')}
