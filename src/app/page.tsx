@@ -816,7 +816,6 @@ export default function Home() {
           onClose={() => setShowProfileModal(false)}
           onPlayVideo={(video, category) => {
             setCurrentVideo({ video, category });
-            setShowProfileModal(false);
           }}
           onEditSubmission={handleEditSubmission}
           initialData={profileData}
