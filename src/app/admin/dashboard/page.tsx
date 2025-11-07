@@ -1,320 +1,251 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { getCountryName, getCountryFlag } from '@/lib/countries';
-import { CATEGORY_LABELS, type VideoSubmission, type VideoCategory } from '@/types';
-import { getYouTubeThumbnail, getYouTubeWatchUrl } from '@/lib/youtube';
+import { CATEGORY_LABELS, type VideoCategory } from '@/types';
+import AdminLayout from '@/components/AdminLayout';
+
+interface Stats {
+  total: number;
+  pending: number;
+  approved: number;
+  rejected: number;
+  flagged: number;
+  byCountry: Array<{ country_code: string; count: number }>;
+  byCategory: Record<VideoCategory, number>;
+}
 
 export default function AdminDashboard() {
-  const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [submissions, setSubmissions] = useState<VideoSubmission[]>([]);
-  const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected' | 'flagged'>('pending');
-  const [adminUser, setAdminUser] = useState<any>(null);
+  const [stats, setStats] = useState<Stats>({
+    total: 0,
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+    flagged: 0,
+    byCountry: [],
+    byCategory: {
+      inspiration: 0,
+      music: 0,
+      comedy: 0,
+      cooking: 0,
+      street_voices: 0,
+    },
+  });
 
   useEffect(() => {
-    async function checkAuth() {
-      const { data: { session } } = await supabase.auth.getSession();
+    fetchStats();
+  }, []);
 
-      if (!session) {
-        router.push('/admin');
-        return;
-      }
-
-      const { data: admin } = await supabase
-        .from('admin_users')
-        .select('*')
-        .eq('id', session.user.id)
-        .single();
-
-      if (!admin) {
-        await supabase.auth.signOut();
-        router.push('/admin');
-        return;
-      }
-
-      setAdminUser(admin);
-      fetchSubmissions();
-    }
-
-    checkAuth();
-  }, [router, filter]);
-
-  async function fetchSubmissions() {
+  async function fetchStats() {
     setLoading(true);
     try {
-      let query = supabase
+      // Fetch all submissions
+      const { data: submissions, error } = await supabase
         .from('video_submissions')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (filter === 'flagged') {
-        query = query.eq('flagged', true);
-      } else if (filter !== 'all') {
-        query = query.eq('status', filter);
-      }
-
-      const { data, error } = await query;
+        .select('*');
 
       if (error) throw error;
 
-      setSubmissions(data || []);
+      const total = submissions?.length || 0;
+      const pending = submissions?.filter(s => s.status === 'pending').length || 0;
+      const approved = submissions?.filter(s => s.status === 'approved').length || 0;
+      const rejected = submissions?.filter(s => s.status === 'rejected').length || 0;
+      const flagged = submissions?.filter(s => s.flagged).length || 0;
+
+      // Count by country
+      const countryMap = new Map<string, number>();
+      submissions?.forEach(s => {
+        countryMap.set(s.country_code, (countryMap.get(s.country_code) || 0) + 1);
+      });
+
+      const byCountry = Array.from(countryMap.entries())
+        .map(([country_code, count]) => ({ country_code, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5);
+
+      // Count by category
+      const byCategory: Record<VideoCategory, number> = {
+        inspiration: 0,
+        music: 0,
+        comedy: 0,
+        cooking: 0,
+        street_voices: 0,
+      };
+
+      submissions?.forEach(s => {
+        if (s.category in byCategory) {
+          byCategory[s.category as VideoCategory]++;
+        }
+      });
+
+      setStats({
+        total,
+        pending,
+        approved,
+        rejected,
+        flagged,
+        byCountry,
+        byCategory,
+      });
     } catch (error) {
-      console.error('Error fetching submissions:', error);
+      console.error('Error fetching stats:', error);
     } finally {
       setLoading(false);
     }
   }
 
-  async function updateStatus(id: string, status: 'approved' | 'rejected' | 'pending') {
-    try {
-      const { error } = await supabase
-        .from('video_submissions')
-        .update({ status })
-        .eq('id', id);
+  const statCards = [
+    { label: 'Total Submissions', value: stats.total, icon: '📹', color: 'from-blue-500 to-blue-600' },
+    { label: 'Pending Review', value: stats.pending, icon: '⏳', color: 'from-yellow-500 to-yellow-600' },
+    { label: 'Approved', value: stats.approved, icon: '✅', color: 'from-green-500 to-green-600' },
+    { label: 'Rejected', value: stats.rejected, icon: '❌', color: 'from-red-500 to-red-600' },
+    { label: 'Flagged', value: stats.flagged, icon: '🚩', color: 'from-orange-500 to-orange-600' },
+  ];
 
-      if (error) throw error;
-
-      // Refresh submissions
-      fetchSubmissions();
-    } catch (error) {
-      console.error('Error updating status:', error);
-      alert('Failed to update status');
-    }
-  }
-
-  async function deleteSubmission(id: string) {
-    if (!confirm('Are you sure you want to delete this submission?')) return;
-
-    try {
-      const { error } = await supabase
-        .from('video_submissions')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
-      fetchSubmissions();
-    } catch (error) {
-      console.error('Error deleting submission:', error);
-      alert('Failed to delete submission');
-    }
-  }
-
-  async function handleSignOut() {
-    await supabase.auth.signOut();
-    router.push('/admin');
-  }
-
-  if (!adminUser) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
+  const categoryIcons: Record<VideoCategory, string> = {
+    inspiration: '✨',
+    music: '🎵',
+    comedy: '😂',
+    cooking: '🍳',
+    street_voices: '🗣️',
+  };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-                <span className="text-white text-xl font-bold">C</span>
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">CULTURIA Admin</h1>
-                <p className="text-sm text-gray-600">{adminUser.email}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <a
-                href="/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-gray-600 hover:text-gray-900"
-              >
-                View Site
-              </a>
-              <button
-                onClick={handleSignOut}
-                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
-              >
-                Sign Out
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Filters */}
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-medium text-gray-700">Filter:</span>
-            {[
-              { value: 'all', label: 'All' },
-              { value: 'pending', label: 'Pending' },
-              { value: 'approved', label: 'Approved' },
-              { value: 'rejected', label: 'Rejected' },
-              { value: 'flagged', label: 'Flagged' },
-            ].map((option) => (
-              <button
-                key={option.value}
-                onClick={() => setFilter(option.value as any)}
-                className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
-                  filter === option.value
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
+    <AdminLayout>
+      <div className="p-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
+          <p className="text-zinc-400">Overview of all submissions and statistics</p>
         </div>
 
-        {/* Submissions List */}
-        <div className="space-y-4">
-          {loading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Loading submissions...</p>
-            </div>
-          ) : submissions.length === 0 ? (
-            <div className="bg-white rounded-lg shadow p-8 text-center">
-              <p className="text-gray-600">No submissions found</p>
-            </div>
-          ) : (
-            submissions.map((submission) => (
-              <div key={submission.id} className="bg-white rounded-lg shadow p-6">
-                <div className="flex gap-6">
-                  {/* Thumbnail */}
-                  <div className="flex-shrink-0">
-                    <img
-                      src={getYouTubeThumbnail(submission.youtube_video_id)}
-                      alt="Video thumbnail"
-                      className="w-48 h-27 object-cover rounded-lg"
-                    />
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto"></div>
+            <p className="mt-4 text-zinc-400">Loading statistics...</p>
+          </div>
+        ) : (
+          <>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+              {statCards.map((card) => (
+                <div
+                  key={card.label}
+                  className={`bg-gradient-to-br ${card.color} rounded-xl p-6 shadow-lg`}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-4xl">{card.icon}</span>
+                    <span className="text-3xl font-bold text-white">{card.value}</span>
                   </div>
+                  <h3 className="text-white font-semibold text-sm">{card.label}</h3>
+                </div>
+              ))}
+            </div>
 
-                  {/* Details */}
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-2xl">{getCountryFlag(submission.country_code)}</span>
-                          <span className="font-semibold text-lg">{getCountryName(submission.country_code)}</span>
-                          <span className="text-gray-400">•</span>
-                          <span className="text-gray-600">{CATEGORY_LABELS[submission.category as VideoCategory]}</span>
-                        </div>
-
-                        {submission.title && (
-                          <p className="text-gray-700 mb-2">{submission.title}</p>
-                        )}
-
-                        <p className="text-sm text-gray-500">
-                          Submitted by: {submission.user_email}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {new Date(submission.created_at).toLocaleDateString()}
-                        </p>
+            {/* Country and Category Stats */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Top Countries */}
+              <div className="bg-zinc-900 rounded-xl p-6 shadow-lg border border-zinc-800">
+                <h2 className="text-xl font-bold text-white mb-6">Top 5 Countries</h2>
+                <div className="space-y-4">
+                  {stats.byCountry.map((item, idx) => (
+                    <div key={item.country_code} className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl font-bold text-amber-500">#{idx + 1}</span>
+                        <span className="text-3xl">{getCountryFlag(item.country_code)}</span>
+                        <span className="text-white font-medium">{getCountryName(item.country_code)}</span>
                       </div>
-
-                      {/* Status Badge */}
-                      <div className="flex items-center gap-2">
-                        {submission.flagged && (
-                          <span className="px-3 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded-full">
-                            Flagged ({submission.flag_count})
-                          </span>
-                        )}
-                        <span
-                          className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                            submission.status === 'approved'
-                              ? 'bg-green-100 text-green-800'
-                              : submission.status === 'rejected'
-                              ? 'bg-red-100 text-red-800'
-                              : 'bg-yellow-100 text-yellow-800'
-                          }`}
-                        >
-                          {submission.status.toUpperCase()}
-                        </span>
-                      </div>
+                      <span className="text-2xl font-bold text-zinc-400">{item.count}</span>
                     </div>
-
-                    {/* Flag Reasons */}
-                    {submission.flagged && submission.flag_reasons.length > 0 && (
-                      <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                        <p className="text-sm font-semibold text-red-900 mb-1">Flag Reasons:</p>
-                        <ul className="text-sm text-red-800 space-y-1">
-                          {submission.flag_reasons.map((reason, idx) => (
-                            <li key={idx}>• {reason}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-3">
-                      <a
-                        href={getYouTubeWatchUrl(submission.youtube_video_id)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
-                      >
-                        Watch on YouTube
-                      </a>
-
-                      {submission.status !== 'approved' && (
-                        <button
-                          onClick={() => updateStatus(submission.id, 'approved')}
-                          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
-                        >
-                          Approve
-                        </button>
-                      )}
-
-                      {submission.status !== 'rejected' && (
-                        <button
-                          onClick={() => updateStatus(submission.id, 'rejected')}
-                          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
-                        >
-                          Reject
-                        </button>
-                      )}
-
-                      {submission.status !== 'pending' && (
-                        <button
-                          onClick={() => updateStatus(submission.id, 'pending')}
-                          className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors text-sm font-medium"
-                        >
-                          Mark Pending
-                        </button>
-                      )}
-
-                      <button
-                        onClick={() => deleteSubmission(submission.id)}
-                        className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
+                  ))}
+                  {stats.byCountry.length === 0 && (
+                    <p className="text-center text-zinc-500 py-8">No submissions yet</p>
+                  )}
                 </div>
               </div>
-            ))
-          )}
-        </div>
-      </main>
-    </div>
+
+              {/* Category Distribution */}
+              <div className="bg-zinc-900 rounded-xl p-6 shadow-lg border border-zinc-800">
+                <h2 className="text-xl font-bold text-white mb-6">Submissions by Category</h2>
+                <div className="space-y-4">
+                  {Object.entries(stats.byCategory).map(([category, count]) => (
+                    <div key={category} className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{categoryIcons[category as VideoCategory]}</span>
+                        <span className="text-white font-medium">
+                          {CATEGORY_LABELS[category as VideoCategory]}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-32 h-2 bg-zinc-800 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-amber-500 to-orange-600 rounded-full transition-all"
+                            style={{ width: `${stats.total > 0 ? (count / stats.total) * 100 : 0}%` }}
+                          />
+                        </div>
+                        <span className="text-xl font-bold text-zinc-400 w-8 text-right">{count}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+              <a
+                href="/admin/pending"
+                className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 hover:border-amber-500 transition-all group"
+              >
+                <div className="flex items-center gap-4 mb-3">
+                  <span className="text-4xl">⏳</span>
+                  <div>
+                    <h3 className="text-white font-bold text-lg group-hover:text-amber-500 transition-colors">
+                      Review Pending
+                    </h3>
+                    <p className="text-zinc-400 text-sm">Moderate pending submissions</p>
+                  </div>
+                </div>
+                <p className="text-2xl font-bold text-amber-500">{stats.pending} pending</p>
+              </a>
+
+              <a
+                href="/admin/all"
+                className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 hover:border-amber-500 transition-all group"
+              >
+                <div className="flex items-center gap-4 mb-3">
+                  <span className="text-4xl">📹</span>
+                  <div>
+                    <h3 className="text-white font-bold text-lg group-hover:text-amber-500 transition-colors">
+                      View All
+                    </h3>
+                    <p className="text-zinc-400 text-sm">Browse all submissions</p>
+                  </div>
+                </div>
+                <p className="text-2xl font-bold text-amber-500">{stats.total} total</p>
+              </a>
+
+              <a
+                href="/admin/rejected"
+                className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 hover:border-amber-500 transition-all group"
+              >
+                <div className="flex items-center gap-4 mb-3">
+                  <span className="text-4xl">❌</span>
+                  <div>
+                    <h3 className="text-white font-bold text-lg group-hover:text-amber-500 transition-colors">
+                      Rejected
+                    </h3>
+                    <p className="text-zinc-400 text-sm">Review rejected videos</p>
+                  </div>
+                </div>
+                <p className="text-2xl font-bold text-amber-500">{stats.rejected} rejected</p>
+              </a>
+            </div>
+          </>
+        )}
+      </div>
+    </AdminLayout>
   );
 }
