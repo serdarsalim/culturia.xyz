@@ -340,11 +340,11 @@ export default function ProfileModal({ onClose, onPlayVideo, onEditSubmission, i
                         <span style={{ fontWeight: '600', color: '#000000' }}>{getCountryName(video.country_code)}</span>
                         <span style={{ color: '#9ca3af' }}>•</span>
                         <span style={{ fontSize: '14px', color: '#6b7280' }}>{CATEGORY_LABELS[video.category as VideoCategory]}</span>
+                        {renderStatusBadge(video.status)}
                       </div>
                       {video.title && (
                         <p style={{ fontSize: '14px', color: '#374151', marginBottom: '8px' }}>{video.title}</p>
                       )}
-                      {renderStatusBadge(video.status)}
                     </div>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <button
