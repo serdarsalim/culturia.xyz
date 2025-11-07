@@ -73,37 +73,112 @@ export default function AdminLogin() {
 
   if (checking) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-zinc-700 border-t-amber-500 mx-auto"></div>
-          <p className="mt-6 text-zinc-400 text-lg">Checking authentication...</p>
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'linear-gradient(135deg, #09090b 0%, #18181b 50%, #09090b 100%)',
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            width: '64px',
+            height: '64px',
+            border: '4px solid #3f3f46',
+            borderTopColor: '#f59e0b',
+            borderRadius: '50%',
+            margin: '0 auto',
+            animation: 'spin 1s linear infinite',
+          }}></div>
+          <p style={{ marginTop: '24px', color: '#a1a1aa', fontSize: '18px' }}>Checking authentication...</p>
         </div>
+        <style jsx>{`
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 px-4">
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'linear-gradient(135deg, #09090b 0%, #18181b 50%, #09090b 100%)',
+      padding: '0 16px',
+      position: 'relative',
+    }}>
       {/* Animated background pattern */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-amber-500/5 to-transparent rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-orange-500/5 to-transparent rounded-full blur-3xl"></div>
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        overflow: 'hidden',
+        pointerEvents: 'none',
+      }}>
+        <div style={{
+          position: 'absolute',
+          top: '-50%',
+          left: '-50%',
+          width: '100%',
+          height: '100%',
+          background: 'radial-gradient(circle, rgba(245, 158, 11, 0.05) 0%, transparent 70%)',
+          filter: 'blur(80px)',
+        }}></div>
+        <div style={{
+          position: 'absolute',
+          bottom: '-50%',
+          right: '-50%',
+          width: '100%',
+          height: '100%',
+          background: 'radial-gradient(circle, rgba(249, 115, 22, 0.05) 0%, transparent 70%)',
+          filter: 'blur(80px)',
+        }}></div>
       </div>
 
-      <div className="relative bg-zinc-900 border border-zinc-800 p-10 rounded-2xl shadow-2xl max-w-md w-full backdrop-blur-sm">
+      <div style={{
+        position: 'relative',
+        background: '#18181b',
+        border: '1px solid #27272a',
+        padding: '40px',
+        borderRadius: '16px',
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+        maxWidth: '448px',
+        width: '100%',
+      }}>
         {/* Header */}
-        <div className="text-center mb-10">
-          <div className="w-20 h-20 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-amber-500/20 transform hover:scale-105 transition-transform">
-            <span className="text-white text-3xl font-bold">C</span>
+        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+          <div style={{
+            width: '80px',
+            height: '80px',
+            background: 'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)',
+            borderRadius: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 24px',
+            boxShadow: '0 10px 25px -5px rgba(245, 158, 11, 0.2)',
+          }}>
+            <span style={{ color: 'white', fontSize: '32px', fontWeight: 'bold' }}>C</span>
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">CULTURIA Admin</h1>
-          <p className="text-zinc-400">Sign in to manage content</p>
+          <h1 style={{ fontSize: '30px', fontWeight: 'bold', color: 'white', marginBottom: '8px' }}>
+            CULTURIA Admin
+          </h1>
+          <p style={{ color: '#a1a1aa' }}>Sign in to manage content</p>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleLogin} className="space-y-6">
+        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <div>
-            <label htmlFor="email" className="block text-sm font-semibold text-zinc-300 mb-2">
+            <label htmlFor="email" style={{
+              display: 'block',
+              fontSize: '14px',
+              fontWeight: '600',
+              color: '#d4d4d8',
+              marginBottom: '8px',
+            }}>
               Email Address
             </label>
             <input
@@ -112,13 +187,28 @@ export default function AdminLogin() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                background: '#27272a',
+                border: '1px solid #3f3f46',
+                borderRadius: '12px',
+                color: 'white',
+                fontSize: '16px',
+                outline: 'none',
+              }}
               placeholder="admin@example.com"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-semibold text-zinc-300 mb-2">
+            <label htmlFor="password" style={{
+              display: 'block',
+              fontSize: '14px',
+              fontWeight: '600',
+              color: '#d4d4d8',
+              marginBottom: '8px',
+            }}>
               Password
             </label>
             <input
@@ -127,15 +217,35 @@ export default function AdminLogin() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                background: '#27272a',
+                border: '1px solid #3f3f46',
+                borderRadius: '12px',
+                color: 'white',
+                fontSize: '16px',
+                outline: 'none',
+              }}
               placeholder="••••••••"
             />
           </div>
 
           {error && (
-            <div className="p-4 bg-red-500/10 border border-red-500/50 rounded-xl backdrop-blur-sm">
-              <p className="text-sm text-red-400 flex items-center gap-2">
-                <span className="text-lg">⚠️</span>
+            <div style={{
+              padding: '16px',
+              background: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid rgba(239, 68, 68, 0.5)',
+              borderRadius: '12px',
+            }}>
+              <p style={{
+                fontSize: '14px',
+                color: '#f87171',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}>
+                <span style={{ fontSize: '18px' }}>⚠️</span>
                 {error}
               </p>
             </div>
@@ -144,34 +254,57 @@ export default function AdminLogin() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full px-6 py-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold rounded-xl hover:from-amber-600 hover:to-orange-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-amber-500/20 transform hover:scale-[1.02] active:scale-[0.98]"
+            style={{
+              width: '100%',
+              padding: '16px 24px',
+              background: 'linear-gradient(90deg, #f59e0b 0%, #ea580c 100%)',
+              color: 'white',
+              fontWeight: 'bold',
+              fontSize: '16px',
+              borderRadius: '12px',
+              border: 'none',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.5 : 1,
+              boxShadow: '0 10px 25px -5px rgba(245, 158, 11, 0.2)',
+            }}
           >
             {loading ? (
-              <span className="flex items-center justify-center gap-2">
-                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                <svg style={{ animation: 'spin 1s linear infinite', width: '20px', height: '20px' }} viewBox="0 0 24 24">
+                  <circle style={{ opacity: 0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                  <path style={{ opacity: 0.75 }} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
                 Signing in...
               </span>
             ) : (
-              <span className="flex items-center justify-center gap-2">
-                🔐 Sign In
-              </span>
+              '🔐 Sign In'
             )}
           </button>
         </form>
 
-        <div className="mt-8 text-center">
+        <div style={{ marginTop: '32px', textAlign: 'center' }}>
           <a
             href="/"
-            className="text-sm text-zinc-400 hover:text-amber-500 transition-colors inline-flex items-center gap-2 group"
+            style={{
+              fontSize: '14px',
+              color: '#a1a1aa',
+              textDecoration: 'none',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}
           >
-            <span className="transform group-hover:-translate-x-1 transition-transform">←</span>
+            <span>←</span>
             Back to Home
           </a>
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }
