@@ -141,6 +141,32 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, message: 'User unsuspended' });
     }
 
+    if (action === 'reject_all_videos') {
+      // Reject all submissions from this user
+      const { data, error } = await supabaseAdmin
+        .from('video_submissions')
+        .update({ status: 'rejected' })
+        .eq('user_id', userId)
+        .select();
+
+      if (error) throw error;
+
+      return NextResponse.json({ success: true, message: 'All videos rejected', count: data?.length || 0 });
+    }
+
+    if (action === 'approve_all_videos') {
+      // Approve all submissions from this user
+      const { data, error } = await supabaseAdmin
+        .from('video_submissions')
+        .update({ status: 'approved' })
+        .eq('user_id', userId)
+        .select();
+
+      if (error) throw error;
+
+      return NextResponse.json({ success: true, message: 'All videos approved', count: data?.length || 0 });
+    }
+
     if (action === 'delete') {
       // First delete all their submissions
       const { error: submissionsError } = await supabaseAdmin

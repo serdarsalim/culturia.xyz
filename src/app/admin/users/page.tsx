@@ -111,6 +111,74 @@ export default function UsersPage() {
     }
   }
 
+  async function rejectAllVideos(userId: string, email: string, submissionCount: number) {
+    if (submissionCount === 0) {
+      showToast('User has no submissions to reject', 'error');
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to reject ALL ${submissionCount} video(s) from ${email}?\n\nThis will:\n- Mark all their submissions as rejected\n- Remove all approved videos from the site\n- Move pending videos to rejected\n\nYou can re-approve videos individually later if needed.`)) {
+      return;
+    }
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const response = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action: 'reject_all_videos', userId, email }),
+      });
+
+      if (!response.ok) throw new Error('Failed to reject videos');
+
+      const result = await response.json();
+      showToast(`Rejected ${result.count || submissionCount} video(s) successfully`, 'success');
+      fetchUsers();
+    } catch (error) {
+      console.error('Error rejecting videos:', error);
+      showToast('Failed to reject videos', 'error');
+    }
+  }
+
+  async function approveAllVideos(userId: string, email: string, submissionCount: number) {
+    if (submissionCount === 0) {
+      showToast('User has no submissions to approve', 'error');
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to approve ALL ${submissionCount} video(s) from ${email}?\n\nThis will:\n- Mark all their submissions as approved\n- Publish all videos to the site\n- Override any rejected videos\n\n⚠️ Make sure you trust this user!`)) {
+      return;
+    }
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const response = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action: 'approve_all_videos', userId, email }),
+      });
+
+      if (!response.ok) throw new Error('Failed to approve videos');
+
+      const result = await response.json();
+      showToast(`Approved ${result.count || submissionCount} video(s) successfully`, 'success');
+      fetchUsers();
+    } catch (error) {
+      console.error('Error approving videos:', error);
+      showToast('Failed to approve videos', 'error');
+    }
+  }
+
   async function deleteUser(userId: string, email: string) {
     if (!confirm(`⚠️ WARNING: Are you sure you want to permanently delete ${email}?\n\nThis will delete:\n- Their account\n- All their submissions\n- All their data\n\nThis action CANNOT be undone!`)) {
       return;
@@ -415,6 +483,46 @@ export default function UsersPage() {
                         >
                           Suspend
                         </button>
+                      )}
+                      {user.submission_count > 0 && (
+                        <>
+                          <button
+                            onClick={() => approveAllVideos(user.id, user.email, user.submission_count || 0)}
+                            style={{
+                              padding: '6px 12px',
+                              background: '#16a34a',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '6px',
+                              fontSize: '12px',
+                              fontWeight: '500',
+                              cursor: 'pointer',
+                              transition: 'background 0.2s',
+                            }}
+                            onMouseOver={(e) => e.currentTarget.style.background = '#15803d'}
+                            onMouseOut={(e) => e.currentTarget.style.background = '#16a34a'}
+                          >
+                            Approve All
+                          </button>
+                          <button
+                            onClick={() => rejectAllVideos(user.id, user.email, user.submission_count || 0)}
+                            style={{
+                              padding: '6px 12px',
+                              background: '#ea580c',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '6px',
+                              fontSize: '12px',
+                              fontWeight: '500',
+                              cursor: 'pointer',
+                              transition: 'background 0.2s',
+                            }}
+                            onMouseOver={(e) => e.currentTarget.style.background = '#c2410c'}
+                            onMouseOut={(e) => e.currentTarget.style.background = '#ea580c'}
+                          >
+                            Reject All
+                          </button>
+                        </>
                       )}
                       <button
                         onClick={() => deleteUser(user.id, user.email)}
