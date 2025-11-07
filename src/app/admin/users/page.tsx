@@ -375,63 +375,67 @@ export default function UsersPage() {
                     <span style={{ fontSize: '12px', color: '#71717a', fontStyle: 'italic' }}>
                       Protected
                     </span>
-                  ) : user.banned_until ? (
-                    <button
-                      onClick={() => unsuspendUser(user.id, user.email)}
-                      style={{
-                        padding: '6px 12px',
-                        background: '#22c55e',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '6px',
-                        fontSize: '12px',
-                        fontWeight: '500',
-                        cursor: 'pointer',
-                        transition: 'background 0.2s',
-                      }}
-                      onMouseOver={(e) => e.currentTarget.style.background = '#16a34a'}
-                      onMouseOut={(e) => e.currentTarget.style.background = '#22c55e'}
-                    >
-                      Unsuspend
-                    </button>
                   ) : (
-                    <button
-                      onClick={() => suspendUser(user.id, user.email)}
-                      style={{
-                        padding: '6px 12px',
-                        background: '#ca8a04',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '6px',
-                        fontSize: '12px',
-                        fontWeight: '500',
-                        cursor: 'pointer',
-                        transition: 'background 0.2s',
-                      }}
-                      onMouseOver={(e) => e.currentTarget.style.background = '#a16207'}
-                      onMouseOut={(e) => e.currentTarget.style.background = '#ca8a04'}
-                    >
-                      Suspend
-                    </button>
+                    <>
+                      {user.banned_until ? (
+                        <button
+                          onClick={() => unsuspendUser(user.id, user.email)}
+                          style={{
+                            padding: '6px 12px',
+                            background: '#22c55e',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            fontSize: '12px',
+                            fontWeight: '500',
+                            cursor: 'pointer',
+                            transition: 'background 0.2s',
+                          }}
+                          onMouseOver={(e) => e.currentTarget.style.background = '#16a34a'}
+                          onMouseOut={(e) => e.currentTarget.style.background = '#22c55e'}
+                        >
+                          Unsuspend
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => suspendUser(user.id, user.email)}
+                          style={{
+                            padding: '6px 12px',
+                            background: '#ca8a04',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            fontSize: '12px',
+                            fontWeight: '500',
+                            cursor: 'pointer',
+                            transition: 'background 0.2s',
+                          }}
+                          onMouseOver={(e) => e.currentTarget.style.background = '#a16207'}
+                          onMouseOut={(e) => e.currentTarget.style.background = '#ca8a04'}
+                        >
+                          Suspend
+                        </button>
+                      )}
+                      <button
+                        onClick={() => deleteUser(user.id, user.email)}
+                        style={{
+                          padding: '6px 12px',
+                          background: '#dc2626',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '6px',
+                          fontSize: '12px',
+                          fontWeight: '500',
+                          cursor: 'pointer',
+                          transition: 'background 0.2s',
+                        }}
+                        onMouseOver={(e) => e.currentTarget.style.background = '#b91c1c'}
+                        onMouseOut={(e) => e.currentTarget.style.background = '#dc2626'}
+                      >
+                        Delete
+                      </button>
+                    </>
                   )}
-                  <button
-                    onClick={() => deleteUser(user.id, user.email)}
-                    style={{
-                      padding: '6px 12px',
-                      background: '#dc2626',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '6px',
-                      fontSize: '12px',
-                      fontWeight: '500',
-                      cursor: 'pointer',
-                      transition: 'background 0.2s',
-                    }}
-                    onMouseOver={(e) => e.currentTarget.style.background = '#b91c1c'}
-                    onMouseOut={(e) => e.currentTarget.style.background = '#dc2626'}
-                  >
-                    Delete
-                  </button>
                 </div>
               </div>
             ))}
