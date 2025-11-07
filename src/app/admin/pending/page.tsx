@@ -139,7 +139,7 @@ export default function PendingSubmissions() {
                 <div style={{ padding: '24px' }}>
                   <div style={{ display: 'flex', gap: '24px' }}>
                     {/* Thumbnail */}
-                    <div style={{ flexShrink: 0 }}>
+                    <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column' }}>
                       <img
                         src={getYouTubeThumbnail(submission.youtube_video_id)}
                         alt="Video thumbnail"
