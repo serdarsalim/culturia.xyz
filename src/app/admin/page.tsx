@@ -73,32 +73,38 @@ export default function AdminLogin() {
 
   if (checking) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Checking authentication...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-zinc-700 border-t-amber-500 mx-auto"></div>
+          <p className="mt-6 text-zinc-400 text-lg">Checking authentication...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 px-4">
+      {/* Animated background pattern */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-amber-500/5 to-transparent rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-orange-500/5 to-transparent rounded-full blur-3xl"></div>
+      </div>
+
+      <div className="relative bg-zinc-900 border border-zinc-800 p-10 rounded-2xl shadow-2xl max-w-md w-full backdrop-blur-sm">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-white text-2xl font-bold">C</span>
+        <div className="text-center mb-10">
+          <div className="w-20 h-20 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-amber-500/20 transform hover:scale-105 transition-transform">
+            <span className="text-white text-3xl font-bold">C</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">CULTURIA Admin</h1>
-          <p className="text-gray-600 mt-2">Sign in to manage content</p>
+          <h1 className="text-3xl font-bold text-white mb-2">CULTURIA Admin</h1>
+          <p className="text-zinc-400">Sign in to manage content</p>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleLogin} className="space-y-6">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              Email
+            <label htmlFor="email" className="block text-sm font-semibold text-zinc-300 mb-2">
+              Email Address
             </label>
             <input
               id="email"
@@ -106,13 +112,13 @@ export default function AdminLogin() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
               placeholder="admin@example.com"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="password" className="block text-sm font-semibold text-zinc-300 mb-2">
               Password
             </label>
             <input
@@ -121,29 +127,48 @@ export default function AdminLogin() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
               placeholder="••••••••"
             />
           </div>
 
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-600">{error}</p>
+            <div className="p-4 bg-red-500/10 border border-red-500/50 rounded-xl backdrop-blur-sm">
+              <p className="text-sm text-red-400 flex items-center gap-2">
+                <span className="text-lg">⚠️</span>
+                {error}
+              </p>
             </div>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full px-6 py-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold rounded-xl hover:from-amber-600 hover:to-orange-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-amber-500/20 transform hover:scale-[1.02] active:scale-[0.98]"
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Signing in...
+              </span>
+            ) : (
+              <span className="flex items-center justify-center gap-2">
+                🔐 Sign In
+              </span>
+            )}
           </button>
         </form>
 
-        <div className="mt-6 text-center">
-          <a href="/" className="text-sm text-blue-600 hover:text-blue-700">
-            ← Back to Home
+        <div className="mt-8 text-center">
+          <a
+            href="/"
+            className="text-sm text-zinc-400 hover:text-amber-500 transition-colors inline-flex items-center gap-2 group"
+          >
+            <span className="transform group-hover:-translate-x-1 transition-transform">←</span>
+            Back to Home
           </a>
         </div>
       </div>
