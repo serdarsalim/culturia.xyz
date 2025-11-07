@@ -131,32 +131,70 @@ export default function AllSubmissions() {
 
   return (
     <AdminLayout>
-      <div className="p-8">
+      <div style={{ padding: '32px' }}>
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">All Submissions</h1>
-          <p className="text-zinc-400">Browse and manage all video submissions</p>
+        <div style={{ marginBottom: '32px' }}>
+          <h1 style={{ fontSize: '30px', fontWeight: 'bold', color: 'white', marginBottom: '8px' }}>
+            All Submissions
+          </h1>
+          <p style={{ color: '#a1a1aa' }}>Browse and manage all video submissions</p>
         </div>
 
         {/* Toast */}
         {toast && (
-          <div className={`fixed top-4 right-4 z-50 px-6 py-4 rounded-lg shadow-lg ${
-            toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'
-          } text-white font-medium animate-slide-down`}>
+          <div style={{
+            position: 'fixed',
+            top: '16px',
+            right: '16px',
+            zIndex: 50,
+            padding: '16px 24px',
+            borderRadius: '8px',
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)',
+            background: toast.type === 'success' ? '#16a34a' : '#dc2626',
+            color: 'white',
+            fontWeight: '500',
+          }}>
             {toast.message}
           </div>
         )}
 
         {/* Filters */}
-        <div className="bg-zinc-900 rounded-xl p-6 mb-6 border border-zinc-800">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div style={{
+          background: '#18181b',
+          borderRadius: '12px',
+          padding: '24px',
+          marginBottom: '24px',
+          border: '1px solid #27272a',
+        }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '16px',
+          }}>
             {/* Status Filter */}
             <div>
-              <label className="block text-sm font-medium text-zinc-400 mb-2">Status</label>
+              <label style={{
+                display: 'block',
+                fontSize: '14px',
+                fontWeight: '500',
+                color: '#a1a1aa',
+                marginBottom: '8px',
+              }}>
+                Status
+              </label>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as any)}
-                className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                style={{
+                  width: '100%',
+                  padding: '8px 16px',
+                  background: '#27272a',
+                  border: '1px solid #3f3f46',
+                  borderRadius: '8px',
+                  color: 'white',
+                  fontSize: '14px',
+                  outline: 'none',
+                }}
               >
                 <option value="all">All Statuses</option>
                 <option value="pending">Pending</option>
@@ -167,11 +205,28 @@ export default function AllSubmissions() {
 
             {/* Category Filter */}
             <div>
-              <label className="block text-sm font-medium text-zinc-400 mb-2">Category</label>
+              <label style={{
+                display: 'block',
+                fontSize: '14px',
+                fontWeight: '500',
+                color: '#a1a1aa',
+                marginBottom: '8px',
+              }}>
+                Category
+              </label>
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value as any)}
-                className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                style={{
+                  width: '100%',
+                  padding: '8px 16px',
+                  background: '#27272a',
+                  border: '1px solid #3f3f46',
+                  borderRadius: '8px',
+                  color: 'white',
+                  fontSize: '14px',
+                  outline: 'none',
+                }}
               >
                 <option value="all">All Categories</option>
                 {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
@@ -184,11 +239,28 @@ export default function AllSubmissions() {
 
             {/* Country Filter */}
             <div>
-              <label className="block text-sm font-medium text-zinc-400 mb-2">Country</label>
+              <label style={{
+                display: 'block',
+                fontSize: '14px',
+                fontWeight: '500',
+                color: '#a1a1aa',
+                marginBottom: '8px',
+              }}>
+                Country
+              </label>
               <select
                 value={countryFilter}
                 onChange={(e) => setCountryFilter(e.target.value)}
-                className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                style={{
+                  width: '100%',
+                  padding: '8px 16px',
+                  background: '#27272a',
+                  border: '1px solid #3f3f46',
+                  borderRadius: '8px',
+                  color: 'white',
+                  fontSize: '14px',
+                  outline: 'none',
+                }}
               >
                 <option value="all">All Countries</option>
                 {uniqueCountries.map(code => (
@@ -201,69 +273,148 @@ export default function AllSubmissions() {
 
             {/* Search */}
             <div>
-              <label className="block text-sm font-medium text-zinc-400 mb-2">Search</label>
+              <label style={{
+                display: 'block',
+                fontSize: '14px',
+                fontWeight: '500',
+                color: '#a1a1aa',
+                marginBottom: '8px',
+              }}>
+                Search
+              </label>
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Title, URL, email..."
-                className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                style={{
+                  width: '100%',
+                  padding: '8px 16px',
+                  background: '#27272a',
+                  border: '1px solid #3f3f46',
+                  borderRadius: '8px',
+                  color: 'white',
+                  fontSize: '14px',
+                  outline: 'none',
+                }}
               />
             </div>
           </div>
 
           {/* Results count */}
-          <div className="mt-4 pt-4 border-t border-zinc-800 text-sm text-zinc-400">
-            Showing <span className="text-white font-semibold">{filteredSubmissions.length}</span> of{' '}
-            <span className="text-white font-semibold">{submissions.length}</span> submissions
+          <div style={{
+            marginTop: '16px',
+            paddingTop: '16px',
+            borderTop: '1px solid #27272a',
+            fontSize: '14px',
+            color: '#a1a1aa',
+          }}>
+            Showing <span style={{ color: 'white', fontWeight: '600' }}>{filteredSubmissions.length}</span> of{' '}
+            <span style={{ color: 'white', fontWeight: '600' }}>{submissions.length}</span> submissions
           </div>
         </div>
 
         {/* Submissions List */}
         {loading ? (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto"></div>
-            <p className="mt-4 text-zinc-400">Loading submissions...</p>
+          <div style={{ textAlign: 'center', padding: '48px 0' }}>
+            <div style={{
+              width: '48px',
+              height: '48px',
+              border: '2px solid #f59e0b',
+              borderTopColor: 'transparent',
+              borderRadius: '50%',
+              margin: '0 auto',
+              animation: 'spin 1s linear infinite',
+            }}></div>
+            <p style={{ marginTop: '16px', color: '#a1a1aa' }}>Loading submissions...</p>
+            <style jsx>{`
+              @keyframes spin {
+                to { transform: rotate(360deg); }
+              }
+            `}</style>
           </div>
         ) : filteredSubmissions.length === 0 ? (
-          <div className="bg-zinc-900 rounded-xl p-12 text-center border border-zinc-800">
-            <span className="text-6xl mb-4 block">🔍</span>
-            <p className="text-xl text-zinc-400">No submissions found</p>
-            <p className="text-zinc-500 mt-2">Try adjusting your filters</p>
+          <div style={{
+            background: '#18181b',
+            borderRadius: '12px',
+            padding: '48px',
+            textAlign: 'center',
+            border: '1px solid #27272a',
+          }}>
+            <span style={{ fontSize: '60px', display: 'block', marginBottom: '16px' }}>🔍</span>
+            <p style={{ fontSize: '20px', color: '#a1a1aa' }}>No submissions found</p>
+            <p style={{ color: '#71717a', marginTop: '8px' }}>Try adjusting your filters</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {filteredSubmissions.map((submission) => (
-              <div key={submission.id} className="bg-zinc-900 rounded-xl border border-zinc-800 p-5 hover:border-zinc-700 transition-colors">
-                <div className="flex gap-5">
+              <div key={submission.id} style={{
+                background: '#18181b',
+                borderRadius: '12px',
+                border: '1px solid #27272a',
+                padding: '20px',
+                transition: 'border-color 0.2s',
+              }}
+              onMouseOver={(e) => e.currentTarget.style.borderColor = '#3f3f46'}
+              onMouseOut={(e) => e.currentTarget.style.borderColor = '#27272a'}>
+                <div style={{ display: 'flex', gap: '20px' }}>
                   {/* Thumbnail */}
-                  <div className="flex-shrink-0">
+                  <div style={{ flexShrink: 0 }}>
                     <img
                       src={getYouTubeThumbnail(submission.youtube_video_id)}
                       alt="Video thumbnail"
-                      className="w-40 h-24 object-cover rounded-lg"
+                      style={{
+                        width: '160px',
+                        height: '96px',
+                        objectFit: 'cover',
+                        borderRadius: '8px',
+                      }}
                     />
                   </div>
 
                   {/* Details */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-2xl">{getCountryFlag(submission.country_code)}</span>
-                          <span className="font-semibold text-white">{getCountryName(submission.country_code)}</span>
-                          <span className="text-zinc-600">•</span>
-                          <span className="text-xl">{categoryIcons[submission.category as VideoCategory]}</span>
-                          <span className="text-zinc-300 text-sm">
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      justifyContent: 'space-between',
+                      gap: '16px',
+                    }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          marginBottom: '8px',
+                        }}>
+                          <span style={{ fontSize: '24px' }}>{getCountryFlag(submission.country_code)}</span>
+                          <span style={{ fontWeight: '600', color: 'white' }}>{getCountryName(submission.country_code)}</span>
+                          <span style={{ color: '#52525b' }}>•</span>
+                          <span style={{ fontSize: '20px' }}>{categoryIcons[submission.category as VideoCategory]}</span>
+                          <span style={{ color: '#d4d4d8', fontSize: '14px' }}>
                             {CATEGORY_LABELS[submission.category as VideoCategory]}
                           </span>
                         </div>
 
                         {submission.title && (
-                          <p className="text-white mb-2 truncate">{submission.title}</p>
+                          <p style={{
+                            color: 'white',
+                            marginBottom: '8px',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}>
+                            {submission.title}
+                          </p>
                         )}
 
-                        <div className="flex items-center gap-4 text-xs text-zinc-500">
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '16px',
+                          fontSize: '12px',
+                          color: '#71717a',
+                        }}>
                           <span>{submission.user_email}</span>
                           <span>•</span>
                           <span>{new Date(submission.created_at).toLocaleDateString()}</span>
@@ -271,24 +422,56 @@ export default function AllSubmissions() {
                       </div>
 
                       {/* Status Badge */}
-                      <span className={`px-3 py-1 text-xs font-semibold rounded-lg whitespace-nowrap ${
-                        submission.status === 'approved'
-                          ? 'bg-green-500/20 border border-green-500 text-green-500'
+                      <span style={{
+                        padding: '4px 12px',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        borderRadius: '8px',
+                        whiteSpace: 'nowrap',
+                        background: submission.status === 'approved'
+                          ? 'rgba(34, 197, 94, 0.2)'
                           : submission.status === 'rejected'
-                          ? 'bg-red-500/20 border border-red-500 text-red-500'
-                          : 'bg-yellow-500/20 border border-yellow-500 text-yellow-500'
-                      }`}>
+                          ? 'rgba(239, 68, 68, 0.2)'
+                          : 'rgba(234, 179, 8, 0.2)',
+                        border: submission.status === 'approved'
+                          ? '1px solid #22c55e'
+                          : submission.status === 'rejected'
+                          ? '1px solid #ef4444'
+                          : '1px solid #eab308',
+                        color: submission.status === 'approved'
+                          ? '#22c55e'
+                          : submission.status === 'rejected'
+                          ? '#ef4444'
+                          : '#eab308',
+                      }}>
                         {submission.status.toUpperCase()}
                       </span>
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-2 mt-3">
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      marginTop: '12px',
+                    }}>
                       <a
                         href={getYouTubeWatchUrl(submission.youtube_video_id)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="px-3 py-1.5 bg-zinc-800 text-white rounded-lg hover:bg-zinc-700 transition-colors text-xs font-medium"
+                        style={{
+                          padding: '6px 12px',
+                          background: '#27272a',
+                          color: 'white',
+                          borderRadius: '8px',
+                          fontSize: '12px',
+                          fontWeight: '500',
+                          textDecoration: 'none',
+                          transition: 'background 0.2s',
+                          display: 'inline-block',
+                        }}
+                        onMouseOver={(e) => e.currentTarget.style.background = '#3f3f46'}
+                        onMouseOut={(e) => e.currentTarget.style.background = '#27272a'}
                       >
                         YouTube
                       </a>
@@ -296,7 +479,19 @@ export default function AllSubmissions() {
                       {submission.status !== 'approved' && (
                         <button
                           onClick={() => updateStatus(submission.id, 'approved')}
-                          className="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-xs font-medium"
+                          style={{
+                            padding: '6px 12px',
+                            background: '#16a34a',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            fontSize: '12px',
+                            fontWeight: '500',
+                            cursor: 'pointer',
+                            transition: 'background 0.2s',
+                          }}
+                          onMouseOver={(e) => e.currentTarget.style.background = '#15803d'}
+                          onMouseOut={(e) => e.currentTarget.style.background = '#16a34a'}
                         >
                           Approve
                         </button>
@@ -305,7 +500,19 @@ export default function AllSubmissions() {
                       {submission.status !== 'rejected' && (
                         <button
                           onClick={() => updateStatus(submission.id, 'rejected')}
-                          className="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-xs font-medium"
+                          style={{
+                            padding: '6px 12px',
+                            background: '#dc2626',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            fontSize: '12px',
+                            fontWeight: '500',
+                            cursor: 'pointer',
+                            transition: 'background 0.2s',
+                          }}
+                          onMouseOver={(e) => e.currentTarget.style.background = '#b91c1c'}
+                          onMouseOut={(e) => e.currentTarget.style.background = '#dc2626'}
                         >
                           Reject
                         </button>
@@ -314,7 +521,19 @@ export default function AllSubmissions() {
                       {submission.status !== 'pending' && (
                         <button
                           onClick={() => updateStatus(submission.id, 'pending')}
-                          className="px-3 py-1.5 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors text-xs font-medium"
+                          style={{
+                            padding: '6px 12px',
+                            background: '#ca8a04',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            fontSize: '12px',
+                            fontWeight: '500',
+                            cursor: 'pointer',
+                            transition: 'background 0.2s',
+                          }}
+                          onMouseOver={(e) => e.currentTarget.style.background = '#a16207'}
+                          onMouseOut={(e) => e.currentTarget.style.background = '#ca8a04'}
                         >
                           Pending
                         </button>
@@ -322,7 +541,19 @@ export default function AllSubmissions() {
 
                       <button
                         onClick={() => deleteSubmission(submission.id)}
-                        className="px-3 py-1.5 bg-zinc-700 text-white rounded-lg hover:bg-zinc-600 transition-colors text-xs font-medium"
+                        style={{
+                          padding: '6px 12px',
+                          background: '#3f3f46',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '8px',
+                          fontSize: '12px',
+                          fontWeight: '500',
+                          cursor: 'pointer',
+                          transition: 'background 0.2s',
+                        }}
+                        onMouseOver={(e) => e.currentTarget.style.background = '#52525b'}
+                        onMouseOut={(e) => e.currentTarget.style.background = '#3f3f46'}
                       >
                         Delete
                       </button>
