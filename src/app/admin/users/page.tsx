@@ -11,6 +11,8 @@ interface User {
   last_sign_in_at: string | null;
   banned_until: string | null;
   submission_count?: number;
+  rejected_count?: number;
+  is_admin?: boolean;
 }
 
 export default function UsersPage() {
@@ -278,7 +280,7 @@ export default function UsersPage() {
             {/* Table Header */}
             <div style={{
               display: 'grid',
-              gridTemplateColumns: '2fr 1fr 1fr 1fr 2fr',
+              gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 2fr',
               padding: '16px 24px',
               background: '#09090b',
               borderBottom: '1px solid #27272a',
@@ -290,6 +292,7 @@ export default function UsersPage() {
             }}>
               <div>Email</div>
               <div>Submissions</div>
+              <div>Rejected</div>
               <div>Joined</div>
               <div>Status</div>
               <div style={{ textAlign: 'right' }}>Actions</div>
@@ -301,7 +304,7 @@ export default function UsersPage() {
                 key={user.id}
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: '2fr 1fr 1fr 1fr 2fr',
+                  gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 2fr',
                   padding: '20px 24px',
                   borderBottom: index < filteredUsers.length - 1 ? '1px solid #27272a' : 'none',
                   alignItems: 'center',
@@ -322,11 +325,26 @@ export default function UsersPage() {
                 <div style={{ color: '#a1a1aa', fontSize: '14px' }}>
                   {user.submission_count}
                 </div>
+                <div style={{ color: user.rejected_count ? '#ef4444' : '#a1a1aa', fontSize: '14px' }}>
+                  {user.rejected_count || 0}
+                </div>
                 <div style={{ color: '#a1a1aa', fontSize: '14px' }}>
                   {new Date(user.created_at).toLocaleDateString()}
                 </div>
                 <div>
-                  {user.banned_until ? (
+                  {user.is_admin ? (
+                    <span style={{
+                      padding: '4px 12px',
+                      fontSize: '12px',
+                      fontWeight: '600',
+                      borderRadius: '8px',
+                      background: 'rgba(245, 158, 11, 0.2)',
+                      border: '1px solid #f59e0b',
+                      color: '#f59e0b',
+                    }}>
+                      Admin
+                    </span>
+                  ) : user.banned_until ? (
                     <span style={{
                       padding: '4px 12px',
                       fontSize: '12px',
@@ -353,7 +371,11 @@ export default function UsersPage() {
                   )}
                 </div>
                 <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                  {user.banned_until ? (
+                  {user.is_admin ? (
+                    <span style={{ fontSize: '12px', color: '#71717a', fontStyle: 'italic' }}>
+                      Protected
+                    </span>
+                  ) : user.banned_until ? (
                     <button
                       onClick={() => unsuspendUser(user.id, user.email)}
                       style={{

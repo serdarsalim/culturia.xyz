@@ -49,26 +49,44 @@ export async function GET(request: Request) {
     // Fetch submission counts
     const { data: submissions, error: submissionsError } = await supabaseAdmin
       .from('video_submissions')
-      .select('user_id');
+      .select('user_id, status');
 
     if (submissionsError) {
       throw submissionsError;
     }
 
-    // Count submissions per user
-    const submissionCounts = submissions?.reduce((acc: Record<string, number>, sub) => {
-      acc[sub.user_id] = (acc[sub.user_id] || 0) + 1;
-      return acc;
-    }, {});
+    // Fetch all admin users
+    const { data: adminUsers, error: adminUsersError } = await supabaseAdmin
+      .from('admin_users')
+      .select('id');
 
-    // Combine user data with submission counts
+    if (adminUsersError) {
+      throw adminUsersError;
+    }
+
+    const adminUserIds = new Set(adminUsers?.map(a => a.id) || []);
+
+    // Count total and rejected submissions per user
+    const submissionCounts: Record<string, number> = {};
+    const rejectedCounts: Record<string, number> = {};
+
+    submissions?.forEach(sub => {
+      submissionCounts[sub.user_id] = (submissionCounts[sub.user_id] || 0) + 1;
+      if (sub.status === 'rejected') {
+        rejectedCounts[sub.user_id] = (rejectedCounts[sub.user_id] || 0) + 1;
+      }
+    });
+
+    // Combine user data with submission counts and admin status
     const usersWithCounts = authUsers.users.map(u => ({
       id: u.id,
       email: u.email || 'No email',
       created_at: u.created_at,
       last_sign_in_at: u.last_sign_in_at,
       banned_until: u.banned_until,
-      submission_count: submissionCounts?.[u.id] || 0,
+      submission_count: submissionCounts[u.id] || 0,
+      rejected_count: rejectedCounts[u.id] || 0,
+      is_admin: adminUserIds.has(u.id),
     }));
 
     return NextResponse.json({ users: usersWithCounts });
