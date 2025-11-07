@@ -36,6 +36,19 @@ export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuth
   const [loadingSubmissions, setLoadingSubmissions] = useState(true);
   const [error, setError] = useState('');
   const [showGuidelines, setShowGuidelines] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Fetch existing submissions for this country
   useEffect(() => {
@@ -239,14 +252,14 @@ export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuth
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '24px'
+      padding: isMobile ? '16px' : '24px'
     }} onClick={onClose}>
       <div style={{
         backgroundColor: '#ffffff',
-        borderRadius: '16px',
-        maxWidth: '920px',
+        borderRadius: isMobile ? '12px' : '16px',
+        maxWidth: isMobile ? '100%' : '920px',
         width: '100%',
-        padding: '32px',
+        padding: isMobile ? '20px' : '32px',
         position: 'relative',
         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
         maxHeight: '90vh',
@@ -286,14 +299,14 @@ export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuth
         </button>
 
         {/* Header */}
-        <div style={{ marginBottom: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
-            <span style={{ fontSize: '32px' }}>{getCountryFlag(countryCode)}</span>
-            <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#000000', letterSpacing: '-0.02em' }}>
+        <div style={{ marginBottom: isMobile ? '16px' : '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '12px', marginBottom: '6px' }}>
+            <span style={{ fontSize: isMobile ? '24px' : '32px' }}>{getCountryFlag(countryCode)}</span>
+            <h2 style={{ fontSize: isMobile ? '18px' : '24px', fontWeight: '700', color: '#000000', letterSpacing: '-0.02em' }}>
               {getCountryName(countryCode)}
             </h2>
           </div>
-          <p style={{ fontSize: '14px', color: '#6b7280' }}>
+          <p style={{ fontSize: isMobile ? '13px' : '14px', color: '#6b7280' }}>
             Submit videos for one or more categories
           </p>
         </div>
@@ -355,85 +368,155 @@ export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuth
           </div>
         ) : (
         /* Form */
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '0 48px' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '12px' : '16px', padding: isMobile ? '0' : '0 48px' }}>
 
-          {/* Table Header */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '140px 1.5fr 1.5fr 100px',
-            gap: '12px',
-            padding: '0 4px',
-            marginBottom: '8px'
-          }}>
-            <div style={{ fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>Category</div>
-            <div style={{ fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>YouTube URL</div>
-            <div style={{ fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>Title (Optional)</div>
-            <div style={{ fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>Status</div>
-          </div>
+          {/* Table Header - Desktop only */}
+          {!isMobile && (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '140px 1.5fr 1.5fr 100px',
+              gap: '12px',
+              padding: '0 4px',
+              marginBottom: '8px'
+            }}>
+              <div style={{ fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>Category</div>
+              <div style={{ fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>YouTube URL</div>
+              <div style={{ fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>Title (Optional)</div>
+              <div style={{ fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>Status</div>
+            </div>
+          )}
 
           {/* Category Rows */}
           {categories.map((category) => (
-            <div
-              key={category}
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '140px 1.5fr 1.5fr 100px',
-                gap: '12px',
-                alignItems: 'center'
-              }}
-            >
-              {/* Category Label */}
-              <div style={{
-                fontSize: '14px',
-                fontWeight: '500',
-                color: '#374151'
-              }}>
-                {CATEGORY_LABELS[category]}
-              </div>
-
-              {/* YouTube URL */}
-              <input
-                type="url"
-                value={formData[category].url}
-                onChange={(e) => handleUrlChange(category, e.target.value)}
+            isMobile ? (
+              // Mobile: Stack vertically in card
+              <div
+                key={category}
                 style={{
-                  width: '100%',
-                  padding: '10px 14px',
-                  fontSize: '14px',
-                  border: 'none',
+                  backgroundColor: '#f9fafb',
+                  padding: '12px',
                   borderRadius: '8px',
-                  backgroundColor: '#f3f4f6',
-                  color: '#000000',
-                  outline: 'none'
+                  border: '1px solid #e5e7eb'
                 }}
-              />
+              >
+                {/* Category Label with Status */}
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '8px'
+                }}>
+                  <div style={{
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    color: '#374151'
+                  }}>
+                    {CATEGORY_LABELS[category]}
+                  </div>
+                  {renderStatus(formData[category].status)}
+                </div>
 
-              {/* Video Title */}
-              <input
-                type="text"
-                value={formData[category].title}
-                onChange={(e) => handleTitleChange(category, e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '10px 14px',
-                  fontSize: '14px',
-                  border: 'none',
-                  borderRadius: '8px',
-                  backgroundColor: '#f3f4f6',
-                  color: '#000000',
-                  outline: 'none'
-                }}
-              />
+                {/* YouTube URL */}
+                <input
+                  type="url"
+                  placeholder="YouTube URL"
+                  value={formData[category].url}
+                  onChange={(e) => handleUrlChange(category, e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    fontSize: '14px',
+                    border: 'none',
+                    borderRadius: '6px',
+                    backgroundColor: '#ffffff',
+                    color: '#000000',
+                    outline: 'none',
+                    marginBottom: '8px'
+                  }}
+                />
 
-              {/* Status */}
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                {renderStatus(formData[category].status)}
+                {/* Video Title */}
+                <input
+                  type="text"
+                  placeholder="Title (Optional)"
+                  value={formData[category].title}
+                  onChange={(e) => handleTitleChange(category, e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    fontSize: '14px',
+                    border: 'none',
+                    borderRadius: '6px',
+                    backgroundColor: '#ffffff',
+                    color: '#000000',
+                    outline: 'none'
+                  }}
+                />
               </div>
-            </div>
+            ) : (
+              // Desktop: Grid layout
+              <div
+                key={category}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '140px 1.5fr 1.5fr 100px',
+                  gap: '12px',
+                  alignItems: 'center'
+                }}
+              >
+                {/* Category Label */}
+                <div style={{
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: '#374151'
+                }}>
+                  {CATEGORY_LABELS[category]}
+                </div>
+
+                {/* YouTube URL */}
+                <input
+                  type="url"
+                  value={formData[category].url}
+                  onChange={(e) => handleUrlChange(category, e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    fontSize: '14px',
+                    border: 'none',
+                    borderRadius: '8px',
+                    backgroundColor: '#f3f4f6',
+                    color: '#000000',
+                    outline: 'none'
+                  }}
+                />
+
+                {/* Video Title */}
+                <input
+                  type="text"
+                  value={formData[category].title}
+                  onChange={(e) => handleTitleChange(category, e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    fontSize: '14px',
+                    border: 'none',
+                    borderRadius: '8px',
+                    backgroundColor: '#f3f4f6',
+                    color: '#000000',
+                    outline: 'none'
+                  }}
+                />
+
+                {/* Status */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  {renderStatus(formData[category].status)}
+                </div>
+              </div>
+            )
           ))}
 
           {/* Error Message */}
@@ -448,12 +531,20 @@ export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuth
           )}
 
           {/* Submit Button and Info Text */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
+          <div style={{
+            display: 'flex',
+            flexDirection: isMobile ? 'column-reverse' : 'row',
+            justifyContent: 'space-between',
+            alignItems: isMobile ? 'stretch' : 'center',
+            marginTop: '8px',
+            gap: isMobile ? '12px' : '0'
+          }}>
             <p style={{
-              fontSize: '13px',
+              fontSize: isMobile ? '12px' : '13px',
               color: '#9ca3af',
               lineHeight: '1.5',
-              margin: 0
+              margin: 0,
+              textAlign: isMobile ? 'center' : 'left'
             }}>
               Your submission will be reviewed by our team before appearing on the site
             </p>
@@ -461,7 +552,7 @@ export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuth
               type="submit"
               disabled={loading}
               style={{
-                padding: '14px 32px',
+                padding: isMobile ? '12px 24px' : '14px 32px',
                 fontSize: '15px',
                 fontWeight: '600',
                 color: '#ffffff',
@@ -470,7 +561,8 @@ export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuth
                 borderRadius: '8px',
                 cursor: loading ? 'not-allowed' : 'pointer',
                 transition: 'all 0.2s',
-                flexShrink: 0
+                flexShrink: 0,
+                width: isMobile ? '100%' : 'auto'
               }}
               onMouseEnter={(e) => {
                 if (!loading) e.currentTarget.style.backgroundColor = '#ea580c';

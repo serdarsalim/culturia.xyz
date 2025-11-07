@@ -71,6 +71,19 @@ export default function CountrySidebar({
     street_voices: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     async function fetchVideoCounts() {
@@ -157,28 +170,41 @@ export default function CountrySidebar({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '24px 32px',
+        padding: isMobile ? '12px 24px' : '24px 32px',
         borderBottom: '1px solid #d1d5db',
         backgroundColor: '#f3f4f6'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <span style={{ fontSize: '36px' }}>{country.flag}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '12px' : '16px' }}>
+          <span style={{ fontSize: isMobile ? '28px' : '36px' }}>{country.flag}</span>
           <div>
-            <h2 style={{
-              fontSize: '20px',
-              fontWeight: '600',
-              color: '#000000',
-              letterSpacing: '-0.01em',
-              marginBottom: '4px'
-            }}>
-              {country.name}
-            </h2>
-            <p style={{
-              fontSize: '12px',
-              color: '#6b7280'
-            }}>
-              {country.languages.slice(0, 2).join(', ')}
-            </p>
+            {isMobile ? (
+              <h2 style={{
+                fontSize: '16px',
+                fontWeight: '600',
+                color: '#000000',
+                letterSpacing: '-0.01em'
+              }}>
+                {country.name} <span style={{ fontSize: '13px', fontWeight: '400', color: '#6b7280', fontFamily: 'monospace' }}>({country.languages[0]})</span>
+              </h2>
+            ) : (
+              <>
+                <h2 style={{
+                  fontSize: '20px',
+                  fontWeight: '600',
+                  color: '#000000',
+                  letterSpacing: '-0.01em',
+                  marginBottom: '4px'
+                }}>
+                  {country.name}
+                </h2>
+                <p style={{
+                  fontSize: '12px',
+                  color: '#6b7280'
+                }}>
+                  {country.languages.slice(0, 2).join(', ')}
+                </p>
+              </>
+            )}
           </div>
         </div>
         <button
@@ -214,10 +240,10 @@ export default function CountrySidebar({
       <div style={{
         flex: 1,
         overflowY: 'auto',
-        padding: '24px 32px',
+        padding: isMobile ? '16px 24px' : '24px 32px',
         backgroundColor: '#f3f4f6'
       }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '6px' : '8px' }}>
           {(Object.entries(CATEGORY_LABELS) as [VideoCategory, string][]).map(([category, label]) => {
             const count = videoCounts[category];
             const hasVideos = count > 0;
@@ -231,7 +257,7 @@ export default function CountrySidebar({
                 style={{
                   width: '100%',
                   textAlign: 'left',
-                  padding: '14px 16px',
+                  padding: isMobile ? '10px 14px' : '14px 16px',
                   borderRadius: '8px',
                   border: hasVideos ? '1px solid #e5e7eb' : '1px solid #f3f4f6',
                   backgroundColor: hasVideos ? '#ffffff' : '#f9fafb',
@@ -245,8 +271,8 @@ export default function CountrySidebar({
                   alignItems: 'center',
                   justifyContent: 'space-between'
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span style={{ fontSize: '22px' }}>{colors.icon}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '10px' : '12px' }}>
+                    <span style={{ fontSize: isMobile ? '20px' : '22px' }}>{colors.icon}</span>
                     <span style={{
                       fontSize: '14px',
                       fontWeight: '500',

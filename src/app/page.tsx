@@ -238,139 +238,243 @@ export default function Home() {
             onSubmitClick={handleSubmitClick}
           />
         ) : (
-          <div className="h-full flex flex-col" style={{ padding: '32px' }}>
-            {/* Auth Links at top left */}
-            <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', fontSize: '14px' }}>
-              {!user ? (
-                <>
-                  <button
-                    onClick={() => {
-                      setAuthMode('signup');
-                      setShowAuthModal(true);
-                    }}
-                    style={{
-                      color: '#6b7280',
-                      cursor: 'pointer',
-                      border: 'none',
-                      backgroundColor: 'transparent',
-                      textDecoration: 'underline',
-                      padding: 0,
-                      transition: 'color 0.2s'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.color = '#000000';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.color = '#6b7280';
-                    }}
-                  >
-                    Sign Up
-                  </button>
-                  <span style={{ color: '#d1d5db' }}>|</span>
-                  <button
-                    onClick={() => {
-                      setAuthMode('login');
-                      setShowAuthModal(true);
-                    }}
-                    style={{
-                      color: '#6b7280',
-                      cursor: 'pointer',
-                      border: 'none',
-                      backgroundColor: 'transparent',
-                      textDecoration: 'underline',
-                      padding: 0,
-                      transition: 'color 0.2s'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.color = '#000000';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.color = '#6b7280';
-                    }}
-                  >
-                    Log In
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={() => setShowProfileModal(true)}
-                    style={{
-                      color: '#6b7280',
-                      cursor: 'pointer',
-                      border: 'none',
-                      backgroundColor: 'transparent',
-                      textDecoration: 'underline',
-                      padding: 0,
-                      transition: 'color 0.2s'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.color = '#000000';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.color = '#6b7280';
-                    }}
-                  >
-                    Profile
-                  </button>
-                  <span style={{ color: '#d1d5db' }}>|</span>
-                  <button
-                    onClick={async () => {
-                      await supabase.auth.signOut();
-                      setUser(null);
-                    }}
-                    style={{
-                      color: '#6b7280',
-                      cursor: 'pointer',
-                      border: 'none',
-                      backgroundColor: 'transparent',
-                      textDecoration: 'underline',
-                      padding: 0,
-                      transition: 'color 0.2s'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.color = '#000000';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.color = '#6b7280';
-                    }}
-                  >
-                    Log Out
-                  </button>
-                </>
-              )}
-            </div>
+          <div className="h-full flex flex-col" style={{ padding: isMobile ? '16px 24px' : '32px' }}>
+            {/* Header - Logo and Auth Links */}
+            {isMobile ? (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <h1 style={{
+                  fontSize: '20px',
+                  fontWeight: '600',
+                  color: '#000000',
+                  letterSpacing: '-0.02em',
+                  margin: 0
+                }}>
+                  🌍 CULTURIA
+                </h1>
+                <div style={{ display: 'flex', gap: '16px', fontSize: '14px' }}>
+                  {!user ? (
+                    <>
+                      <button
+                        onClick={() => {
+                          setAuthMode('signup');
+                          setShowAuthModal(true);
+                        }}
+                        style={{
+                          color: '#6b7280',
+                          cursor: 'pointer',
+                          border: 'none',
+                          backgroundColor: 'transparent',
+                          textDecoration: 'underline',
+                          padding: 0,
+                          transition: 'color 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = '#000000';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = '#6b7280';
+                        }}
+                      >
+                        Sign Up
+                      </button>
+                      <span style={{ color: '#d1d5db' }}>|</span>
+                      <button
+                        onClick={() => {
+                          setAuthMode('login');
+                          setShowAuthModal(true);
+                        }}
+                        style={{
+                          color: '#6b7280',
+                          cursor: 'pointer',
+                          border: 'none',
+                          backgroundColor: 'transparent',
+                          textDecoration: 'underline',
+                          padding: 0,
+                          transition: 'color 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = '#000000';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = '#6b7280';
+                        }}
+                      >
+                        Log In
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => setShowProfileModal(true)}
+                        style={{
+                          color: '#6b7280',
+                          cursor: 'pointer',
+                          border: 'none',
+                          backgroundColor: 'transparent',
+                          textDecoration: 'underline',
+                          padding: 0,
+                          transition: 'color 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = '#000000';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = '#6b7280';
+                        }}
+                      >
+                        Profile
+                      </button>
+                      <span style={{ color: '#d1d5db' }}>|</span>
+                      <button
+                        onClick={async () => {
+                          await supabase.auth.signOut();
+                          setUser(null);
+                        }}
+                        style={{
+                          color: '#6b7280',
+                          cursor: 'pointer',
+                          border: 'none',
+                          backgroundColor: 'transparent',
+                          textDecoration: 'underline',
+                          padding: 0,
+                          transition: 'color 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = '#000000';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = '#6b7280';
+                        }}
+                      >
+                        Log Out
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Auth Links at top left for desktop */}
+                <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', fontSize: '14px' }}>
+                  {!user ? (
+                    <>
+                      <button
+                        onClick={() => {
+                          setAuthMode('signup');
+                          setShowAuthModal(true);
+                        }}
+                        style={{
+                          color: '#6b7280',
+                          cursor: 'pointer',
+                          border: 'none',
+                          backgroundColor: 'transparent',
+                          textDecoration: 'underline',
+                          padding: 0,
+                          transition: 'color 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = '#000000';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = '#6b7280';
+                        }}
+                      >
+                        Sign Up
+                      </button>
+                      <span style={{ color: '#d1d5db' }}>|</span>
+                      <button
+                        onClick={() => {
+                          setAuthMode('login');
+                          setShowAuthModal(true);
+                        }}
+                        style={{
+                          color: '#6b7280',
+                          cursor: 'pointer',
+                          border: 'none',
+                          backgroundColor: 'transparent',
+                          textDecoration: 'underline',
+                          padding: 0,
+                          transition: 'color 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = '#000000';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = '#6b7280';
+                        }}
+                      >
+                        Log In
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => setShowProfileModal(true)}
+                        style={{
+                          color: '#6b7280',
+                          cursor: 'pointer',
+                          border: 'none',
+                          backgroundColor: 'transparent',
+                          textDecoration: 'underline',
+                          padding: 0,
+                          transition: 'color 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = '#000000';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = '#6b7280';
+                        }}
+                      >
+                        Profile
+                      </button>
+                      <span style={{ color: '#d1d5db' }}>|</span>
+                      <button
+                        onClick={async () => {
+                          await supabase.auth.signOut();
+                          setUser(null);
+                        }}
+                        style={{
+                          color: '#6b7280',
+                          cursor: 'pointer',
+                          border: 'none',
+                          backgroundColor: 'transparent',
+                          textDecoration: 'underline',
+                          padding: 0,
+                          transition: 'color 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = '#000000';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = '#6b7280';
+                        }}
+                      >
+                        Log Out
+                      </button>
+                    </>
+                  )}
+                </div>
+              </>
+            )}
 
             {/* Main Content */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', paddingTop: '80px' }}>
-              <h1 style={{
-                fontSize: '32px',
-                fontWeight: '600',
-                color: '#000000',
-                marginBottom: '12px',
-                letterSpacing: '-0.02em'
-              }}>
-                🌍 CULTURIA
-              </h1>
-              <p style={{
-                fontSize: '15px',
-                color: '#4b5563',
-                marginBottom: '32px',
-                lineHeight: '1.6',
-                maxWidth: '100%'
-              }}>
-                Discover authentic cultural content from around the world
-              </p>
-              <div>
-                <p style={{
-                  fontSize: '13px',
-                  fontWeight: '500',
-                  color: '#6b7280',
-                  marginBottom: '16px'
-                }}>
-                  Click on any country or category to explore
-                </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', paddingTop: isMobile ? '0px' : '80px' }}>
+              {!isMobile && (
+                <div>
+                  <h1 style={{
+                    fontSize: '32px',
+                    fontWeight: '600',
+                    color: '#000000',
+                    marginBottom: '12px',
+                    letterSpacing: '-0.02em'
+                  }}>
+                    🌍 CULTURIA
+                  </h1>
+                </div>
+              )}
+              <div style={{ marginTop: isMobile ? '12px' : '0' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '8px' : '12px' }}>
                   <button
                     onClick={() => handleCategoryClick('inspiration')}
                     style={{
@@ -383,7 +487,7 @@ export default function Home() {
                       border: 'none',
                       backgroundColor: 'transparent',
                       cursor: 'pointer',
-                      padding: '8px 12px',
+                      padding: isMobile ? '6px 12px' : '8px 12px',
                       borderRadius: '8px',
                       transition: 'background-color 0.2s',
                       width: '100%',
@@ -411,7 +515,7 @@ export default function Home() {
                       border: 'none',
                       backgroundColor: 'transparent',
                       cursor: 'pointer',
-                      padding: '8px 12px',
+                      padding: isMobile ? '6px 12px' : '8px 12px',
                       borderRadius: '8px',
                       transition: 'background-color 0.2s',
                       width: '100%',
@@ -439,7 +543,7 @@ export default function Home() {
                       border: 'none',
                       backgroundColor: 'transparent',
                       cursor: 'pointer',
-                      padding: '8px 12px',
+                      padding: isMobile ? '6px 12px' : '8px 12px',
                       borderRadius: '8px',
                       transition: 'background-color 0.2s',
                       width: '100%',
@@ -467,7 +571,7 @@ export default function Home() {
                       border: 'none',
                       backgroundColor: 'transparent',
                       cursor: 'pointer',
-                      padding: '8px 12px',
+                      padding: isMobile ? '6px 12px' : '8px 12px',
                       borderRadius: '8px',
                       transition: 'background-color 0.2s',
                       width: '100%',
@@ -495,7 +599,7 @@ export default function Home() {
                       border: 'none',
                       backgroundColor: 'transparent',
                       cursor: 'pointer',
-                      padding: '8px 12px',
+                      padding: isMobile ? '6px 12px' : '8px 12px',
                       borderRadius: '8px',
                       transition: 'background-color 0.2s',
                       width: '100%',
@@ -511,6 +615,58 @@ export default function Home() {
                       {categoryCounts.street_voices}
                     </span>
                   </button>
+                </div>
+              </div>
+              {/* Footer - Subtitle and Links */}
+              <div style={{ marginTop: isMobile ? '60px' : '0', paddingBottom: isMobile ? '24px' : '0' }}>
+                <p style={{
+                  fontSize: isMobile ? '13px' : '15px',
+                  color: '#4b5563',
+                  marginBottom: '8px',
+                  lineHeight: '1.5',
+                  textAlign: isMobile ? 'center' : 'left'
+                }}>
+                  Discover authentic cultural content from around the world
+                </p>
+                <div style={{ display: 'flex', gap: '16px', fontSize: '12px', justifyContent: isMobile ? 'center' : 'flex-start' }}>
+                  <a
+                    href="#"
+                    style={{
+                      color: '#6b7280',
+                      textDecoration: 'none',
+                      transition: 'color 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.color = '#000000'}
+                    onMouseLeave={(e) => e.currentTarget.style.color = '#6b7280'}
+                  >
+                    Terms
+                  </a>
+                  <span style={{ color: '#d1d5db' }}>|</span>
+                  <a
+                    href="#"
+                    style={{
+                      color: '#6b7280',
+                      textDecoration: 'none',
+                      transition: 'color 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.color = '#000000'}
+                    onMouseLeave={(e) => e.currentTarget.style.color = '#6b7280'}
+                  >
+                    Privacy
+                  </a>
+                  <span style={{ color: '#d1d5db' }}>|</span>
+                  <a
+                    href="#"
+                    style={{
+                      color: '#6b7280',
+                      textDecoration: 'none',
+                      transition: 'color 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.color = '#000000'}
+                    onMouseLeave={(e) => e.currentTarget.style.color = '#6b7280'}
+                  >
+                    About
+                  </a>
                 </div>
               </div>
             </div>

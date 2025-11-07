@@ -23,7 +23,20 @@ export default function VideoPlayer({ video, category, onClose, onNext }: VideoP
   const [toastMessage, setToastMessage] = useState({ title: '', description: '', type: 'success' as 'success' | 'error' });
   const [isFavorited, setIsFavorited] = useState(false);
   const [favoriting, setFavoriting] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const playerRef = useRef<YouTubePlayer | null>(null);
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Check if user has already flagged this video
   useEffect(() => {
@@ -223,8 +236,8 @@ export default function VideoPlayer({ video, category, onClose, onNext }: VideoP
           width: '100%',
           maxWidth: '1024px',
           backgroundColor: '#1a1a1a',
-          borderRadius: '16px',
-          padding: '24px',
+          borderRadius: isMobile ? '12px' : '16px',
+          padding: isMobile ? '16px' : '24px',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8)'
         }}
         onClick={(e) => e.stopPropagation()}
@@ -254,52 +267,55 @@ export default function VideoPlayer({ video, category, onClose, onNext }: VideoP
 
         {/* Controls */}
         <div style={{
-          marginTop: '16px',
+          marginTop: isMobile ? '12px' : '16px',
           display: 'flex',
-          alignItems: 'flex-start',
+          flexDirection: isMobile ? 'column' : 'row',
+          alignItems: isMobile ? 'stretch' : 'flex-start',
           justifyContent: 'space-between',
-          gap: '16px'
+          gap: isMobile ? '12px' : '16px'
         }}>
           <div style={{ flex: 1, color: '#ffffff' }}>
             <div style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
-              marginBottom: '8px'
+              gap: isMobile ? '6px' : '8px',
+              marginBottom: isMobile ? '4px' : '8px'
             }}>
-              <span style={{ fontSize: '24px' }}>{getCountryFlag(video.country_code)}</span>
-              <span style={{ fontWeight: '600' }}>{getCountryName(video.country_code)}</span>
-              <span style={{ color: '#9ca3af' }}>•</span>
-              <span style={{ color: '#d1d5db' }}>{CATEGORY_LABELS[category]}</span>
+              <span style={{ fontSize: isMobile ? '18px' : '24px' }}>{getCountryFlag(video.country_code)}</span>
+              <span style={{ fontWeight: '600', fontSize: isMobile ? '14px' : '16px' }}>{getCountryName(video.country_code)}</span>
+              <span style={{ color: '#9ca3af', fontSize: isMobile ? '12px' : '14px' }}>•</span>
+              <span style={{ color: '#d1d5db', fontSize: isMobile ? '13px' : '14px' }}>{CATEGORY_LABELS[category]}</span>
             </div>
             {video.title && (
-              <p style={{ fontSize: '14px', color: '#d1d5db' }}>{video.title}</p>
+              <p style={{ fontSize: isMobile ? '12px' : '14px', color: '#d1d5db', margin: 0 }}>{video.title}</p>
             )}
           </div>
 
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '12px'
+            gap: isMobile ? '8px' : '12px',
+            justifyContent: isMobile ? 'space-between' : 'flex-start'
           }}>
             {/* Favorite Button */}
             <button
               onClick={toggleFavorite}
               disabled={favoriting}
               style={{
-                padding: '10px 20px',
-                height: '40px',
+                padding: isMobile ? '8px 16px' : '10px 20px',
+                height: isMobile ? '36px' : '40px',
                 backgroundColor: isFavorited ? '#ef4444' : '#374151',
                 color: '#ffffff',
                 borderRadius: '8px',
                 border: 'none',
-                fontSize: '16px',
+                fontSize: isMobile ? '18px' : '16px',
                 cursor: favoriting ? 'not-allowed' : 'pointer',
                 transition: 'all 0.2s',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '6px'
+                gap: '6px',
+                flex: isMobile ? 1 : 'none'
               }}
               onMouseEnter={(e) => {
                 if (!favoriting) {
@@ -316,63 +332,30 @@ export default function VideoPlayer({ video, category, onClose, onNext }: VideoP
               {isFavorited ? '❤️' : '🤍'}
             </button>
 
-            {/* Flag Button */}
-            {!flagged ? (
-              <button
-                onClick={() => setShowFlagModal(true)}
-                style={{
-                  padding: '10px 20px',
-                  height: '40px',
-                  backgroundColor: '#374151',
-                  color: '#ffffff',
-                  borderRadius: '8px',
-                  border: 'none',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  cursor: 'pointer',
-                  transition: 'background-color 0.2s',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#4b5563'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#374151'}
-              >
-                Report
-              </button>
-            ) : (
-              <span style={{
-                padding: '10px 20px',
-                height: '40px',
-                display: 'flex',
-                alignItems: 'center',
-                fontSize: '14px',
-                color: '#9ca3af'
-              }}>Reported</span>
-            )}
-
             {/* Next Button */}
             <button
               onClick={onNext}
               style={{
-                padding: '10px 24px',
-                height: '40px',
+                padding: isMobile ? '8px 16px' : '10px 24px',
+                height: isMobile ? '36px' : '40px',
                 backgroundColor: '#2563eb',
                 color: '#ffffff',
                 borderRadius: '8px',
                 border: 'none',
-                fontSize: '14px',
+                fontSize: isMobile ? '18px' : '14px',
                 fontWeight: '600',
                 cursor: 'pointer',
                 transition: 'background-color 0.2s',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                flex: isMobile ? 1 : 'none'
               }}
               onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1d4ed8'}
               onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
+              title="Next video"
             >
-              Next
+              {isMobile ? '⏭️' : 'Next'}
             </button>
 
             {/* Close Button */}
