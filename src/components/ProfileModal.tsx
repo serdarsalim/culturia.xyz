@@ -293,44 +293,63 @@ export default function ProfileModal({ onClose, onPlayVideo, onEditSubmission, i
                 <p style={{ fontSize: '14px' }}>Start exploring and save videos you love!</p>
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {favorites.map(({ video, category }) => (
-                  <div
-                    key={video.id}
-                    onClick={() => onPlayVideo(video, category)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '16px',
-                      padding: '16px',
-                      borderRadius: '12px',
-                      backgroundColor: '#f9fafb',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
-                  >
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                        <span style={{ fontSize: '20px' }}>{getCountryFlag(video.country_code)}</span>
-                        <span style={{ fontWeight: '600', color: '#000000' }}>{getCountryName(video.country_code)}</span>
-                        <span style={{ color: '#9ca3af' }}>•</span>
-                        <span style={{ fontSize: '14px', color: '#6b7280' }}>{CATEGORY_LABELS[category]}</span>
-                      </div>
-                      {video.title && (
-                        <p style={{ fontSize: '14px', color: '#374151' }}>{video.title}</p>
-                      )}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {Object.entries(
+                  favorites.reduce((acc, f) => {
+                    const cc = f.video.country_code;
+                    (acc[cc] ||= []).push(f);
+                    return acc;
+                  }, {} as Record<string, Array<{ video: VideoSubmission; category: VideoCategory }>>)
+                ).map(([cc, favs]) => (
+                  <div key={cc} style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '12px' }}>
+                    {/* Country header */}
+                    <div style={{ padding: '12px 16px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontSize: '22px' }}>{getCountryFlag(cc)}</span>
+                      <span style={{ fontWeight: 700, color: '#111827' }}>{getCountryName(cc)}</span>
                     </div>
-                    <div style={{
-                      padding: '8px 16px',
-                      borderRadius: '8px',
-                      backgroundColor: '#ffffff',
-                      color: '#f97316',
-                      fontSize: '14px',
-                      fontWeight: '600'
-                    }}>
-                      Play ▶
+                    {/* Favorites list for country */}
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      {favs.map(({ video, category }) => (
+                        <div key={video.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '12px 16px', borderTop: '1px solid #f3f4f6' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: 600 }}>
+                              {CATEGORY_LABELS[category]}
+                            </span>
+                            <button
+                              onClick={() => onPlayVideo(video, category)}
+                              style={{
+                                background: 'transparent',
+                                border: 'none',
+                                color: '#2563eb',
+                                fontSize: '14px',
+                                textDecoration: 'underline',
+                                cursor: 'pointer',
+                                padding: 0
+                              }}
+                            >
+                              {video.title || 'Untitled'}
+                            </button>
+                          </div>
+                          <button
+                            onClick={() => onPlayVideo(video, category)}
+                            style={{
+                              padding: '6px 12px',
+                              borderRadius: '8px',
+                              backgroundColor: '#ffffff',
+                              border: '1px solid #d1d5db',
+                              color: '#374151',
+                              fontSize: '12px',
+                              fontWeight: '600',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ffffff'}
+                          >
+                            Play ▶
+                          </button>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 ))}
