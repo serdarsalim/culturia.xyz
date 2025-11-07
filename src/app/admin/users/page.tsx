@@ -484,7 +484,7 @@ export default function UsersPage() {
                           Suspend
                         </button>
                       )}
-                      {user.submission_count > 0 && (
+                      {(user.submission_count ?? 0) > 0 && (
                         <>
                           <button
                             onClick={() => approveAllVideos(user.id, user.email, user.submission_count || 0)}
