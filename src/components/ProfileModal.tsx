@@ -16,12 +16,14 @@ interface ProfileModalProps {
 }
 
 export default function ProfileModal({ onClose, onPlayVideo, onEditSubmission, initialData }: ProfileModalProps) {
-  const [activeTab, setActiveTab] = useState<'favorites' | 'submissions'>('favorites');
+  const [activeTab, setActiveTab] = useState<'favorites' | 'submissions' | 'settings'>('favorites');
   const [favorites, setFavorites] = useState<Array<{ video: VideoSubmission; category: VideoCategory }>>(initialData?.favorites || []);
   const [submissions, setSubmissions] = useState<VideoSubmission[]>(initialData?.submissions || []);
   const [loading, setLoading] = useState(!initialData);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState({ title: '', description: '', type: 'success' as 'success' | 'error' });
+  const [showLibraryFavorites, setShowLibraryFavorites] = useState(true);
+  const [showLibrarySubmissions, setShowLibrarySubmissions] = useState(true);
 
   // Fetch both favorites and submissions on mount only if no initial data
   useEffect(() => {
@@ -36,6 +38,9 @@ export default function ProfileModal({ onClose, onPlayVideo, onEditSubmission, i
       fetchFavorites();
     } else if (activeTab === 'submissions' && submissions.length === 0) {
       fetchSubmissions();
+    } else if (activeTab === 'settings') {
+      if (favorites.length === 0) fetchFavorites();
+      if (submissions.length === 0) fetchSubmissions();
     }
   }, [activeTab]);
 
@@ -254,6 +259,22 @@ export default function ProfileModal({ onClose, onPlayVideo, onEditSubmission, i
           >
             📤 My Submissions ({submissions.length})
           </button>
+          <button
+            onClick={() => setActiveTab('settings')}
+            style={{
+              padding: '12px 24px',
+              fontSize: '15px',
+              fontWeight: '600',
+              color: activeTab === 'settings' ? '#f97316' : '#6b7280',
+              backgroundColor: 'transparent',
+              border: 'none',
+              borderBottom: activeTab === 'settings' ? '2px solid #f97316' : '2px solid transparent',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+          >
+            ⚙️ Settings
+          </button>
         </div>
 
         {/* Content */}
@@ -313,7 +334,7 @@ export default function ProfileModal({ onClose, onPlayVideo, onEditSubmission, i
                 ))}
               </div>
             )
-          ) : (
+          ) : activeTab === 'submissions' ? (
             submissions.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '48px', color: '#6b7280' }}>
                 <p style={{ fontSize: '48px', marginBottom: '16px' }}>📤</p>
@@ -395,6 +416,164 @@ export default function ProfileModal({ onClose, onPlayVideo, onEditSubmission, i
                 ))}
               </div>
             )
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {/* Library controls */}
+              <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#374151', fontSize: '14px' }}>
+                  <input
+                    type="checkbox"
+                    checked={showLibraryFavorites}
+                    onChange={(e) => setShowLibraryFavorites(e.target.checked)}
+                  />
+                  Show Favorites ({favorites.length})
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#374151', fontSize: '14px' }}>
+                  <input
+                    type="checkbox"
+                    checked={showLibrarySubmissions}
+                    onChange={(e) => setShowLibrarySubmissions(e.target.checked)}
+                  />
+                  Show My Submissions ({submissions.length})
+                </label>
+              </div>
+
+              {/* Library content */}
+              {showLibraryFavorites && (
+                <div>
+                  <h3 style={{ fontSize: '14px', fontWeight: '700', color: '#6b7280', margin: '8px 0' }}>Favorites</h3>
+                  {favorites.length === 0 ? (
+                    <div style={{ color: '#9ca3af', fontSize: '14px' }}>No favorites yet</div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      {favorites.map(({ video, category }) => (
+                        <div
+                          key={`fav-${video.id}`}
+                          onClick={() => onPlayVideo(video, category)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '16px',
+                            padding: '12px 16px',
+                            borderRadius: '12px',
+                            backgroundColor: '#f9fafb',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+                        >
+                          <div style={{ flex: 1 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                              <span style={{ fontSize: '20px' }}>{getCountryFlag(video.country_code)}</span>
+                              <span style={{ fontWeight: '600', color: '#000000' }}>{getCountryName(video.country_code)}</span>
+                              <span style={{ color: '#9ca3af' }}>•</span>
+                              <span style={{ fontSize: '14px', color: '#6b7280' }}>{CATEGORY_LABELS[category]}</span>
+                            </div>
+                            {video.title && (
+                              <p style={{ fontSize: '14px', color: '#374151' }}>{video.title}</p>
+                            )}
+                          </div>
+                          <div style={{
+                            padding: '6px 12px',
+                            borderRadius: '8px',
+                            backgroundColor: '#ffffff',
+                            color: '#f97316',
+                            fontSize: '12px',
+                            fontWeight: '600'
+                          }}>
+                            Play ▶
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {showLibrarySubmissions && (
+                <div>
+                  <h3 style={{ fontSize: '14px', fontWeight: '700', color: '#6b7280', margin: '8px 0' }}>My Submissions</h3>
+                  {submissions.length === 0 ? (
+                    <div style={{ color: '#9ca3af', fontSize: '14px' }}>No submissions yet</div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      {submissions.map((video) => (
+                        <div
+                          key={`sub-${video.id}`}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '16px',
+                            padding: '12px 16px',
+                            borderRadius: '12px',
+                            backgroundColor: '#f9fafb'
+                          }}
+                        >
+                          <div style={{ flex: 1 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                              <span style={{ fontSize: '20px' }}>{getCountryFlag(video.country_code)}</span>
+                              <span style={{ fontWeight: '600', color: '#000000' }}>{getCountryName(video.country_code)}</span>
+                              <span style={{ color: '#9ca3af' }}>•</span>
+                              <span style={{ fontSize: '14px', color: '#6b7280' }}>{CATEGORY_LABELS[video.category as VideoCategory]}</span>
+                              {renderStatusBadge(video.status)}
+                            </div>
+                            {video.title && (
+                              <p style={{ fontSize: '14px', color: '#374151' }}>{video.title}</p>
+                            )}
+                          </div>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button
+                              onClick={() => {
+                                onEditSubmission(video.country_code);
+                                onClose();
+                              }}
+                              style={{
+                                padding: '6px 12px',
+                                borderRadius: '8px',
+                                backgroundColor: '#ffffff',
+                                border: '1px solid #d1d5db',
+                                color: '#374151',
+                                fontSize: '12px',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                              }}
+                              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ffffff'}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteSubmission(video.id)}
+                              style={{
+                                padding: '6px 12px',
+                                borderRadius: '8px',
+                                backgroundColor: '#ffffff',
+                                border: '1px solid #fee2e2',
+                                color: '#ef4444',
+                                fontSize: '12px',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = '#fee2e2';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = '#ffffff';
+                              }}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           )}
         </div>
 
