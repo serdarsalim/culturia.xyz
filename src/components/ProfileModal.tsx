@@ -424,36 +424,55 @@ export default function ProfileModal({ onClose, onPlayVideo, onEditSubmission, i
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
                 <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#111827', marginBottom: '8px' }}>Map Visibility</h3>
-                <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '8px' }}>Choose what the map highlights.</p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#374151', fontSize: '14px' }}>
-                    <input
-                      type="radio"
-                      name="map-visibility"
-                      checked={mapFilter === 'all'}
-                      onChange={() => onChangeMapFilter('all')}
-                    />
-                    All videos
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#374151', fontSize: '14px' }}>
-                    <input
-                      type="radio"
-                      name="map-visibility"
-                      checked={mapFilter === 'favorites'}
-                      onChange={() => onChangeMapFilter('favorites')}
-                    />
-                    Only my favorites
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#374151', fontSize: '14px' }}>
-                    <input
-                      type="radio"
-                      name="map-visibility"
-                      checked={mapFilter === 'mine'}
-                      onChange={() => onChangeMapFilter('mine')}
-                    />
-                    Only my submissions
-                  </label>
-                  <p style={{ fontSize: '12px', color: '#9ca3af' }}>Favorites and submissions filters work best when logged in.</p>
+                <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '12px' }}>Choose what the map highlights.</p>
+                <div
+                  role="group"
+                  aria-label="Map visibility"
+                  style={{
+                    display: 'inline-flex',
+                    backgroundColor: '#e5e7eb',
+                    borderRadius: '9999px',
+                    padding: '4px',
+                    border: '1px solid #d1d5db'
+                  }}
+                >
+                  {([
+                    { key: 'all', label: 'All' },
+                    { key: 'favorites', label: 'Favorites' },
+                    { key: 'mine', label: 'My Submissions' },
+                  ] as Array<{ key: 'all' | 'favorites' | 'mine'; label: string }>).map(opt => {
+                    const active = mapFilter === opt.key;
+                    return (
+                      <button
+                        key={opt.key}
+                        type="button"
+                        aria-pressed={active}
+                        onClick={() => onChangeMapFilter(opt.key)}
+                        style={{
+                          appearance: 'none',
+                          WebkitAppearance: 'none',
+                          backgroundColor: active ? '#ffffff' : 'transparent',
+                          color: active ? '#111827' : '#374151',
+                          border: active ? '1px solid #d1d5db' : '1px solid transparent',
+                          borderRadius: '9999px',
+                          padding: '8px 14px',
+                          fontSize: '13px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                          boxShadow: active ? '0 1px 2px rgba(0,0,0,0.06)' : 'none'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!active) e.currentTarget.style.backgroundColor = '#f3f4f6';
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!active) e.currentTarget.style.backgroundColor = 'transparent';
+                        }}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
