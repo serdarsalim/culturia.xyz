@@ -310,44 +310,21 @@ export default function ProfileModal({ onClose, onPlayVideo, onEditSubmission, i
                     {/* Favorites list for country */}
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                       {favs.map(({ video, category }) => (
-                        <div key={video.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '12px 16px', borderTop: '1px solid #f3f4f6' }}>
+                        <div
+                          key={video.id}
+                          onClick={() => onPlayVideo(video, category)}
+                          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '12px 16px', borderTop: '1px solid #f3f4f6', cursor: 'pointer' }}
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f9fafb')}
+                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                        >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                             <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: 600 }}>
                               {CATEGORY_LABELS[category]}
                             </span>
-                            <button
-                              onClick={() => onPlayVideo(video, category)}
-                              style={{
-                                background: 'transparent',
-                                border: 'none',
-                                color: '#2563eb',
-                                fontSize: '14px',
-                                textDecoration: 'underline',
-                                cursor: 'pointer',
-                                padding: 0
-                              }}
-                            >
+                            <span style={{ fontSize: '14px', color: '#111827', fontWeight: 500 }}>
                               {video.title || 'Untitled'}
-                            </button>
+                            </span>
                           </div>
-                          <button
-                            onClick={() => onPlayVideo(video, category)}
-                            style={{
-                              padding: '6px 12px',
-                              borderRadius: '8px',
-                              backgroundColor: '#ffffff',
-                              border: '1px solid #d1d5db',
-                              color: '#374151',
-                              fontSize: '12px',
-                              fontWeight: '600',
-                              cursor: 'pointer',
-                              transition: 'all 0.2s'
-                            }}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ffffff'}
-                          >
-                            Play ▶
-                          </button>
                         </div>
                       ))}
                     </div>
@@ -389,9 +366,9 @@ export default function ProfileModal({ onClose, onPlayVideo, onEditSubmission, i
                               style={{
                                 background: 'transparent',
                                 border: 'none',
-                                color: '#2563eb',
+                                color: '#111827',
                                 fontSize: '14px',
-                                textDecoration: 'underline',
+                                fontWeight: 500,
                                 cursor: 'pointer',
                                 padding: 0
                               }}
