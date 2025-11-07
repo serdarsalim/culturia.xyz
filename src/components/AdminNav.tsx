@@ -22,6 +22,7 @@ export default function AdminNav({ pendingCount = 0, adminEmail }: AdminNavProps
     { href: '/admin/pending', label: 'Pending', icon: '⏳', showDot: pendingCount > 0 },
     { href: '/admin/all', label: 'All Submissions', icon: '📹', showDot: false },
     { href: '/admin/rejected', label: 'Rejected', icon: '❌', showDot: false },
+    { href: '/admin/users', label: 'Users', icon: '👥', showDot: false },
   ];
 
   return (
