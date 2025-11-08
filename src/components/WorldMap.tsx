@@ -240,7 +240,10 @@ export default function WorldMap({ onCountryClick, selectedCountry, onBackground
             const fillColor = isSelected ? '#f59e0b' : hasVideos ? '#f97316' : '#94a3b8';
 
             return (
-              <Marker key={marker.code} coordinates={marker.coordinates}>
+              <Marker
+                key={marker.code}
+                coordinates={[marker.coordinates[0], marker.coordinates[1]] as [number, number]}
+              >
                 <circle
                   r={isSelected ? 4 : 3}
                   fill={fillColor}
