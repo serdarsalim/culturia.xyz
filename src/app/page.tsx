@@ -246,7 +246,7 @@ export default function Home() {
     } else {
       // No videos for this country
       if (user) {
-        setSelectedCountry(isMobile ? countryCode : null);
+        setSelectedCountry(countryCode);
         setShowSubmissionForm(true);
       } else {
         pendingSubmissionCountryRef.current = countryCode;
