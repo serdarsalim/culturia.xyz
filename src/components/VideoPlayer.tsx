@@ -593,8 +593,8 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
           </div>
         </div>
 
-        {/* Category pills (mobile only) */}
-        {isMobile && categoryCounts && onChangeCategory && (
+        {/* Category pills (all viewports) */}
+        {categoryCounts && onChangeCategory && (
           <div style={{
             marginTop: '8px',
             display: 'flex',
