@@ -241,6 +241,8 @@ export default function VideoPlayer({ video, category, onClose, onNext }: VideoP
           backgroundColor: '#000000',
           borderRadius: isMobile ? '12px' : '16px',
           padding: isMobile ? '16px' : '24px',
+          // Add thicker top padding so the close button sits in the header space
+          paddingTop: isMobile ? '44px' : '52px',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8)',
           position: 'relative'
         }}
@@ -253,8 +255,8 @@ export default function VideoPlayer({ video, category, onClose, onNext }: VideoP
           title="Close"
           style={{
             position: 'absolute',
-            top: isMobile ? '8px' : '10px',
-            right: isMobile ? '8px' : '10px',
+            top: isMobile ? '8px' : '8px',
+            right: isMobile ? '8px' : '8px',
             width: isMobile ? '32px' : '32px',
             height: isMobile ? '32px' : '32px',
             borderRadius: '9999px',
