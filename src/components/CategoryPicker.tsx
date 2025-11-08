@@ -85,7 +85,8 @@ export default function CategoryPicker({ countryCode, counts, loading, onSelect,
                 disabled={disabled}
                 onClick={() => !disabled && onSelect(cat)}
                 style={{
-                  padding: '14px',
+                  // Tighter top/bottom, roomier left/right
+                  padding: '10px 18px',
                   borderRadius: '12px',
                   border: '1px solid ' + (disabled ? '#f3f4f6' : '#e5e7eb'),
                   background: disabled ? '#f9fafb' : '#ffffff',
@@ -114,7 +115,8 @@ export default function CategoryPicker({ countryCode, counts, loading, onSelect,
           <button
             onClick={onSubmitVideos}
             style={{
-              padding: '14px',
+              // Match category tile density but keep subtle accent
+              padding: '10px 18px',
               borderRadius: '12px',
               border: '1px solid #fed7aa',
               background: '#fff7ed',
