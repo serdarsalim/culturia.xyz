@@ -35,6 +35,9 @@ export default function ProfileModal({ onClose, onPlayVideo, onEditSubmission, i
   const [usernameError, setUsernameError] = useState('');
   const [isMobile, setIsMobile] = useState(false);
   const [saveTimeout, setSaveTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [profileLoaded, setProfileLoaded] = useState(false);
+  const [initialUsername, setInitialUsername] = useState('');
+  const [initialDisplayName, setInitialDisplayName] = useState('');
 
   // Detect mobile
   useEffect(() => {
@@ -145,17 +148,30 @@ export default function ProfileModal({ onClose, onPlayVideo, onEditSubmission, i
       }
 
       if (data) {
-        setUsername(data.username || '');
-        setDisplayName(data.display_name || '');
+        const fetchedUsername = data.username || '';
+        const fetchedDisplayName = data.display_name || '';
+        setUsername(fetchedUsername);
+        setDisplayName(fetchedDisplayName);
+        // Store initial values to compare against later
+        setInitialUsername(fetchedUsername);
+        setInitialDisplayName(fetchedDisplayName);
       }
+      // Mark profile as loaded after setting initial values
+      setProfileLoaded(true);
     } catch (error) {
       console.error('Error fetching profile:', error);
+      setProfileLoaded(true); // Still mark as loaded even on error
     }
   }
 
   // Autosave profile with debounce
   async function autoSaveProfile() {
     setUsernameError('');
+
+    // Don't save if nothing has changed
+    if (username === initialUsername && displayName === initialDisplayName) {
+      return;
+    }
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -189,6 +205,10 @@ export default function ProfileModal({ onClose, onPlayVideo, onEditSubmission, i
         return;
       }
 
+      // Update initial values after successful save
+      setInitialUsername(username);
+      setInitialDisplayName(displayName);
+
       // Success toast
       setToastMessage({
         title: 'Saved',
@@ -209,8 +229,11 @@ export default function ProfileModal({ onClose, onPlayVideo, onEditSubmission, i
     }
   }
 
-  // Debounced autosave on field changes
+  // Debounced autosave on field changes (only after profile is loaded)
   useEffect(() => {
+    // Don't autosave until profile data has been loaded
+    if (!profileLoaded) return;
+
     if (saveTimeout) {
       clearTimeout(saveTimeout);
     }
