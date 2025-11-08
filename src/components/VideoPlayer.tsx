@@ -231,6 +231,38 @@ export default function VideoPlayer({ video, category, onClose, onNext }: VideoP
       }}
       onClick={onClose}
     >
+      {/* Global Close (X) outside the player card */}
+      <button
+        onClick={(e) => { e.stopPropagation(); onClose(); }}
+        aria-label="Close"
+        title="Close"
+        style={{
+          position: 'absolute',
+          top: '12px',
+          right: '12px',
+          width: '34px',
+          height: '34px',
+          borderRadius: '9999px',
+          backgroundColor: 'transparent',
+          border: 'none',
+          color: '#cbd5e1',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          transition: 'all 0.15s ease'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)';
+          e.currentTarget.style.color = '#ffffff';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = 'transparent';
+          e.currentTarget.style.color = '#cbd5e1';
+        }}
+      >
+        ✕
+      </button>
       <div
         style={{
           width: '100%',
@@ -243,39 +275,7 @@ export default function VideoPlayer({ video, category, onClose, onNext }: VideoP
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Top-right Close (X) */}
-        <button
-          onClick={onClose}
-          aria-label="Close"
-          title="Close"
-          style={{
-            position: 'absolute',
-            top: isMobile ? '10px' : '12px',
-            right: isMobile ? '10px' : '12px',
-            width: isMobile ? '32px' : '36px',
-            height: isMobile ? '32px' : '36px',
-            borderRadius: '9999px',
-            backgroundColor: '#111827',
-            border: '1px solid #374151',
-            color: '#e5e7eb',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            transition: 'all 0.15s ease',
-            zIndex: 2
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#1f2937';
-            e.currentTarget.style.color = '#ffffff';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = '#111827';
-            e.currentTarget.style.color = '#e5e7eb';
-          }}
-        >
-          ✕
-        </button>
+        {/* Close moved outside the player card */}
         {/* Video Container */}
         <div style={{
           position: 'relative',
