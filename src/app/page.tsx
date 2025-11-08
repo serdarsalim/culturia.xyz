@@ -767,57 +767,58 @@ export default function Home() {
                   </button>
                 ))}
               </div>
-              {/* Footer - Subtitle and Links */}
-              <div style={{ marginTop: isMobile ? '60px' : '0', paddingBottom: isMobile ? '24px' : '0' }}>
-                <p style={{
-                  fontSize: isMobile ? '13px' : '15px',
-                  color: '#4b5563',
-                  marginBottom: '8px',
-                  lineHeight: '1.5',
-                  textAlign: isMobile ? 'center' : 'left'
-                }}>
-                  Discover authentic cultural content from around the world
-                </p>
-                <div style={{ display: 'flex', gap: '16px', fontSize: '12px', justifyContent: isMobile ? 'center' : 'flex-start' }}>
-                  <a
-                    href="#"
-                    style={{
-                      color: '#6b7280',
-                      textDecoration: 'none',
-                      transition: 'color 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.color = '#000000'}
-                    onMouseLeave={(e) => e.currentTarget.style.color = '#6b7280'}
-                  >
-                    Terms
-                  </a>
-                  <span style={{ color: '#d1d5db' }}>|</span>
-                  <a
-                    href="#"
-                    style={{
-                      color: '#6b7280',
-                      textDecoration: 'none',
-                      transition: 'color 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.color = '#000000'}
-                    onMouseLeave={(e) => e.currentTarget.style.color = '#6b7280'}
-                  >
-                    Privacy
-                  </a>
-                  <span style={{ color: '#d1d5db' }}>|</span>
-                  <a
-                    href="#"
-                    style={{
-                      color: '#6b7280',
-                      textDecoration: 'none',
-                      transition: 'color 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.color = '#000000'}
-                    onMouseLeave={(e) => e.currentTarget.style.color = '#6b7280'}
-                  >
-                    About
-                  </a>
-                </div>
+            </div>
+
+            {/* Footer - Subtitle and Links */}
+            <div style={{ marginTop: isMobile ? '60px' : 'auto', paddingTop: isMobile ? '0' : '24px', paddingBottom: isMobile ? '24px' : '24px' }}>
+              <p style={{
+                fontSize: isMobile ? '13px' : '13px',
+                color: '#4b5563',
+                marginBottom: '8px',
+                lineHeight: '1.5',
+                textAlign: isMobile ? 'center' : 'left'
+              }}>
+                Discover authentic cultural content from around the world
+              </p>
+              <div style={{ display: 'flex', gap: '16px', fontSize: '12px', justifyContent: isMobile ? 'center' : 'flex-start' }}>
+                <a
+                  href="/terms"
+                  style={{
+                    color: '#6b7280',
+                    textDecoration: 'none',
+                    transition: 'color 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = '#000000'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = '#6b7280'}
+                >
+                  Terms
+                </a>
+                <span style={{ color: '#d1d5db' }}>|</span>
+                <a
+                  href="/privacy"
+                  style={{
+                    color: '#6b7280',
+                    textDecoration: 'none',
+                    transition: 'color 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = '#000000'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = '#6b7280'}
+                >
+                  Privacy
+                </a>
+                <span style={{ color: '#d1d5db' }}>|</span>
+                <a
+                  href="#"
+                  style={{
+                    color: '#6b7280',
+                    textDecoration: 'none',
+                    transition: 'color 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = '#000000'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = '#6b7280'}
+                >
+                  About
+                </a>
               </div>
             </div>
           </div>
