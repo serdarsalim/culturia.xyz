@@ -22,6 +22,7 @@ export default function Home() {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState({ title: '', description: '' });
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [profileModalTab, setProfileModalTab] = useState<'favorites' | 'submissions' | 'settings'>('favorites');
   const [isMobile, setIsMobile] = useState(false);
   const [profileData, setProfileData] = useState<{
     favorites: Array<{ video: VideoSubmission; category: VideoCategory }>;
@@ -438,7 +439,7 @@ export default function Home() {
                   </h1>
                   <p style={{ fontSize: '11px', color: '#6b7280', marginTop: '2px' }}>Native-language videos worldwide</p>
                 </div>
-                <div style={{ display: 'flex', gap: '14px', fontSize: '13px' }}>
+                <div style={{ display: 'flex', gap: '14px', fontSize: '13px', alignItems: 'center' }}>
                   {!user ? (
                     <>
                       <button
@@ -492,15 +493,19 @@ export default function Home() {
                   ) : (
                     <>
                       <button
-                        onClick={() => setShowProfileModal(true)}
+                        onClick={() => {
+                          setProfileModalTab('favorites');
+                          setShowProfileModal(true);
+                        }}
                         style={{
                           color: '#6b7280',
                           cursor: 'pointer',
                           border: 'none',
                           backgroundColor: 'transparent',
-                          textDecoration: 'underline',
+                          textDecoration: 'none',
                           padding: 0,
-                          transition: 'color 0.2s'
+                          transition: 'color 0.2s',
+                          fontSize: '16px'
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.color = '#000000';
@@ -508,8 +513,61 @@ export default function Home() {
                         onMouseLeave={(e) => {
                           e.currentTarget.style.color = '#6b7280';
                         }}
+                        title="Favorites"
                       >
-                        Profile
+                        ❤️
+                      </button>
+                      <span style={{ color: '#d1d5db' }}>|</span>
+                      <button
+                        onClick={() => {
+                          setProfileModalTab('submissions');
+                          setShowProfileModal(true);
+                        }}
+                        style={{
+                          color: '#6b7280',
+                          cursor: 'pointer',
+                          border: 'none',
+                          backgroundColor: 'transparent',
+                          textDecoration: 'none',
+                          padding: 0,
+                          transition: 'color 0.2s',
+                          fontSize: '16px'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = '#000000';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = '#6b7280';
+                        }}
+                        title="My Submissions"
+                      >
+                        📤
+                      </button>
+                      <span style={{ color: '#d1d5db' }}>|</span>
+                      <button
+                        onClick={() => {
+                          setProfileModalTab('settings');
+                          setShowProfileModal(true);
+                        }}
+                        style={{
+                          color: '#6b7280',
+                          cursor: 'pointer',
+                          border: 'none',
+                          backgroundColor: 'transparent',
+                          textDecoration: 'none',
+                          padding: 0,
+                          transition: 'color 0.2s',
+                          fontSize: '16px'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = '#000000';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = '#6b7280';
+                        }}
+                        title="Settings"
+                      >
+                        ⚙️
                       </button>
                       <span style={{ color: '#d1d5db' }}>|</span>
                       <button
@@ -542,7 +600,7 @@ export default function Home() {
             ) : (
               <>
                 {/* Auth Links at top left for desktop */}
-                <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', fontSize: '14px' }}>
+                <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', fontSize: '14px', alignItems: 'center' }}>
                   {!user ? (
                     <>
                       <button
@@ -596,15 +654,19 @@ export default function Home() {
                   ) : (
                     <>
                       <button
-                        onClick={() => setShowProfileModal(true)}
+                        onClick={() => {
+                          setProfileModalTab('favorites');
+                          setShowProfileModal(true);
+                        }}
                         style={{
                           color: '#6b7280',
                           cursor: 'pointer',
                           border: 'none',
                           backgroundColor: 'transparent',
-                          textDecoration: 'underline',
+                          textDecoration: 'none',
                           padding: 0,
-                          transition: 'color 0.2s'
+                          transition: 'color 0.2s',
+                          fontSize: '18px'
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.color = '#000000';
@@ -612,8 +674,61 @@ export default function Home() {
                         onMouseLeave={(e) => {
                           e.currentTarget.style.color = '#6b7280';
                         }}
+                        title="Favorites"
                       >
-                        Profile
+                        ❤️
+                      </button>
+                      <span style={{ color: '#d1d5db' }}>|</span>
+                      <button
+                        onClick={() => {
+                          setProfileModalTab('submissions');
+                          setShowProfileModal(true);
+                        }}
+                        style={{
+                          color: '#6b7280',
+                          cursor: 'pointer',
+                          border: 'none',
+                          backgroundColor: 'transparent',
+                          textDecoration: 'none',
+                          padding: 0,
+                          transition: 'color 0.2s',
+                          fontSize: '18px'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = '#000000';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = '#6b7280';
+                        }}
+                        title="My Submissions"
+                      >
+                        📤
+                      </button>
+                      <span style={{ color: '#d1d5db' }}>|</span>
+                      <button
+                        onClick={() => {
+                          setProfileModalTab('settings');
+                          setShowProfileModal(true);
+                        }}
+                        style={{
+                          color: '#6b7280',
+                          cursor: 'pointer',
+                          border: 'none',
+                          backgroundColor: 'transparent',
+                          textDecoration: 'none',
+                          padding: 0,
+                          transition: 'color 0.2s',
+                          fontSize: '18px'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = '#000000';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = '#6b7280';
+                        }}
+                        title="Settings"
+                      >
+                        ⚙️
                       </button>
                       <span style={{ color: '#d1d5db' }}>|</span>
                       <button
@@ -842,6 +957,7 @@ export default function Home() {
           initialData={profileData}
           mapSources={mapSources}
           onToggleMapSource={(key, value) => setMapSources((prev) => ({ ...prev, [key]: value }))}
+          initialTab={profileModalTab}
         />
       )}
 

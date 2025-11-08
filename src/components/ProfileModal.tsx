@@ -15,10 +15,11 @@ interface ProfileModalProps {
   } | null;
   mapSources: { all: boolean; favorites: boolean; mine: boolean };
   onToggleMapSource: (key: 'all' | 'favorites' | 'mine', value: boolean) => void;
+  initialTab?: 'favorites' | 'submissions' | 'settings';
 }
 
-export default function ProfileModal({ onClose, onPlayVideo, onEditSubmission, initialData, mapSources, onToggleMapSource }: ProfileModalProps) {
-  const [activeTab, setActiveTab] = useState<'favorites' | 'submissions' | 'settings'>('favorites');
+export default function ProfileModal({ onClose, onPlayVideo, onEditSubmission, initialData, mapSources, onToggleMapSource, initialTab = 'favorites' }: ProfileModalProps) {
+  const [activeTab, setActiveTab] = useState<'favorites' | 'submissions' | 'settings'>(initialTab);
   const [favorites, setFavorites] = useState<Array<{ video: VideoSubmission; category: VideoCategory }>>(initialData?.favorites || []);
   const [submissions, setSubmissions] = useState<VideoSubmission[]>(initialData?.submissions || []);
   const [loading, setLoading] = useState(!initialData);
