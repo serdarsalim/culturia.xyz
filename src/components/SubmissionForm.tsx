@@ -203,28 +203,50 @@ export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuth
         isAdmin = false;
       }
 
-      // Submit each category that has a URL
+      let changesMade = false;
+
       for (const [category, data] of Object.entries(formData)) {
-        if (data.url.trim()) {
-          const videoId = extractYouTubeVideoId(data.url);
+        const trimmedUrl = data.url.trim();
+        const trimmedTitle = data.title.trim();
+
+        if (trimmedUrl) {
+          const videoId = extractYouTubeVideoId(trimmedUrl);
           if (!videoId) continue;
 
-          // Use upsert to update existing or insert new
-          await supabase
+          const { error } = await supabase
             .from('video_submissions')
             .upsert({
               country_code: countryCode,
               category: category as VideoCategory,
-              youtube_url: data.url,
+              youtube_url: trimmedUrl,
               youtube_video_id: videoId,
-              title: data.title,
+              title: trimmedTitle,
               user_id: user.id,
               user_email: user.email!,
               status: isAdmin ? 'approved' : 'pending',
             }, {
               onConflict: 'user_id,country_code,category'
             });
+
+          if (error) throw error;
+          changesMade = true;
+        } else if (data.originalUrl) {
+          const { error } = await supabase
+            .from('video_submissions')
+            .delete()
+            .eq('user_id', user.id)
+            .eq('country_code', countryCode)
+            .eq('category', category as VideoCategory);
+
+          if (error) throw error;
+          changesMade = true;
         }
+      }
+
+      if (!changesMade) {
+        setError('No changes to submit');
+        setLoading(false);
+        return;
       }
 
       onSuccess();
