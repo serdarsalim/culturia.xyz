@@ -238,10 +238,44 @@ export default function VideoPlayer({ video, category, onClose, onNext }: VideoP
           backgroundColor: '#1a1a1a',
           borderRadius: isMobile ? '12px' : '16px',
           padding: isMobile ? '16px' : '24px',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8)'
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8)',
+          position: 'relative'
         }}
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Top-right Close (X) */}
+        <button
+          onClick={onClose}
+          aria-label="Close"
+          title="Close"
+          style={{
+            position: 'absolute',
+            top: isMobile ? '10px' : '12px',
+            right: isMobile ? '10px' : '12px',
+            width: isMobile ? '32px' : '36px',
+            height: isMobile ? '32px' : '36px',
+            borderRadius: '9999px',
+            backgroundColor: '#111827',
+            border: '1px solid #374151',
+            color: '#e5e7eb',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+            zIndex: 2
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#1f2937';
+            e.currentTarget.style.color = '#ffffff';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = '#111827';
+            e.currentTarget.style.color = '#e5e7eb';
+          }}
+        >
+          ✕
+        </button>
         {/* Video Container */}
         <div style={{
           position: 'relative',
@@ -358,36 +392,7 @@ export default function VideoPlayer({ video, category, onClose, onNext }: VideoP
               {isMobile ? '⏭️' : 'Next'}
             </button>
 
-            {/* Close Button */}
-            <button
-              onClick={onClose}
-              style={{
-                padding: '10px 20px',
-                height: '40px',
-                backgroundColor: '#374151',
-                color: '#ffffff',
-                borderRadius: '8px',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'background-color 0.2s',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#4b5563'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#374151'}
-              aria-label="Close"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                style={{ height: '18px', width: '18px' }}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+            {/* Close moved to top-right */}
           </div>
         </div>
       </div>
