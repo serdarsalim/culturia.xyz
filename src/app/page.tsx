@@ -8,6 +8,7 @@ import VideoPlayer from '@/components/VideoPlayer';
 import AuthModal from '@/components/AuthModal';
 import SubmissionForm from '@/components/SubmissionForm';
 import ProfileModal from '@/components/ProfileModal';
+import CategoryPicker from '@/components/CategoryPicker';
 import type { VideoSubmission, VideoCategory } from '@/types';
 
 export default function Home() {
@@ -27,6 +28,8 @@ export default function Home() {
   } | null>(null);
   const [videoCache, setVideoCache] = useState<VideoSubmission[]>([]);
   const [videoCacheReady, setVideoCacheReady] = useState(false);
+  const [showCategoryPicker, setShowCategoryPicker] = useState(false);
+  const [pickerCountry, setPickerCountry] = useState<string | null>(null);
   const [categoryCounts, setCategoryCounts] = useState<Record<VideoCategory, number>>({
     inspiration: 0,
     music: 0,
@@ -206,8 +209,11 @@ export default function Home() {
 
   function handleCountryClick(countryCode: string) {
     console.log('handleCountryClick called with:', countryCode);
+    // Keep existing sidebar behavior for now, but also show category picker
     setSelectedCountry(countryCode);
     setCurrentVideo(null);
+    setPickerCountry(countryCode);
+    setShowCategoryPicker(true);
     console.log('Country selected:', countryCode);
   }
 
@@ -227,6 +233,19 @@ export default function Home() {
 
   function handleCloseVideo() {
     setCurrentVideo(null);
+  }
+
+  function playRandomForCountryCategory(countryCode: string, category: VideoCategory) {
+    if (!videoCacheReady) return;
+    const matches = videoCache.filter(v => v.country_code === countryCode && v.category === category);
+    if (matches.length > 0) {
+      const randomVideo = matches[Math.floor(Math.random() * matches.length)];
+      setCurrentVideo({ video: randomVideo, category });
+    } else {
+      setToastMessage({ title: 'No Videos', description: 'No videos in this category for this country' });
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    }
   }
 
   function handleNextVideo() {
@@ -807,6 +826,32 @@ export default function Home() {
           onClose={() => setShowSubmissionForm(false)}
           onSuccess={handleSubmissionSuccess}
           onAuthRequired={() => setShowAuthModal(true)}
+        />
+      )}
+
+      {/* Category Picker */}
+      {showCategoryPicker && pickerCountry && (
+        <CategoryPicker
+          countryCode={pickerCountry}
+          counts={{
+            inspiration: videoCache.filter(v => v.country_code === pickerCountry && v.category === 'inspiration').length,
+            music: videoCache.filter(v => v.country_code === pickerCountry && v.category === 'music').length,
+            comedy: videoCache.filter(v => v.country_code === pickerCountry && v.category === 'comedy').length,
+            cooking: videoCache.filter(v => v.country_code === pickerCountry && v.category === 'cooking').length,
+            street_voices: videoCache.filter(v => v.country_code === pickerCountry && v.category === 'street_voices').length,
+          }}
+          loading={!videoCacheReady}
+          onSelect={(cat) => {
+            setShowCategoryPicker(false);
+            playRandomForCountryCategory(pickerCountry, cat);
+          }}
+          onSubmitVideos={() => {
+            setShowCategoryPicker(false);
+            // Open submission form for this country
+            setSelectedCountry(pickerCountry);
+            setShowSubmissionForm(true);
+          }}
+          onClose={() => setShowCategoryPicker(false)}
         />
       )}
 
