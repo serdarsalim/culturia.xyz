@@ -210,18 +210,32 @@ export default function Home() {
   function handleCountryClick(countryCode: string) {
     console.log('handleCountryClick called with:', countryCode);
     setCurrentVideo(null);
-    if (isMobile) {
-      // Mobile: keep using the sidebar (bottom panel) to show categories
-      setSelectedCountry(countryCode);
-      setPickerCountry(null);
-      setShowCategoryPicker(false);
-    } else {
-      // Desktop: do NOT change the sidebar; use the overlay picker instead
-      setSelectedCountry(null);
-      setPickerCountry(countryCode);
-      setShowCategoryPicker(true);
+    // Always bypass picker and sidebar: play latest approved video for the country.
+    // If none, open submission form for that country.
+
+    // Close any picker state
+    setShowCategoryPicker(false);
+    setPickerCountry(null);
+
+    if (!videoCacheReady) {
+      // Wait until cache is ready to avoid false "no videos". Show a quick toast.
+      setToastMessage({ title: 'Loading', description: 'Fetching latest videos…' });
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 1500);
+      return;
     }
-    console.log('Country selected:', countryCode);
+
+    const latest = videoCache.find(v => v.country_code === countryCode);
+    if (latest) {
+      setCurrentVideo({ video: latest, category: latest.category as VideoCategory });
+      // Do not alter sidebar selection for this flow
+      setSelectedCountry(null);
+    } else {
+      // No videos for this country: open submission form prefilled to this country
+      setSelectedCountry(countryCode);
+      setShowSubmissionForm(true);
+    }
+    console.log('Country selected (auto-play if available):', countryCode);
   }
 
   function handleCloseSidebar() {
