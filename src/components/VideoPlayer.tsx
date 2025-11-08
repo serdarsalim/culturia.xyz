@@ -433,6 +433,56 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
             {/* Close moved to top-right */}
           </div>
         </div>
+
+        {/* Category pills (all viewports) */}
+        {categoryCounts && onChangeCategory && (
+          <div style={{
+            marginTop: '8px',
+            display: 'flex',
+            gap: '8px',
+            overflowX: 'auto',
+            padding: '4px 2px'
+          }}>
+            {(['inspiration','music','comedy','cooking','street_voices'] as VideoCategory[]).map((cat) => {
+              const count = categoryCounts[cat] || 0;
+              const active = cat === category;
+              const disabled = count === 0;
+              return (
+                <button
+                  key={cat}
+                  disabled={disabled}
+                  onClick={() => !disabled && !active && onChangeCategory(cat)}
+                  style={{
+                    whiteSpace: 'nowrap',
+                    padding: '8px 12px',
+                    borderRadius: '9999px',
+                    border: '1px solid ' + (active ? '#60a5fa' : '#334155'),
+                    background: active ? '#1f2937' : '#111827',
+                    color: disabled ? '#6b7280' : '#e5e7eb',
+                    opacity: disabled ? 0.6 : 1,
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}
+                  aria-pressed={active}
+                  title={CATEGORY_LABELS[cat] + ' • ' + count}
+                >
+                  <span>{CATEGORY_LABELS[cat]}</span>
+                  <span style={{
+                    padding: '0 6px',
+                    borderRadius: '9999px',
+                    background: active ? '#334155' : '#1f2937',
+                    color: '#e5e7eb',
+                    fontSize: '11px',
+                    fontWeight: 700
+                  }}>{count}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Report Modal */}
@@ -593,55 +643,6 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
           </div>
         </div>
 
-        {/* Category pills (all viewports) */}
-        {categoryCounts && onChangeCategory && (
-          <div style={{
-            marginTop: '8px',
-            display: 'flex',
-            gap: '8px',
-            overflowX: 'auto',
-            padding: '4px 2px'
-          }}>
-            {(['inspiration','music','comedy','cooking','street_voices'] as VideoCategory[]).map((cat) => {
-              const count = categoryCounts[cat] || 0;
-              const active = cat === category;
-              const disabled = count === 0;
-              return (
-                <button
-                  key={cat}
-                  disabled={disabled}
-                  onClick={() => !disabled && !active && onChangeCategory(cat)}
-                  style={{
-                    whiteSpace: 'nowrap',
-                    padding: '8px 12px',
-                    borderRadius: '9999px',
-                    border: '1px solid ' + (active ? '#60a5fa' : '#334155'),
-                    background: active ? '#1f2937' : '#111827',
-                    color: disabled ? '#6b7280' : '#e5e7eb',
-                    opacity: disabled ? 0.6 : 1,
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px'
-                  }}
-                  aria-pressed={active}
-                  title={CATEGORY_LABELS[cat] + ' • ' + count}
-                >
-                  <span>{CATEGORY_LABELS[cat]}</span>
-                  <span style={{
-                    padding: '0 6px',
-                    borderRadius: '9999px',
-                    background: active ? '#334155' : '#1f2937',
-                    color: '#e5e7eb',
-                    fontSize: '11px',
-                    fontWeight: 700
-                  }}>{count}</span>
-                </button>
-              );
-            })}
-          </div>
-        )}
         </div>
       )}
 
