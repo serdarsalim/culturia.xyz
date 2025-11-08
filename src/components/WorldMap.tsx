@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ComposableMap, Geographies, Geography, ZoomableGroup } from 'react-simple-maps';
+import { ComposableMap, Geographies, Geography, ZoomableGroup, Marker } from 'react-simple-maps';
 import countries from '@/lib/countries';
 
 const geoUrl = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
@@ -35,6 +35,7 @@ const GEO_NAME_TO_CODE: Record<string, string> = {
   'Türkiye': 'TUR',
   'Republic of the Congo': 'COG',
   'Democratic Republic of the Congo': 'COD',
+  'Dem. Rep. Congo': 'COD',
   'Congo': 'COG',
   'North Korea': 'PRK',
   'South Korea': 'KOR',
@@ -45,6 +46,19 @@ const GEO_NAME_TO_CODE: Record<string, string> = {
   'Swaziland': 'SWZ',
   'Eswatini': 'SWZ',
 };
+
+const SPECIAL_MARKERS = [
+  {
+    code: 'SGP',
+    name: 'Singapore',
+    coordinates: [103.8198, 1.3521],
+  },
+  {
+    code: 'HKG',
+    name: 'Hong Kong',
+    coordinates: [114.1694, 22.3193],
+  },
+];
 
 interface WorldMapProps {
   onCountryClick: (countryCode: string) => void;
@@ -184,27 +198,32 @@ export default function WorldMap({ onCountryClick, selectedCountry, onBackground
                     }}
                     style={{
                       default: {
-                        fill: countryColor,
-                        stroke: isSelected ? '#1e40af' : '#fff',
-                        strokeWidth: isSelected ? 2 : 0.75,
+                        fill: isSelected ? '#f59e0b' : countryColor,
+                        stroke: isSelected ? '#d97706' : '#fff',
+                        strokeWidth: isSelected ? 1.8 : 0.75,
                         outline: 'none',
                         transition: 'all 0.2s ease',
                         opacity: hasVideos ? 1 : 0.6,
+                        filter: 'none',
                       },
                       hover: {
-                        fill: countryColor,
-                        stroke: '#1e40af',
+                        fill: isSelected ? '#f59e0b' : countryColor,
+                        stroke: '#d97706',
                         strokeWidth: 2,
                         outline: 'none',
                         cursor: 'pointer',
-                        filter: hasVideos ? 'brightness(0.9)' : 'none',
+                        filter: isSelected
+                          ? 'brightness(0.95)'
+                          : hasVideos ? 'brightness(0.9)' : 'none',
                       },
                       pressed: {
-                        fill: countryColor,
-                        stroke: '#1e40af',
+                        fill: isSelected ? '#d97706' : countryColor,
+                        stroke: '#b45309',
                         strokeWidth: 2,
                         outline: 'none',
-                        filter: hasVideos ? 'brightness(0.8)' : 'none',
+                        filter: isSelected
+                          ? 'brightness(0.9)'
+                          : hasVideos ? 'brightness(0.8)' : 'none',
                       },
                     }}
                   />
@@ -212,6 +231,41 @@ export default function WorldMap({ onCountryClick, selectedCountry, onBackground
               })
             }
           </Geographies>
+
+          {SPECIAL_MARKERS.map((marker) => {
+            const country = countries.find((c) => c.code === marker.code);
+            if (!country) return null;
+            const hasVideos = countriesWithVideos?.has(marker.code) === true;
+            const isSelected = selectedCountry === marker.code;
+            const fillColor = isSelected ? '#f59e0b' : hasVideos ? '#f97316' : '#94a3b8';
+
+            return (
+              <Marker key={marker.code} coordinates={marker.coordinates}>
+                <circle
+                  r={isSelected ? 4 : 3}
+                  fill={fillColor}
+                  stroke={isSelected ? '#d97706' : '#fff'}
+                  strokeWidth={isSelected ? 1.5 : 1}
+                  style={{ cursor: 'pointer' }}
+                  onMouseEnter={(evt) => {
+                    const { clientX, clientY } = evt;
+                    setTooltip({ name: marker.name, x: clientX, y: clientY });
+                  }}
+                  onMouseLeave={() => setTooltip(null)}
+                  onMouseMove={(evt) => {
+                    if (tooltip) {
+                      const { clientX, clientY } = evt;
+                      setTooltip({ name: marker.name, x: clientX, y: clientY });
+                    }
+                  }}
+                  onClick={(evt) => {
+                    evt.stopPropagation();
+                    onCountryClick(marker.code);
+                  }}
+                />
+              </Marker>
+            );
+          })}
         </ZoomableGroup>
       </ComposableMap>
     </div>

@@ -368,19 +368,14 @@ export default function Home() {
   }
 
   return (
-    <div className="h-screen flex overflow-hidden" style={{
-      flexDirection: isMobile ? 'column' : 'row'
-    }}>
+    <div className="home-layout h-screen overflow-hidden">
       {/* Sidebar - bottom on mobile, left on desktop */}
-      <div style={{
-        width: isMobile ? '100%' : '280px',
-        height: isMobile ? '50%' : '100%',
+      <div className="home-sidebar" style={{
         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
         flexShrink: 0,
         overflowY: 'auto',
         backgroundColor: '#f3f4f6',
-        color: '#000000',
-        order: isMobile ? 2 : 0
+        color: '#000000'
       }}>
         {selectedCountry ? (
           <CountrySidebar
@@ -829,9 +824,7 @@ export default function Home() {
       </div>
 
       {/* Map Container - takes remaining space */}
-      <div className="flex-1 relative overflow-hidden bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900" style={{
-        order: isMobile ? 1 : 0
-      }}>
+      <div className="home-map flex-1 relative overflow-hidden bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900">
         <WorldMap
           onCountryClick={handleCountryClick}
           selectedCountry={selectedCountry}
