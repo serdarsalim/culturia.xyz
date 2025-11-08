@@ -318,6 +318,19 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
           />
         </div>
 
+        {/* Title directly under the video */}
+        {video.title && (
+          <div style={{
+            marginTop: isMobile ? '10px' : '12px',
+            color: '#ffffff',
+            fontWeight: 700,
+            fontSize: isMobile ? '14px' : '16px',
+            lineHeight: 1.25
+          }}>
+            {video.title}
+          </div>
+        )}
+
         {/* Controls */}
         <div style={{
           marginTop: isMobile ? '12px' : '16px',
@@ -340,22 +353,6 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
               <span style={{ fontWeight: 600, fontSize: isMobile ? '14px' : '16px' }}>{getCountryName(video.country_code)}</span>
               <span style={{ color: '#9ca3af', fontSize: isMobile ? '12px' : '14px' }}>•</span>
               <span style={{ color: '#d1d5db', fontSize: isMobile ? '13px' : '14px' }}>{CATEGORY_LABELS[category]}</span>
-              {video.title && (
-                <>
-                  <span style={{ color: '#9ca3af', fontSize: isMobile ? '12px' : '14px' }}>•</span>
-                  <span style={{
-                    color: '#d1d5db',
-                    fontSize: isMobile ? '13px' : '14px',
-                    fontWeight: 600,
-                    minWidth: 0,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap'
-                  }}>
-                    {video.title}
-                  </span>
-                </>
-              )}
             </div>
           </div>
 
