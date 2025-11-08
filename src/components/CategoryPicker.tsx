@@ -109,28 +109,34 @@ export default function CategoryPicker({ countryCode, counts, loading, onSelect,
               </button>
             );
           })}
-        </div>
 
-        {/* Submit CTA */}
-        <div style={{ marginTop: '14px', display: 'flex', justifyContent: 'flex-end' }}>
+          {/* 6th tile: Submit Videos */}
           <button
             onClick={onSubmitVideos}
             style={{
-              padding: '10px 14px',
-              borderRadius: '10px',
-              background: '#f97316',
-              color: '#ffffff',
-              border: 'none',
-              fontSize: '14px',
-              fontWeight: 600,
-              cursor: 'pointer'
+              padding: '14px',
+              borderRadius: '12px',
+              border: '1px solid #fed7aa',
+              background: '#fff7ed',
+              color: '#9a3412',
+              textAlign: 'left',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              cursor: 'pointer',
+              transition: 'background 0.2s, border 0.2s',
             }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = '#ffedd5'; e.currentTarget.style.border = '1px solid #fdba74'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = '#fff7ed'; e.currentTarget.style.border = '1px solid #fed7aa'; }}
           >
-            Submit Videos
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ fontSize: '20px' }}>＋</span>
+              <span style={{ fontSize: '14px', fontWeight: 700 }}>Submit Videos</span>
+            </div>
+            <span style={{ fontSize: '12px', color: '#9a3412', fontWeight: 600 }}>Add</span>
           </button>
         </div>
       </div>
     </div>
   );
 }
-
