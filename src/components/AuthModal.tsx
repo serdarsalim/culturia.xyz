@@ -65,16 +65,25 @@ export default function AuthModal({ onClose, onSuccess, initialMode = 'signup' }
     setMessage('');
 
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+          skipBrowserRedirect: false,
         },
       });
 
       if (error) throw error;
+
+      // OAuth redirect will happen automatically
+      console.log('Google OAuth initiated:', data);
     } catch (err: any) {
-      setError(err.message || 'An error occurred');
+      console.error('Google OAuth error:', err);
+      setError(err.message || 'An error occurred with Google sign-in');
       setLoading(false);
     }
   }
