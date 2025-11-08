@@ -27,11 +27,18 @@ export default function ProfileModal({ onClose, onPlayVideo, onEditSubmission, i
   const [showLibraryFavorites, setShowLibraryFavorites] = useState(true);
   const [showLibrarySubmissions, setShowLibrarySubmissions] = useState(true);
 
+  // Profile settings state
+  const [username, setUsername] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [usernameError, setUsernameError] = useState('');
+
   // Fetch both favorites and submissions on mount only if no initial data
   useEffect(() => {
     if (!initialData) {
       fetchAllData();
     }
+    fetchProfile();
   }, []);
 
   // Refetch when tab changes
@@ -107,6 +114,91 @@ export default function ProfileModal({ onClose, onPlayVideo, onEditSubmission, i
       await fetchFavorites();
     } else {
       await fetchSubmissions();
+    }
+  }
+
+  async function fetchProfile() {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('username, display_name')
+        .eq('id', user.id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return;
+      }
+
+      if (data) {
+        setUsername(data.username || '');
+        setDisplayName(data.display_name || '');
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  }
+
+  async function handleSaveProfile() {
+    setProfileLoading(true);
+    setUsernameError('');
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Validate username format
+      if (username && !/^[a-zA-Z0-9_]+$/.test(username)) {
+        setUsernameError('Username can only contain letters, numbers, and underscores');
+        setProfileLoading(false);
+        return;
+      }
+
+      if (username && username.length < 3) {
+        setUsernameError('Username must be at least 3 characters');
+        setProfileLoading(false);
+        return;
+      }
+
+      const { error } = await supabase
+        .from('user_profiles')
+        .upsert({
+          id: user.id,
+          username: username || null,
+          display_name: displayName || null,
+        });
+
+      if (error) {
+        if (error.code === '23505') { // Unique constraint violation
+          setUsernameError('Username already taken');
+        } else {
+          throw error;
+        }
+        setProfileLoading(false);
+        return;
+      }
+
+      setToastMessage({
+        title: 'Profile Updated',
+        description: 'Your profile has been saved successfully',
+        type: 'success'
+      });
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      setToastMessage({
+        title: 'Failed to Save',
+        description: 'Please try again later',
+        type: 'error'
+      });
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    } finally {
+      setProfileLoading(false);
     }
   }
 
@@ -427,7 +519,105 @@ export default function ProfileModal({ onClose, onPlayVideo, onEditSubmission, i
               </div>
             )
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              {/* Profile Settings */}
+              <div>
+                <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#111827', marginBottom: '8px' }}>Profile Information</h3>
+                <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '16px' }}>Customize your public profile</p>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '400px' }}>
+                  {/* Display Name */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                      Display Name
+                    </label>
+                    <input
+                      type="text"
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      placeholder="Your full name"
+                      maxLength={100}
+                      style={{
+                        width: '100%',
+                        padding: '10px 14px',
+                        fontSize: '14px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '8px',
+                        backgroundColor: '#ffffff',
+                        color: '#000000',
+                        outline: 'none'
+                      }}
+                    />
+                    <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+                      Your name as it appears to others
+                    </p>
+                  </div>
+
+                  {/* Username */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                      Username
+                    </label>
+                    <input
+                      type="text"
+                      value={username}
+                      onChange={(e) => {
+                        setUsername(e.target.value);
+                        setUsernameError('');
+                      }}
+                      placeholder="your_username"
+                      maxLength={30}
+                      style={{
+                        width: '100%',
+                        padding: '10px 14px',
+                        fontSize: '14px',
+                        border: `1px solid ${usernameError ? '#ef4444' : '#d1d5db'}`,
+                        borderRadius: '8px',
+                        backgroundColor: '#ffffff',
+                        color: '#000000',
+                        outline: 'none'
+                      }}
+                    />
+                    {usernameError ? (
+                      <p style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px' }}>
+                        {usernameError}
+                      </p>
+                    ) : (
+                      <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+                        Letters, numbers, and underscores only (min 3 chars)
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Save Button */}
+                  <button
+                    onClick={handleSaveProfile}
+                    disabled={profileLoading}
+                    style={{
+                      padding: '10px 20px',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      color: '#ffffff',
+                      backgroundColor: profileLoading ? '#9ca3af' : '#f97316',
+                      border: 'none',
+                      borderRadius: '8px',
+                      cursor: profileLoading ? 'not-allowed' : 'pointer',
+                      transition: 'all 0.2s',
+                      alignSelf: 'flex-start'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!profileLoading) e.currentTarget.style.backgroundColor = '#ea580c';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!profileLoading) e.currentTarget.style.backgroundColor = '#f97316';
+                    }}
+                  >
+                    {profileLoading ? 'Saving...' : 'Save Profile'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Map Visibility */}
               <div>
                 <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#111827', marginBottom: '8px' }}>Map Visibility</h3>
                 <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '12px' }}>Choose what the map highlights. You can select multiple.</p>
