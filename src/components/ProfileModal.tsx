@@ -271,12 +271,13 @@ export default function ProfileModal({ onClose, onPlayVideo, onEditSubmission, i
     return (
       <span style={{
         display: 'inline-block',
-        padding: isMobile ? '6px 8px' : '4px 10px',
-        borderRadius: '6px',
+        padding: isMobile ? '2px 4px' : '4px 10px',
+        borderRadius: '4px',
         backgroundColor: config.bg,
         color: config.color,
-        fontSize: isMobile ? '16px' : '12px',
-        fontWeight: '600'
+        fontSize: isMobile ? '10px' : '12px',
+        fontWeight: '600',
+        lineHeight: '1'
       }}>
         {isMobile ? config.icon : config.text}
       </span>
@@ -474,15 +475,15 @@ export default function ProfileModal({ onClose, onPlayVideo, onEditSubmission, i
                       {vids.map((video) => (
                         <div key={video.id} style={{
                           display: 'flex',
-                          flexDirection: isMobile ? 'column' : 'row',
-                          alignItems: isMobile ? 'flex-start' : 'center',
+                          flexDirection: 'row',
+                          alignItems: 'center',
                           justifyContent: 'space-between',
-                          gap: '12px',
-                          padding: '12px 16px',
+                          gap: isMobile ? '8px' : '12px',
+                          padding: isMobile ? '8px 12px' : '12px 16px',
                           borderTop: '1px solid #f3f4f6'
                         }}>
-                          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: isMobile ? '4px' : '10px', flex: 1 }}>
-                            <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: 600 }}>
+                          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: isMobile ? '2px' : '10px', flex: 1, paddingRight: isMobile ? '8px' : '0' }}>
+                            <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: 600, flexShrink: 0 }}>
                               {CATEGORY_LABELS[video.category as VideoCategory]}
                             </span>
                             <button
@@ -495,57 +496,37 @@ export default function ProfileModal({ onClose, onPlayVideo, onEditSubmission, i
                                 fontWeight: 600,
                                 cursor: 'pointer',
                                 padding: 0,
-                                textAlign: 'left'
+                                textAlign: 'left',
+                                wordBreak: 'break-word',
+                                whiteSpace: 'normal'
                               }}
                             >
                               {video.title || 'Untitled'}
                             </button>
                           </div>
-                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <div style={{ display: 'flex', gap: isMobile ? '4px' : '8px', alignItems: 'center', flexShrink: 0 }}>
                             <button
                               onClick={() => {
                                 onEditSubmission(video.country_code);
                                 onClose();
                               }}
                               style={{
-                                padding: isMobile ? '8px' : '6px 12px',
-                                borderRadius: '8px',
+                                padding: isMobile ? '4px 6px' : '6px 12px',
+                                borderRadius: '4px',
                                 backgroundColor: '#ffffff',
                                 border: '1px solid #d1d5db',
                                 color: '#374151',
-                                fontSize: isMobile ? '16px' : '12px',
+                                fontSize: isMobile ? '10px' : '12px',
                                 fontWeight: '600',
                                 cursor: 'pointer',
-                                transition: 'all 0.2s'
+                                transition: 'all 0.2s',
+                                lineHeight: '1'
                               }}
                               onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
                               onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ffffff'}
                               title="Edit"
                             >
                               {isMobile ? '✏️' : 'Edit'}
-                            </button>
-                            <button
-                              onClick={() => {
-                                if (confirm('Are you sure you want to delete this submission?')) {
-                                  handleDeleteSubmission(video.id);
-                                }
-                              }}
-                              style={{
-                                padding: isMobile ? '8px' : '6px 12px',
-                                borderRadius: '8px',
-                                backgroundColor: '#ffffff',
-                                border: '1px solid #fee2e2',
-                                color: '#ef4444',
-                                fontSize: isMobile ? '16px' : '12px',
-                                fontWeight: '600',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s'
-                              }}
-                              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#fee2e2'; }}
-                              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#ffffff'; }}
-                              title="Delete"
-                            >
-                              {isMobile ? '🗑️' : 'Delete'}
                             </button>
                             {/* Right-aligned status badge */}
                             {renderStatusBadge(video.status)}

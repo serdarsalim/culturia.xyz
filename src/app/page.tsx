@@ -386,6 +386,7 @@ export default function Home() {
 
   function handleSubmissionSuccess() {
     setShowSubmissionForm(false);
+    setSelectedCountry(null);
     setToastMessage({
       title: 'Submitted for Review',
       description: 'Your submission will be reviewed by our team'
@@ -411,7 +412,7 @@ export default function Home() {
         backgroundColor: '#f3f4f6',
         color: '#000000'
       }}>
-        {selectedCountry ? (
+        {selectedCountry && !showSubmissionForm ? (
           <CountrySidebar
             countryCode={selectedCountry}
             onClose={handleCloseSidebar}
@@ -867,7 +868,10 @@ export default function Home() {
       {showSubmissionForm && selectedCountry && (
         <SubmissionForm
           countryCode={selectedCountry}
-          onClose={() => setShowSubmissionForm(false)}
+          onClose={() => {
+            setShowSubmissionForm(false);
+            setSelectedCountry(null);
+          }}
           onSuccess={handleSubmissionSuccess}
           onAuthRequired={() => setShowAuthModal(true)}
         />
