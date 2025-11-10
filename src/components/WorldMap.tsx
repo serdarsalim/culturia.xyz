@@ -166,6 +166,7 @@ export default function WorldMap({ onCountryClick, selectedCountry, onBackground
                     onClick={(e) => {
                       e.stopPropagation();
                       console.log('Clicked on:', geoName, 'Country found:', country);
+                      setTooltip(null); // Clear tooltip on mobile when clicking
                       if (country) {
                         console.log('Calling onCountryClick with code:', country.code);
                         onCountryClick(country.code);
@@ -263,6 +264,7 @@ export default function WorldMap({ onCountryClick, selectedCountry, onBackground
                   }}
                   onClick={(evt) => {
                     evt.stopPropagation();
+                    setTooltip(null); // Clear tooltip on mobile when clicking
                     onCountryClick(marker.code);
                   }}
                 />

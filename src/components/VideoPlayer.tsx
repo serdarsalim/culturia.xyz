@@ -5,6 +5,7 @@ import YouTube, { YouTubePlayer, YouTubeEvent } from 'react-youtube';
 import { supabase } from '@/lib/supabase/client';
 import { type VideoSubmission, type VideoCategory, CATEGORY_LABELS } from '@/types';
 import { getCountryName, getCountryFlag } from '@/lib/countries';
+import CommentSection from './CommentSection';
 
 interface VideoPlayerProps {
   video: VideoSubmission;
@@ -35,6 +36,7 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
   const [favoriting, setFavoriting] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const playerRef = useRef<YouTubePlayer | null>(null);
+  const [showFullTitle, setShowFullTitle] = useState(false);
 
   // Detect mobile screen size
   useEffect(() => {
@@ -46,6 +48,26 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
     window.addEventListener('resize', checkMobile);
 
     return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Prevent background scroll when modal is open
+  useEffect(() => {
+    // Save original body overflow
+    const originalOverflow = document.body.style.overflow;
+    const originalPosition = document.body.style.position;
+    const originalWidth = document.body.style.width;
+
+    // Prevent scrolling
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+
+    return () => {
+      // Restore original styles
+      document.body.style.overflow = originalOverflow;
+      document.body.style.position = originalPosition;
+      document.body.style.width = originalWidth;
+    };
   }, []);
 
   // Check if user has already flagged this video
@@ -238,7 +260,7 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '16px'
+        padding: isMobile ? '0' : '16px'
       }}
       onClick={onClose}
     >
@@ -246,21 +268,33 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
       <div
         style={{
           width: '100%',
-          maxWidth: '1024px',
+          maxWidth: isMobile ? '1024px' : '1400px',
+          height: isMobile ? '100vh' : '90vh',
+          maxHeight: isMobile ? '100vh' : '95vh',
           // Flip colors: make the modal card darker than the backdrop
           backgroundColor: '#000000',
-          borderRadius: isMobile ? '12px' : '16px',
-          // Increase side paddings so the frame feels balanced
-          paddingLeft: isMobile ? '20px' : '32px',
-          paddingRight: isMobile ? '20px' : '32px',
-          paddingBottom: isMobile ? '16px' : '24px',
-          // Thicker top padding so the close button sits in the header space
-          paddingTop: isMobile ? '44px' : '52px',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8)',
-          position: 'relative'
+          borderRadius: isMobile ? '0' : '16px',
+          boxShadow: isMobile ? 'none' : '0 25px 50px -12px rgba(0, 0, 0, 0.8)',
+          position: 'relative',
+          display: 'flex',
+          flexDirection: isMobile ? 'column' : 'row',
+          overflow: 'hidden'
         }}
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Main Video Section */}
+        <div style={{
+          flex: isMobile ? 'none' : '1',
+          // Increase side paddings so the frame feels balanced
+          paddingLeft: isMobile ? '0' : '32px',
+          paddingRight: isMobile ? '0' : '32px',
+          paddingBottom: isMobile ? '0' : '24px',
+          // Thicker top padding so the close button sits in the header space
+          paddingTop: isMobile ? '48px' : '52px',
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: 0
+        }}>
         {/* Close (X) at top-right of modal card */}
         <button
           onClick={onClose}
@@ -268,28 +302,30 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
           title="Close"
           style={{
             position: 'absolute',
-            top: isMobile ? '8px' : '8px',
-            right: isMobile ? '8px' : '8px',
-            width: isMobile ? '32px' : '32px',
-            height: isMobile ? '32px' : '32px',
+            top: isMobile ? '12px' : '8px',
+            right: isMobile ? '12px' : '8px',
+            width: isMobile ? '36px' : '32px',
+            height: isMobile ? '36px' : '32px',
             borderRadius: '9999px',
-            backgroundColor: 'transparent',
+            backgroundColor: isMobile ? 'rgba(0, 0, 0, 0.6)' : 'transparent',
             border: 'none',
-            color: '#9ca3af',
+            color: '#ffffff',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
             transition: 'all 0.15s ease',
-            zIndex: 2
+            zIndex: 2,
+            fontSize: isMobile ? '20px' : '16px',
+            fontWeight: isMobile ? '300' : 'normal'
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#111827';
+            e.currentTarget.style.backgroundColor = isMobile ? 'rgba(0, 0, 0, 0.8)' : '#111827';
             e.currentTarget.style.color = '#ffffff';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent';
-            e.currentTarget.style.color = '#9ca3af';
+            e.currentTarget.style.backgroundColor = isMobile ? 'rgba(0, 0, 0, 0.6)' : 'transparent';
+            e.currentTarget.style.color = isMobile ? '#ffffff' : '#9ca3af';
           }}
         >
           ✕
@@ -299,10 +335,14 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
           position: 'relative',
           // Slightly lighter than card to restore visible frame/border
           backgroundColor: '#0a0a0a',
-          borderRadius: '12px',
+          borderRadius: isMobile ? '0' : '12px',
           overflow: 'hidden',
           aspectRatio: '16/9',
-          boxShadow: '0 10px 40px rgba(0, 0, 0, 0.5)'
+          boxShadow: isMobile ? 'none' : '0 10px 40px rgba(0, 0, 0, 0.5)',
+          maxHeight: isMobile ? 'auto' : '580px',
+          flexShrink: 0,
+          marginLeft: isMobile ? '8px' : '0',
+          marginRight: isMobile ? '8px' : '0'
         }}>
           <YouTube
             videoId={video.youtube_video_id}
@@ -320,67 +360,176 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
 
         {/* Title directly under the video */}
         {video.title && (
-          <div style={{
-            marginTop: isMobile ? '10px' : '12px',
-            color: '#ffffff',
-            fontWeight: 700,
-            fontSize: isMobile ? '14px' : '16px',
-            lineHeight: 1.25
-          }}>
-            {video.title}
-          </div>
+          <>
+            <div
+              onClick={() => isMobile && setShowFullTitle(!showFullTitle)}
+              style={{
+                marginTop: isMobile ? '10px' : '12px',
+                paddingLeft: isMobile ? '16px' : '0',
+                paddingRight: isMobile ? '16px' : '0',
+                color: '#ffffff',
+                fontWeight: 700,
+                fontSize: isMobile ? '14px' : '16px',
+                lineHeight: 1.25,
+                ...(isMobile ? {
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  cursor: 'pointer'
+                } : {})
+              }}
+            >
+              {video.title}
+            </div>
+            {/* Full title tooltip for mobile */}
+            {isMobile && showFullTitle && (
+              <div
+                style={{
+                  position: 'fixed',
+                  inset: 0,
+                  zIndex: 400,
+                  backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '20px'
+                }}
+                onClick={() => setShowFullTitle(false)}
+              >
+                <div
+                  style={{
+                    backgroundColor: '#1a1a1a',
+                    borderRadius: '12px',
+                    padding: '20px',
+                    maxWidth: '90%',
+                    border: '1px solid #333333',
+                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8)'
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div style={{
+                    color: '#ffffff',
+                    fontSize: '16px',
+                    fontWeight: 700,
+                    lineHeight: 1.5,
+                    wordBreak: 'break-word'
+                  }}>
+                    {video.title}
+                  </div>
+                  <button
+                    onClick={() => setShowFullTitle(false)}
+                    style={{
+                      marginTop: '16px',
+                      padding: '10px 20px',
+                      backgroundColor: '#374151',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      width: '100%'
+                    }}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
 
-        {/* Controls */}
+        {/* Controls - Country name and buttons on same line */}
         <div style={{
           marginTop: isMobile ? '12px' : '16px',
+          paddingLeft: isMobile ? '16px' : '0',
+          paddingRight: isMobile ? '16px' : '0',
           display: 'flex',
-          flexDirection: isMobile ? 'column' : 'row',
-          alignItems: isMobile ? 'stretch' : 'flex-start',
+          alignItems: 'center',
           justifyContent: 'space-between',
-          gap: isMobile ? '12px' : '16px'
+          gap: isMobile ? '8px' : '16px'
         }}>
-          <div style={{ flex: 1, color: '#ffffff' }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: isMobile ? '6px' : '8px',
-              marginBottom: isMobile ? '4px' : '8px',
-              flexWrap: 'nowrap',
-              overflow: 'hidden'
-            }}>
-              <span style={{ fontSize: isMobile ? '18px' : '24px' }}>{getCountryFlag(video.country_code)}</span>
-              <span style={{ fontWeight: 600, fontSize: isMobile ? '14px' : '16px' }}>{getCountryName(video.country_code)}</span>
-              <span style={{ color: '#9ca3af', fontSize: isMobile ? '12px' : '14px' }}>•</span>
-              <span style={{ color: '#d1d5db', fontSize: isMobile ? '13px' : '14px' }}>{CATEGORY_LABELS[category]}</span>
-            </div>
+          {/* Left: Country info */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            flexWrap: 'nowrap',
+            overflow: 'hidden',
+            flexShrink: 0
+          }}>
+            <span style={{ fontSize: isMobile ? '18px' : '24px' }}>{getCountryFlag(video.country_code)}</span>
+            {!isMobile && <span style={{ fontWeight: 600, fontSize: '16px', color: '#ffffff', marginLeft: '8px' }}>{getCountryName(video.country_code)}</span>}
           </div>
 
+          {/* Center: Category pills (desktop only) */}
+          {!isMobile && categoryCounts && onChangeCategory && (
+            <div style={{
+              display: 'flex',
+              gap: '8px',
+              justifyContent: 'center',
+              flex: 1
+            }}>
+              {(['inspiration','music','comedy','cooking','street_voices'] as VideoCategory[]).map((cat) => {
+                const count = categoryCounts[cat] || 0;
+                const active = cat === category;
+                const disabled = count === 0;
+                const label = CATEGORY_LABELS[cat];
+                return (
+                  <button
+                    key={cat}
+                    disabled={disabled}
+                    onClick={() => !disabled && !active && onChangeCategory(cat)}
+                    style={{
+                      whiteSpace: 'nowrap',
+                      padding: '10px 16px',
+                      borderRadius: '9999px',
+                      border: '1px solid ' + (active ? '#3b82f6' : '#334155'),
+                      background: active ? '#3b82f6' : '#111827',
+                      color: disabled ? '#6b7280' : '#ffffff',
+                      opacity: disabled ? 0.6 : 1,
+                      fontSize: 13,
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      cursor: disabled ? 'not-allowed' : 'pointer'
+                    }}
+                    aria-pressed={active}
+                    aria-label={label}
+                    title={label}
+                  >
+                    <span>{label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Right: Action buttons */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
             gap: isMobile ? '8px' : '12px',
-            justifyContent: isMobile ? 'space-between' : 'flex-start'
+            flexShrink: 0
           }}>
             {/* Favorite Button */}
             <button
               onClick={toggleFavorite}
               disabled={favoriting}
               style={{
-                padding: isMobile ? '8px 16px' : '10px 20px',
-                height: isMobile ? '36px' : '40px',
+                padding: isMobile ? '6px 12px' : '10px 20px',
+                height: isMobile ? '32px' : '40px',
                 backgroundColor: isFavorited ? '#ef4444' : '#374151',
                 color: '#ffffff',
                 borderRadius: '8px',
                 border: 'none',
-                fontSize: isMobile ? '18px' : '16px',
+                fontSize: isMobile ? '16px' : '16px',
                 cursor: favoriting ? 'not-allowed' : 'pointer',
                 transition: 'all 0.2s',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '6px',
-                flex: isMobile ? 1 : 'none'
+                gap: '6px'
               }}
               onMouseEnter={(e) => {
                 if (!favoriting) {
@@ -401,23 +550,22 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
             <button
               onClick={onNext}
               style={{
-                padding: isMobile ? '8px 16px' : '10px 24px',
-                height: isMobile ? '36px' : '40px',
-                backgroundColor: '#2563eb',
+                padding: isMobile ? '6px 12px' : '10px 24px',
+                height: isMobile ? '32px' : '40px',
+                backgroundColor: '#1f2937',
                 color: '#ffffff',
                 borderRadius: '8px',
                 border: 'none',
-                fontSize: isMobile ? '18px' : '14px',
+                fontSize: isMobile ? '16px' : '14px',
                 fontWeight: '600',
                 cursor: 'pointer',
                 transition: 'background-color 0.2s',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                flex: isMobile ? 1 : 'none'
+                justifyContent: 'center'
               }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1d4ed8'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#374151'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#1f2937'}
               title="Next video"
             >
               {isMobile ? '⏭️' : 'Next'}
@@ -427,13 +575,13 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
             <button
               onClick={() => onSubmitVideo(video.country_code, category)}
               style={{
-                padding: isMobile ? '8px 12px' : '10px 16px',
-                height: isMobile ? '36px' : '40px',
+                padding: isMobile ? '6px 10px' : '10px 16px',
+                height: isMobile ? '32px' : '40px',
                 backgroundColor: '#f97316',
                 color: '#ffffff',
                 borderRadius: '8px',
                 border: 'none',
-                fontSize: isMobile ? '18px' : '14px',
+                fontSize: isMobile ? '16px' : '14px',
                 fontWeight: 600,
                 cursor: 'pointer',
                 transition: 'background-color 0.2s',
@@ -453,61 +601,72 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
           </div>
         </div>
 
-        {/* Divider above category pills */}
-        <div style={{ height: '1px', backgroundColor: '#111827', opacity: 1, marginTop: '8px' }} />
-
-        {/* Category pills (all viewports) */}
-        {categoryCounts && onChangeCategory && (
-          <div style={{
-            marginTop: '8px',
-            display: 'flex',
-            gap: '8px',
-            overflowX: 'auto',
-            padding: '4px 2px',
-            justifyContent: 'center'
-          }}>
-            {(['inspiration','music','comedy','cooking','street_voices'] as VideoCategory[]).map((cat) => {
-              const count = categoryCounts[cat] || 0;
-              const active = cat === category;
-              const disabled = count === 0;
-              const label = CATEGORY_LABELS[cat];
-              const emoji = CATEGORY_EMOJI[cat];
-              return (
-                <button
-                  key={cat}
-                  disabled={disabled}
-                  onClick={() => !disabled && !active && onChangeCategory(cat)}
-                  style={{
-                    whiteSpace: 'nowrap',
-                    padding: isMobile ? '6px 10px' : '8px 12px',
-                    borderRadius: '9999px',
-                    border: '1px solid ' + (active ? '#60a5fa' : '#334155'),
-                    background: active ? '#1f2937' : '#111827',
-                    color: disabled ? '#6b7280' : '#e5e7eb',
-                    opacity: disabled ? 0.6 : 1,
-                    fontSize: isMobile ? 12 : 12,
-                    fontWeight: 600,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: isMobile ? '6px' : '8px'
-                  }}
-                  aria-pressed={active}
-                  aria-label={label}
-                  title={label}
-                >
-                  {isMobile ? (
-                    <>
-                      <span aria-hidden>{emoji}</span>
-                      {active && <span>{label}</span>}
-                    </>
-                  ) : (
-                    <span>{label}</span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+        {/* Category pills for mobile only - below the buttons */}
+        {isMobile && categoryCounts && onChangeCategory && (
+          <>
+            <div style={{ height: '1px', backgroundColor: '#111827', opacity: 1, marginTop: '8px', marginLeft: '16px', marginRight: '16px' }} />
+            <div style={{
+              marginTop: '8px',
+              paddingLeft: '16px',
+              paddingRight: '16px',
+              paddingBottom: '16px',
+              display: 'flex',
+              gap: '8px',
+              overflowX: 'auto',
+              justifyContent: 'center'
+            }}>
+              {(['inspiration','music','comedy','cooking','street_voices'] as VideoCategory[]).map((cat) => {
+                const count = categoryCounts[cat] || 0;
+                const active = cat === category;
+                const disabled = count === 0;
+                const label = CATEGORY_LABELS[cat];
+                const emoji = CATEGORY_EMOJI[cat];
+                return (
+                  <button
+                    key={cat}
+                    disabled={disabled}
+                    onClick={() => !disabled && !active && onChangeCategory(cat)}
+                    style={{
+                      whiteSpace: 'nowrap',
+                      padding: '6px 10px',
+                      borderRadius: '9999px',
+                      border: '1px solid ' + (active ? '#3b82f6' : '#334155'),
+                      background: active ? '#3b82f6' : '#111827',
+                      color: disabled ? '#6b7280' : '#ffffff',
+                      opacity: disabled ? 0.6 : 1,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      cursor: disabled ? 'not-allowed' : 'pointer'
+                    }}
+                    aria-pressed={active}
+                    aria-label={label}
+                    title={label}
+                  >
+                    <span aria-hidden>{emoji}</span>
+                    {active && <span>{label}</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </>
         )}
+        </div>
+
+        {/* Comment Section - Right side on desktop, below on mobile */}
+        <div style={{
+          width: isMobile ? '100%' : '380px',
+          borderLeft: isMobile ? 'none' : '1px solid #333333',
+          borderTop: isMobile ? '1px solid #333333' : 'none',
+          backgroundColor: '#0a0a0a',
+          display: 'flex',
+          flexDirection: 'column',
+          maxHeight: isMobile ? '400px' : '100%'
+        }}>
+          <CommentSection countryCode={video.country_code} isMobile={isMobile} />
+        </div>
       </div>
 
       {/* Report Modal */}

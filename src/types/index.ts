@@ -40,6 +40,16 @@ export interface AdminUser {
   created_at: string;
 }
 
+export interface CountryComment {
+  id: string;
+  user_id: string;
+  country_code: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+  user_display?: string; // Display name from user_profiles
+}
+
 export const CATEGORY_LABELS: Record<VideoCategory, string> = {
   inspiration: 'Inspiration',
   music: 'Music',
