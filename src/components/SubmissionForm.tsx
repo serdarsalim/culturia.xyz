@@ -439,7 +439,7 @@ export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuth
                 key={category}
                 style={{
                   backgroundColor: '#f9fafb',
-                  padding: '12px',
+                  padding: '8px 12px',
                   borderRadius: '8px',
                   border: '1px solid #e5e7eb'
                 }}

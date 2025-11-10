@@ -441,217 +441,323 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
           </>
         )}
 
-        {/* Controls - Country name and buttons on same line */}
-        <div style={{
-          marginTop: isMobile ? '12px' : '16px',
-          paddingLeft: isMobile ? '16px' : '0',
-          paddingRight: isMobile ? '16px' : '0',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: isMobile ? '8px' : '16px'
-        }}>
-          {/* Left: Country info */}
+        {/* Controls */}
+        {isMobile ? (
           <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            flexWrap: 'nowrap',
-            overflow: 'hidden',
-            flexShrink: 0
+            marginTop: '12px',
+            paddingLeft: '16px',
+            paddingRight: '16px'
           }}>
-            <span style={{ fontSize: isMobile ? '18px' : '24px' }}>{getCountryFlag(video.country_code)}</span>
-            {!isMobile && <span style={{ fontWeight: 600, fontSize: '16px', color: '#ffffff', marginLeft: '8px' }}>{getCountryName(video.country_code)}</span>}
-          </div>
-
-          {/* Center: Category pills (desktop only) */}
-          {!isMobile && categoryCounts && onChangeCategory && (
             <div style={{
               display: 'flex',
-              gap: '8px',
-              justifyContent: 'center',
-              flex: 1
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px'
             }}>
-              {(['inspiration','music','comedy','cooking','street_voices'] as VideoCategory[]).map((cat) => {
-                const count = categoryCounts[cat] || 0;
-                const active = cat === category;
-                const disabled = count === 0;
-                const label = CATEGORY_LABELS[cat];
-                return (
-                  <button
-                    key={cat}
-                    disabled={disabled}
-                    onClick={() => !disabled && !active && onChangeCategory(cat)}
-                    style={{
-                      whiteSpace: 'nowrap',
-                      padding: '10px 16px',
-                      borderRadius: '9999px',
-                      border: '1px solid ' + (active ? '#3b82f6' : '#334155'),
-                      background: active ? '#3b82f6' : '#111827',
-                      color: disabled ? '#6b7280' : '#ffffff',
-                      opacity: disabled ? 0.6 : 1,
-                      fontSize: 13,
-                      fontWeight: 600,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      cursor: disabled ? 'not-allowed' : 'pointer'
-                    }}
-                    aria-pressed={active}
-                    aria-label={label}
-                    title={label}
-                  >
-                    <span>{label}</span>
-                  </button>
-                );
-              })}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                flexShrink: 0
+              }}>
+                <span style={{ fontSize: '32px' }}>{getCountryFlag(video.country_code)}</span>
+              </div>
+              {categoryCounts && onChangeCategory && (
+                <div style={{
+                  display: 'flex',
+                  gap: '8px',
+                  justifyContent: 'flex-end',
+                  flex: 1,
+                  overflowX: 'auto',
+                  paddingBottom: '2px'
+                }}>
+                  {(['inspiration','music','comedy','cooking','street_voices'] as VideoCategory[]).map((cat) => {
+                    const count = categoryCounts[cat] || 0;
+                    const active = cat === category;
+                    const disabled = count === 0;
+                    const label = CATEGORY_LABELS[cat];
+                    const emoji = CATEGORY_EMOJI[cat];
+                    return (
+                      <button
+                        key={cat}
+                        disabled={disabled}
+                        onClick={() => !disabled && !active && onChangeCategory(cat)}
+                        style={{
+                          whiteSpace: 'nowrap',
+                          padding: '6px 10px',
+                          borderRadius: '9999px',
+                          border: '1px solid ' + (active ? '#3b82f6' : '#334155'),
+                          background: active ? '#3b82f6' : '#111827',
+                          color: disabled ? '#6b7280' : '#ffffff',
+                          opacity: disabled ? 0.6 : 1,
+                          fontSize: 12,
+                          fontWeight: 600,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          cursor: disabled ? 'not-allowed' : 'pointer'
+                        }}
+                        aria-pressed={active}
+                        aria-label={label}
+                        title={label}
+                      >
+                        <span aria-hidden>{emoji}</span>
+                        {active && <span>{label}</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-          )}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              width: '100%',
+              justifyContent: 'flex-end',
+              marginTop: '10px',
+              paddingBottom: '8px'
+            }}>
+              {/* Favorite Button */}
+              <button
+                onClick={toggleFavorite}
+                disabled={favoriting}
+                style={{
+                  padding: '6px 12px',
+                  backgroundColor: isFavorited ? '#ef4444' : '#374151',
+                  color: '#ffffff',
+                  borderRadius: '8px',
+                  border: 'none',
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  cursor: favoriting ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px'
+                }}
+                onMouseEnter={(e) => {
+                  if (!favoriting) {
+                    e.currentTarget.style.backgroundColor = isFavorited ? '#dc2626' : '#4b5563';
+                    e.currentTarget.style.transform = 'scale(1.05)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = isFavorited ? '#ef4444' : '#374151';
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
+                title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+              >
+                {isFavorited ? '❤️' : '🤍'}
+              </button>
 
-          {/* Right: Action buttons */}
+              {/* Next Button */}
+              <button
+                onClick={onNext}
+                style={{
+                  padding: '6px 12px',
+                  backgroundColor: '#1f2937',
+                  color: '#ffffff',
+                  borderRadius: '8px',
+                  border: 'none',
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#374151'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#1f2937'}
+                title="Next video"
+              >
+                ⏭️
+              </button>
+
+              {/* Submit Video Button */}
+              <button
+                onClick={() => onSubmitVideo(video.country_code, category)}
+                style={{
+                  padding: '6px 10px',
+                  backgroundColor: '#f97316',
+                  color: '#ffffff',
+                  borderRadius: '8px',
+                  border: 'none',
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#ea580c')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#f97316')}
+                title="Submit a video for this country and category"
+              >
+                +
+              </button>
+            </div>
+          </div>
+        ) : (
           <div style={{
+            marginTop: '16px',
+            paddingLeft: '0',
+            paddingRight: '0',
             display: 'flex',
             alignItems: 'center',
-            gap: isMobile ? '8px' : '12px',
-            flexShrink: 0
+            justifyContent: 'space-between',
+            gap: '16px'
           }}>
-            {/* Favorite Button */}
-            <button
-              onClick={toggleFavorite}
-              disabled={favoriting}
-              style={{
-                padding: isMobile ? '6px 12px' : '10px 16px',
-                backgroundColor: isFavorited ? '#ef4444' : '#374151',
-                color: '#ffffff',
-                borderRadius: '8px',
-                border: 'none',
-                fontSize: isMobile ? '16px' : '13px',
-                fontWeight: 600,
-                cursor: favoriting ? 'not-allowed' : 'pointer',
-                transition: 'all 0.2s',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px'
-              }}
-              onMouseEnter={(e) => {
-                if (!favoriting) {
-                  e.currentTarget.style.backgroundColor = isFavorited ? '#dc2626' : '#4b5563';
-                  e.currentTarget.style.transform = 'scale(1.05)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = isFavorited ? '#ef4444' : '#374151';
-                e.currentTarget.style.transform = 'scale(1)';
-              }}
-              title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
-            >
-              {isFavorited ? '❤️' : '🤍'}
-            </button>
-
-            {/* Next Button */}
-            <button
-              onClick={onNext}
-              style={{
-                padding: isMobile ? '6px 12px' : '10px 16px',
-                backgroundColor: '#1f2937',
-                color: '#ffffff',
-                borderRadius: '8px',
-                border: 'none',
-                fontSize: isMobile ? '16px' : '13px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'background-color 0.2s',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#374151'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#1f2937'}
-              title="Next video"
-            >
-              {isMobile ? '⏭️' : 'Next'}
-            </button>
-
-            {/* Submit Video Button */}
-            <button
-              onClick={() => onSubmitVideo(video.country_code, category)}
-              style={{
-                padding: isMobile ? '6px 10px' : '10px 16px',
-                backgroundColor: '#f97316',
-                color: '#ffffff',
-                borderRadius: '8px',
-                border: 'none',
-                fontSize: isMobile ? '16px' : '13px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'background-color 0.2s',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#ea580c')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#f97316')}
-              title="Submit a video for this country and category"
-            >
-              {isMobile ? '+' : '＋ Add'}
-            </button>
-
-            {/* Close moved to top-right */}
-          </div>
-        </div>
-
-        {/* Category pills for mobile only - below the buttons */}
-        {isMobile && categoryCounts && onChangeCategory && (
-          <>
-            <div style={{ height: '1px', backgroundColor: '#111827', opacity: 1, marginTop: '8px', marginLeft: '16px', marginRight: '16px' }} />
+            {/* Left: Country info */}
             <div style={{
-              marginTop: '8px',
-              paddingLeft: '16px',
-              paddingRight: '16px',
-              paddingBottom: '16px',
               display: 'flex',
-              gap: '8px',
-              overflowX: 'auto',
-              justifyContent: 'center'
+              alignItems: 'center',
+              flexWrap: 'nowrap',
+              overflow: 'hidden',
+              flexShrink: 0
             }}>
-              {(['inspiration','music','comedy','cooking','street_voices'] as VideoCategory[]).map((cat) => {
-                const count = categoryCounts[cat] || 0;
-                const active = cat === category;
-                const disabled = count === 0;
-                const label = CATEGORY_LABELS[cat];
-                const emoji = CATEGORY_EMOJI[cat];
-                return (
-                  <button
-                    key={cat}
-                    disabled={disabled}
-                    onClick={() => !disabled && !active && onChangeCategory(cat)}
-                    style={{
-                      whiteSpace: 'nowrap',
-                      padding: '6px 10px',
-                      borderRadius: '9999px',
-                      border: '1px solid ' + (active ? '#3b82f6' : '#334155'),
-                      background: active ? '#3b82f6' : '#111827',
-                      color: disabled ? '#6b7280' : '#ffffff',
-                      opacity: disabled ? 0.6 : 1,
-                      fontSize: 12,
-                      fontWeight: 600,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      cursor: disabled ? 'not-allowed' : 'pointer'
-                    }}
-                    aria-pressed={active}
-                    aria-label={label}
-                    title={label}
-                  >
-                    <span aria-hidden>{emoji}</span>
-                    {active && <span>{label}</span>}
-                  </button>
-                );
-              })}
+              <span style={{ fontSize: '24px' }}>{getCountryFlag(video.country_code)}</span>
+              <span style={{ fontWeight: 600, fontSize: '16px', color: '#ffffff', marginLeft: '8px' }}>{getCountryName(video.country_code)}</span>
             </div>
-          </>
+
+            {/* Center: Category pills (desktop only) */}
+            {categoryCounts && onChangeCategory && (
+              <div style={{
+                display: 'flex',
+                gap: '8px',
+                justifyContent: 'center',
+                flex: 1
+              }}>
+                {(['inspiration','music','comedy','cooking','street_voices'] as VideoCategory[]).map((cat) => {
+                  const count = categoryCounts[cat] || 0;
+                  const active = cat === category;
+                  const disabled = count === 0;
+                  const label = CATEGORY_LABELS[cat];
+                  return (
+                    <button
+                      key={cat}
+                      disabled={disabled}
+                      onClick={() => !disabled && !active && onChangeCategory(cat)}
+                      style={{
+                        whiteSpace: 'nowrap',
+                        padding: '10px 16px',
+                        borderRadius: '9999px',
+                        border: '1px solid ' + (active ? '#3b82f6' : '#334155'),
+                        background: active ? '#3b82f6' : '#111827',
+                        color: disabled ? '#6b7280' : '#ffffff',
+                        opacity: disabled ? 0.6 : 1,
+                        fontSize: 13,
+                        fontWeight: 600,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        cursor: disabled ? 'not-allowed' : 'pointer'
+                      }}
+                      aria-pressed={active}
+                      aria-label={label}
+                      title={label}
+                    >
+                      <span>{label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Right: Action buttons */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              flexShrink: 0
+            }}>
+              {/* Favorite Button */}
+              <button
+                onClick={toggleFavorite}
+                disabled={favoriting}
+                style={{
+                  padding: '10px 16px',
+                  backgroundColor: isFavorited ? '#ef4444' : '#374151',
+                  color: '#ffffff',
+                  borderRadius: '8px',
+                  border: 'none',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  cursor: favoriting ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px'
+                }}
+                onMouseEnter={(e) => {
+                  if (!favoriting) {
+                    e.currentTarget.style.backgroundColor = isFavorited ? '#dc2626' : '#4b5563';
+                    e.currentTarget.style.transform = 'scale(1.05)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = isFavorited ? '#ef4444' : '#374151';
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
+                title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+              >
+                {isFavorited ? '❤️' : '🤍'}
+              </button>
+
+              {/* Next Button */}
+              <button
+                onClick={onNext}
+                style={{
+                  padding: '10px 16px',
+                  backgroundColor: '#1f2937',
+                  color: '#ffffff',
+                  borderRadius: '8px',
+                  border: 'none',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#374151'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#1f2937'}
+                title="Next video"
+              >
+                Next
+              </button>
+
+              {/* Submit Video Button */}
+              <button
+                onClick={() => onSubmitVideo(video.country_code, category)}
+                style={{
+                  padding: '10px 16px',
+                  backgroundColor: '#f97316',
+                  color: '#ffffff',
+                  borderRadius: '8px',
+                  border: 'none',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#ea580c')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#f97316')}
+                title="Submit a video for this country and category"
+              >
+                ＋ Add
+              </button>
+            </div>
+          </div>
         )}
         </div>
 

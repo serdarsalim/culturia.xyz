@@ -85,8 +85,8 @@ export default function CategoryPicker({ countryCode, counts, loading, onSelect,
                 disabled={disabled}
                 onClick={() => !disabled && onSelect(cat)}
                 style={{
-                  // Tighter top/bottom, roomier left/right
-                  padding: '10px 18px',
+                  // Tighter top/bottom for compact mobile feel, roomier left/right
+                  padding: '8px 18px',
                   borderRadius: '12px',
                   border: '1px solid ' + (disabled ? '#f3f4f6' : '#e5e7eb'),
                   background: disabled ? '#f9fafb' : '#ffffff',
@@ -116,7 +116,7 @@ export default function CategoryPicker({ countryCode, counts, loading, onSelect,
             onClick={onSubmitVideos}
             style={{
               // Match category tile density but keep subtle accent
-              padding: '10px 18px',
+              padding: '8px 18px',
               borderRadius: '12px',
               border: '1px solid #fed7aa',
               background: '#fff7ed',
