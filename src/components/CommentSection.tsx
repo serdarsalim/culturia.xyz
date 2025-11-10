@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { type CountryComment } from '@/types';
 
@@ -21,6 +21,8 @@ export default function CommentSection({ countryCode, isMobile }: CommentSection
   const [toastMessage, setToastMessage] = useState({ title: '', description: '', type: 'success' as 'success' | 'error' });
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const buttonsRef = useRef<HTMLDivElement>(null);
 
   // Check authentication
   useEffect(() => {
@@ -37,6 +39,15 @@ export default function CommentSection({ countryCode, isMobile }: CommentSection
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Scroll buttons into view when entering edit mode on mobile
+  useEffect(() => {
+    if (isEditing && isMobile && buttonsRef.current) {
+      setTimeout(() => {
+        buttonsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'nearest' });
+      }, 500);
+    }
+  }, [isEditing, isMobile]);
 
   // Load comments for this country
   useEffect(() => {
@@ -101,11 +112,22 @@ export default function CommentSection({ countryCode, isMobile }: CommentSection
         };
       }) || [];
 
-      setComments(commentsWithNames);
+      // Sort comments: user's comment first, then others by updated_at
+      const sortedComments = commentsWithNames.sort((a, b) => {
+        // If user is logged in, their comment should always be first
+        if (user) {
+          if (a.user_id === user.id) return -1;
+          if (b.user_id === user.id) return 1;
+        }
+        // Otherwise sort by updated_at descending (already sorted from query, but ensuring)
+        return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+      });
+
+      setComments(sortedComments);
 
       // Check if current user has commented
       if (user) {
-        const myComment = commentsWithNames?.find(c => c.user_id === user.id);
+        const myComment = sortedComments?.find(c => c.user_id === user.id);
         setUserComment(myComment || null);
         if (myComment) {
           setCommentText(myComment.content);
@@ -399,6 +421,48 @@ export default function CommentSection({ countryCode, isMobile }: CommentSection
                     Show less
                   </button>
                 )}
+                {/* Edit and Delete links for user's own comment (not in edit mode) */}
+                {comment.user_id === user?.id && !isEditing && (
+                  <div style={{
+                    marginTop: '8px',
+                    display: 'flex',
+                    gap: '12px',
+                    fontSize: '12px'
+                  }}>
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      style={{
+                        color: '#9ca3af',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: 0,
+                        fontSize: '12px',
+                        transition: 'color 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
+                      onMouseLeave={(e) => e.currentTarget.style.color = '#9ca3af'}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => setShowDeleteModal(true)}
+                      style={{
+                        color: '#9ca3af',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: 0,
+                        fontSize: '12px',
+                        transition: 'color 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = '#ef4444'}
+                      onMouseLeave={(e) => e.currentTarget.style.color = '#9ca3af'}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ))
@@ -421,60 +485,12 @@ export default function CommentSection({ countryCode, isMobile }: CommentSection
             Login to add your perspective
           </div>
         ) : userComment && !isEditing ? (
-          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-            <button
-              onClick={() => setIsEditing(true)}
-              style={{
-                padding: isMobile ? '10px 16px' : '12px 20px',
-                backgroundColor: '#374151',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: isMobile ? '13px' : '14px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all 0.2s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#4b5563';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#374151';
-              }}
-            >
-              Edit
-            </button>
-            <button
-              onClick={() => setShowDeleteModal(true)}
-              disabled={submitting}
-              style={{
-                padding: isMobile ? '10px 16px' : '12px 20px',
-                backgroundColor: submitting ? '#4b5563' : '#374151',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: isMobile ? '13px' : '14px',
-                fontWeight: 600,
-                cursor: submitting ? 'not-allowed' : 'pointer',
-                transition: 'all 0.2s ease'
-              }}
-              onMouseEnter={(e) => {
-                if (!submitting) {
-                  e.currentTarget.style.backgroundColor = '#4b5563';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!submitting) {
-                  e.currentTarget.style.backgroundColor = '#374151';
-                }
-              }}
-            >
-              Delete
-            </button>
-          </div>
+          // Show nothing in the input area when user has a comment but isn't editing
+          <div />
         ) : (
           <div>
             <textarea
+              ref={textareaRef}
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
               placeholder="Share your perspective on this country..."
@@ -506,38 +522,14 @@ export default function CommentSection({ countryCode, isMobile }: CommentSection
                 {commentText.length}/500
               </div>
             </div>
-            <div style={{
+            <div
+              ref={buttonsRef}
+              style={{
               display: 'flex',
-              gap: '8px'
+              gap: '8px',
+              paddingBottom: isMobile && isEditing ? '20px' : '0',
+              justifyContent: 'flex-end'
             }}>
-              <button
-                onClick={handleSubmit}
-                disabled={submitting || !commentText.trim()}
-                style={{
-                  flex: 1,
-                  padding: isMobile ? '10px 16px' : '12px 20px',
-                  backgroundColor: submitting || !commentText.trim() ? '#4b5563' : '#3b82f6',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontSize: isMobile ? '13px' : '14px',
-                  fontWeight: 600,
-                  cursor: submitting || !commentText.trim() ? 'not-allowed' : 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
-                onMouseEnter={(e) => {
-                  if (!submitting && commentText.trim()) {
-                    e.currentTarget.style.backgroundColor = '#2563eb';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!submitting && commentText.trim()) {
-                    e.currentTarget.style.backgroundColor = '#3b82f6';
-                  }
-                }}
-              >
-                {submitting ? 'Submitting...' : userComment ? 'Update' : 'Share Perspective'}
-              </button>
               {isEditing && (
                 <button
                   onClick={handleCancelEdit}
@@ -569,6 +561,33 @@ export default function CommentSection({ countryCode, isMobile }: CommentSection
                   Cancel
                 </button>
               )}
+              <button
+                onClick={handleSubmit}
+                disabled={submitting || !commentText.trim()}
+                style={{
+                  padding: isMobile ? '10px 16px' : '12px 20px',
+                  backgroundColor: submitting || !commentText.trim() ? '#4b5563' : '#3b82f6',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: isMobile ? '13px' : '14px',
+                  fontWeight: 600,
+                  cursor: submitting || !commentText.trim() ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  if (!submitting && commentText.trim()) {
+                    e.currentTarget.style.backgroundColor = '#2563eb';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!submitting && commentText.trim()) {
+                    e.currentTarget.style.backgroundColor = '#3b82f6';
+                  }
+                }}
+              >
+                {submitting ? 'Submitting...' : userComment ? 'Save' : 'Share Perspective'}
+              </button>
             </div>
           </div>
         )}
