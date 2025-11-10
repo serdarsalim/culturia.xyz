@@ -99,7 +99,33 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER on_video_flag_insert
   AFTER INSERT ON video_flags
   FOR EACH ROW
-  EXECUTE FUNCTION increment_flag_count();
+EXECUTE FUNCTION increment_flag_count();
+
+-- Helper functions for admin checks to avoid recursive policies
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS boolean
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM admin_users WHERE id = auth.uid()
+  );
+$$;
+
+CREATE OR REPLACE FUNCTION public.is_super_admin()
+RETURNS boolean
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM admin_users WHERE id = auth.uid() AND role = 'super_admin'
+  );
+$$;
+
+GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_super_admin() TO authenticated;
 
 -- Row Level Security (RLS) Policies
 
@@ -194,38 +220,30 @@ USING (
 
 -- Admin Users Policies
 
+-- Allow authenticated users to read their own admin row (needed during login)
+CREATE POLICY "Users can view own admin record"
+ON admin_users FOR SELECT
+TO authenticated
+USING (auth.uid() = id);
+
 -- Admins can view admin list
 CREATE POLICY "Admins can view admin list"
 ON admin_users FOR SELECT
 TO authenticated
-USING (
-  EXISTS (
-    SELECT 1 FROM admin_users
-    WHERE admin_users.id = auth.uid()
-  )
-);
+USING (public.is_admin());
 
 -- Super admins can insert new admins
 CREATE POLICY "Super admins can insert admins"
 ON admin_users FOR INSERT
 TO authenticated
-WITH CHECK (
-  EXISTS (
-    SELECT 1 FROM admin_users
-    WHERE admin_users.id = auth.uid() AND admin_users.role = 'super_admin'
-  )
-);
+WITH CHECK (public.is_super_admin());
 
 -- Super admins can update admins
 CREATE POLICY "Super admins can update admins"
 ON admin_users FOR UPDATE
 TO authenticated
-USING (
-  EXISTS (
-    SELECT 1 FROM admin_users
-    WHERE admin_users.id = auth.uid() AND admin_users.role = 'super_admin'
-  )
-);
+USING (public.is_super_admin())
+WITH CHECK (public.is_super_admin());
 
 -- Comments
 COMMENT ON TABLE video_submissions IS 'Stores all video submissions from users';
