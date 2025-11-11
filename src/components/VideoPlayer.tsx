@@ -130,11 +130,18 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
         return;
       }
 
+      // Immediately set playlist with email fallback for instant display
+      const playlistWithEmails = playlist.map(video => ({
+        ...video,
+        user_display: video.user_email?.split('@')[0] || 'Anonymous'
+      }));
+      setPlaylistWithUsers(playlistWithEmails);
+
       try {
         // Get unique user IDs from playlist
         const userIds = Array.from(new Set(playlist.map(v => v.user_id)));
 
-        // Fetch user profiles
+        // Fetch user profiles asynchronously to update with proper names
         const { data: profilesData } = await supabase
           .from('user_profiles')
           .select('id, username, display_name')
@@ -145,18 +152,19 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
           profilesData?.map(p => [p.id, p]) || []
         );
 
-        // Combine playlist with user display names
+        // Update playlist with user display names
         const playlistWithNames = playlist.map(video => ({
           ...video,
           user_display: profilesMap.get(video.user_id)?.display_name ||
                        profilesMap.get(video.user_id)?.username ||
+                       video.user_email?.split('@')[0] ||
                        'Anonymous'
         }));
 
         setPlaylistWithUsers(playlistWithNames);
       } catch (error) {
         console.error('Error loading playlist users:', error);
-        setPlaylistWithUsers(playlist);
+        // Keep the email-based display names if profile fetch fails
       }
     }
 
