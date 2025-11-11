@@ -281,6 +281,30 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
         // Move to next video, or loop back to first
         const nextIndex = (currentIndex + 1) % playlist.length;
         onSelectVideo(playlist[nextIndex]);
+
+        // Try to force play after a short delay (for background tabs)
+        setTimeout(() => {
+          if (playerRef.current) {
+            try {
+              playerRef.current.playVideo();
+            } catch (e) {
+              // Retry a few times
+              let retries = 0;
+              const retryInterval = setInterval(() => {
+                if (playerRef.current && retries < 5) {
+                  try {
+                    playerRef.current.playVideo();
+                    retries++;
+                  } catch (e) {
+                    console.log('Retry play:', retries);
+                  }
+                } else {
+                  clearInterval(retryInterval);
+                }
+              }, 200);
+            }
+          }
+        }, 500);
       } else {
         // Fallback to random next
         onNext();
@@ -309,6 +333,8 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
       modestbranding: 1,
       rel: 0,
       playsinline: 1,
+      mute: 0, // Keep unmuted but this helps signal intent to browser
+      enablejsapi: 1, // Enable JS API for better control
     },
   };
 
