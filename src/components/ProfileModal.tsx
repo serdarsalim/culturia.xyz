@@ -601,8 +601,7 @@ export default function ProfileModal({
                           alignItems: 'center',
                           justifyContent: 'space-between',
                           gap: isMobile ? '8px' : '12px',
-                          padding: isMobile ? '8px 12px' : '12px 16px',
-                          borderTop: '1px solid #f3f4f6'
+                          padding: isMobile ? '8px 12px' : '12px 16px'
                         }}>
                           <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: isMobile ? '2px' : '10px', flex: 1, paddingRight: isMobile ? '8px' : '0', minWidth: 0 }}>
                             <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: 600, flexShrink: 0 }}>
