@@ -327,8 +327,59 @@ export default function ProfileModal({
     }
   }
 
+  async function handleToggleVisibility(video: VideoSubmission) {
+    try {
+      let newStatus: 'private' | 'pending' | 'approved';
+
+      // If currently private, switch to pending (submit for review)
+      // If pending or approved, allow switching back to private
+      if (video.status === 'private') {
+        newStatus = 'pending';
+      } else if (video.status === 'pending') {
+        newStatus = 'private';
+      } else if (video.status === 'approved') {
+        // Can't change approved videos back to private
+        return;
+      } else {
+        return;
+      }
+
+      const { error } = await supabase
+        .from('video_submissions')
+        .update({ status: newStatus })
+        .eq('id', video.id);
+
+      if (error) throw error;
+
+      // Update local state
+      setSubmissions(prev => prev.map(s =>
+        s.id === video.id ? { ...s, status: newStatus } : s
+      ));
+
+      setToastMessage({
+        title: newStatus === 'pending' ? 'Submitted for Review' : 'Made Private',
+        description: newStatus === 'pending'
+          ? 'Your video has been submitted for admin approval'
+          : 'Your video is now private',
+        type: 'success'
+      });
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    } catch (error) {
+      console.error('Error toggling visibility:', error);
+      setToastMessage({
+        title: 'Update Failed',
+        description: 'Please try again later',
+        type: 'error'
+      });
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    }
+  }
+
   function renderStatusBadge(status: string) {
     const statusConfig = {
+      private: { text: 'Private', icon: '🔒', bg: '#f3f4f6', color: '#4b5563' },
       pending: { text: 'Pending', icon: '⏳', bg: '#fef3c7', color: '#92400e' },
       approved: { text: 'Approved', icon: '✓', bg: '#d1fae5', color: '#065f46' },
       rejected: { text: 'Rejected', icon: '✕', bg: '#fee2e2', color: '#991b1b' }
@@ -550,7 +601,7 @@ export default function ProfileModal({
                           padding: isMobile ? '8px 12px' : '12px 16px',
                           borderTop: '1px solid #f3f4f6'
                         }}>
-                          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: isMobile ? '2px' : '10px', flex: 1, paddingRight: isMobile ? '8px' : '0' }}>
+                          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: isMobile ? '2px' : '10px', flex: 1, paddingRight: isMobile ? '8px' : '0', minWidth: 0 }}>
                             <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: 600, flexShrink: 0 }}>
                               {CATEGORY_LABELS[video.category as VideoCategory]}
                             </span>
@@ -566,13 +617,45 @@ export default function ProfileModal({
                                 padding: 0,
                                 textAlign: 'left',
                                 wordBreak: 'break-word',
-                                whiteSpace: 'normal'
+                                whiteSpace: 'normal',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis'
                               }}
                             >
                               {video.title || 'Untitled'}
                             </button>
                           </div>
                           <div style={{ display: 'flex', gap: isMobile ? '4px' : '8px', alignItems: 'center', flexShrink: 0 }}>
+                            {/* Private/Public Toggle */}
+                            {video.status !== 'approved' && (
+                              <button
+                                onClick={() => handleToggleVisibility(video)}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  padding: isMobile ? '4px 6px' : '4px 8px',
+                                  borderRadius: '12px',
+                                  backgroundColor: video.status === 'private' ? '#f3f4f6' : '#dbeafe',
+                                  border: 'none',
+                                  cursor: 'pointer',
+                                  fontSize: isMobile ? '10px' : '11px',
+                                  fontWeight: '600',
+                                  transition: 'all 0.2s'
+                                }}
+                                title={video.status === 'private' ? 'Click to submit for review' : 'Click to make private'}
+                              >
+                                <span style={{ fontSize: isMobile ? '10px' : '12px' }}>
+                                  {video.status === 'private' ? '🔒' : '🌐'}
+                                </span>
+                                {!isMobile && (
+                                  <span style={{ color: video.status === 'private' ? '#4b5563' : '#1e40af' }}>
+                                    {video.status === 'private' ? 'Private' : 'Public'}
+                                  </span>
+                                )}
+                              </button>
+                            )}
+                            {video.status === 'approved' && renderStatusBadge(video.status)}
                             <button
                               onClick={() => setEditingSubmission(video)}
                               style={{
@@ -593,8 +676,6 @@ export default function ProfileModal({
                             >
                               {isMobile ? '✏️' : 'Edit'}
                             </button>
-                            {/* Right-aligned status badge */}
-                            {renderStatusBadge(video.status)}
                           </div>
                         </div>
                       ))}

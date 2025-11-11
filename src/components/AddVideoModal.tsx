@@ -73,7 +73,7 @@ export default function AddVideoModal({ countryCode, onClose, onSuccess }: AddVi
           title: title.trim(),
           user_id: user.id,
           user_email: user.email,
-          status: 'pending',
+          status: 'private',
         });
 
       if (insertError) throw insertError;

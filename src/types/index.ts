@@ -14,7 +14,7 @@ export interface VideoSubmission {
   youtube_url: string;
   youtube_video_id: string;
   title?: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: 'private' | 'pending' | 'approved' | 'rejected';
   user_id: string;
   user_email: string;
   flagged: boolean;

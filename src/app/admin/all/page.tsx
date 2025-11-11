@@ -31,6 +31,7 @@ export default function AllSubmissions() {
       const { data, error } = await supabase
         .from('video_submissions')
         .select('*')
+        .in('status', ['pending', 'approved', 'rejected'])
         .order('created_at', { ascending: false });
 
       if (error) throw error;
