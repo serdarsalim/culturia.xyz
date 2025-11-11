@@ -11,6 +11,7 @@ interface SubmissionFormProps {
   onClose: () => void;
   onSuccess: () => void;
   onAuthRequired?: () => void;
+  onChange?: () => void;
 }
 
 type SubmissionStatus = 'pending' | 'approved' | 'rejected' | null;
@@ -21,22 +22,25 @@ type FormData = {
     title: string;
     status: SubmissionStatus;
     originalUrl: string; // Track original URL to detect changes
+    id: string | null;
   };
 };
 
 export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuthRequired }: SubmissionFormProps) {
   const [formData, setFormData] = useState<FormData>({
-    inspiration: { url: '', title: '', status: null, originalUrl: '' },
-    music: { url: '', title: '', status: null, originalUrl: '' },
-    comedy: { url: '', title: '', status: null, originalUrl: '' },
-    cooking: { url: '', title: '', status: null, originalUrl: '' },
-    street_voices: { url: '', title: '', status: null, originalUrl: '' },
+    inspiration: { url: '', title: '', status: null, originalUrl: '', id: null },
+    music: { url: '', title: '', status: null, originalUrl: '', id: null },
+    comedy: { url: '', title: '', status: null, originalUrl: '', id: null },
+    cooking: { url: '', title: '', status: null, originalUrl: '', id: null },
+    street_voices: { url: '', title: '', status: null, originalUrl: '', id: null },
   });
   const [loading, setLoading] = useState(false);
   const [loadingSubmissions, setLoadingSubmissions] = useState(true);
   const [error, setError] = useState('');
   const [showGuidelines, setShowGuidelines] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+const [isMobile, setIsMobile] = useState(false);
+const [deletingCategory, setDeletingCategory] = useState<VideoCategory | null>(null);
+const [deleteToast, setDeleteToast] = useState<string | null>(null);
 
   // Detect mobile screen size
   useEffect(() => {
@@ -72,7 +76,7 @@ export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuth
 
         const { data: submissions, error } = await supabase
           .from('video_submissions')
-          .select('category, youtube_url, title, status')
+          .select('id, category, youtube_url, title, status')
           .eq('country_code', countryCode)
           .eq('user_id', user.id);
 
@@ -92,11 +96,11 @@ export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuth
 
         if (submissions && submissions.length > 0) {
           const newFormData: FormData = {
-            inspiration: { url: '', title: '', status: null, originalUrl: '' },
-            music: { url: '', title: '', status: null, originalUrl: '' },
-            comedy: { url: '', title: '', status: null, originalUrl: '' },
-            cooking: { url: '', title: '', status: null, originalUrl: '' },
-            street_voices: { url: '', title: '', status: null, originalUrl: '' },
+            inspiration: { url: '', title: '', status: null, originalUrl: '', id: null },
+            music: { url: '', title: '', status: null, originalUrl: '', id: null },
+            comedy: { url: '', title: '', status: null, originalUrl: '', id: null },
+            cooking: { url: '', title: '', status: null, originalUrl: '', id: null },
+            street_voices: { url: '', title: '', status: null, originalUrl: '', id: null },
           };
 
           submissions.forEach((submission) => {
@@ -106,6 +110,7 @@ export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuth
               title: submission.title || '',
               status: submission.status as SubmissionStatus,
               originalUrl: submission.youtube_url,
+              id: submission.id,
             };
           });
           setFormData(newFormData);
@@ -154,28 +159,21 @@ export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuth
     e.preventDefault();
     setError('');
 
-  // Check if at least one URL is provided
   const hasAnyUrl = Object.values(formData).some(data => data.url.trim() !== '');
-  if (!hasAnyUrl) {
-    setError('Please provide at least one YouTube URL');
-    return;
-  }
 
-  // Validate all provided URLs
-  for (const [category, data] of Object.entries(formData)) {
-    if (data.url.trim()) {
-      if (!isValidYouTubeUrl(data.url)) {
+  if (hasAnyUrl) {
+    for (const [category, data] of Object.entries(formData)) {
+      if (data.url.trim() && !isValidYouTubeUrl(data.url)) {
         setError(`Invalid YouTube URL for ${CATEGORY_LABELS[category as VideoCategory]}`);
         return;
       }
     }
-  }
 
-  // Require a title when a URL is provided
-  for (const [category, data] of Object.entries(formData)) {
-    if (data.url.trim() && !data.title.trim()) {
-      setError(`Please provide a title for ${CATEGORY_LABELS[category as VideoCategory]}`);
-      return;
+    for (const [category, data] of Object.entries(formData)) {
+      if (data.url.trim() && !data.title.trim()) {
+        setError(`Please provide a title for ${CATEGORY_LABELS[category as VideoCategory]}`);
+        return;
+      }
     }
   }
 
@@ -216,6 +214,7 @@ export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuth
           const { error } = await supabase
             .from('video_submissions')
             .upsert({
+              id: data.id || undefined,
               country_code: countryCode,
               category: category as VideoCategory,
               youtube_url: trimmedUrl,
@@ -259,6 +258,61 @@ export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuth
   }
 
   const categories: VideoCategory[] = VISIBLE_CATEGORIES;
+
+  async function handleDeleteCategory(category: VideoCategory) {
+    setError('');
+    const current = formData[category];
+    if (!current.originalUrl && !current.url) return;
+
+    const submissionId = current.id;
+
+    try {
+      setDeletingCategory(category);
+      console.log('Attempting to delete submission', { category, submissionId, countryCode });
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        onAuthRequired?.();
+        return;
+      }
+
+      let deleteQuery = supabase
+        .from('video_submissions')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (submissionId) {
+        deleteQuery = deleteQuery.eq('id', submissionId);
+      } else {
+        deleteQuery = deleteQuery
+          .eq('country_code', countryCode)
+          .eq('category', category);
+      }
+
+      const { error } = await deleteQuery;
+
+      if (error) throw error;
+
+      setFormData(prev => ({
+        ...prev,
+        [category]: {
+          url: '',
+          title: '',
+          status: null,
+          originalUrl: '',
+          id: null,
+        }
+      }));
+      console.log('Successfully deleted submission', { category, submissionId });
+      const message = `${CATEGORY_LABELS[category]} video removed`;
+      setDeleteToast(message);
+      setTimeout(() => setDeleteToast(null), 2000);
+    } catch (err: any) {
+      console.error('Delete submission error:', err);
+      setError(err.message || 'Failed to delete video');
+    } finally {
+      setDeletingCategory(null);
+    }
+  }
 
   function renderStatus(status: SubmissionStatus) {
     if (!status) return null;
@@ -307,8 +361,24 @@ export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuth
         position: 'relative',
         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
         maxHeight: '90vh',
-        overflowY: 'auto'
+        overflowY: 'auto',
+        position: 'relative'
       }} onClick={(e) => e.stopPropagation()}>
+        {deleteToast && (
+          <div style={{
+            position: 'absolute',
+            top: '16px',
+            right: '16px',
+            backgroundColor: '#065f46',
+            color: '#ffffff',
+            padding: '10px 16px',
+            borderRadius: '999px',
+            fontSize: '13px',
+            boxShadow: '0 10px 20px rgba(0,0,0,0.15)'
+          }}>
+            {deleteToast}
+          </div>
+        )}
 
         {/* Close Button */}
         <button
@@ -466,7 +536,8 @@ export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuth
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  marginBottom: '8px'
+                  marginBottom: '8px',
+                  gap: '8px'
                 }}>
                   <div style={{
                     fontSize: '14px',
@@ -475,7 +546,44 @@ export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuth
                   }}>
                     {CATEGORY_LABELS[category]}
                   </div>
-                  {renderStatus(formData[category].status)}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {formData[category].originalUrl && (
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (deletingCategory === category || loading) return;
+                          handleDeleteCategory(category);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (deletingCategory === category || loading) return;
+                            handleDeleteCategory(category);
+                          }
+                        }}
+                        style={{
+                          width: '26px',
+                          height: '26px',
+                          borderRadius: '999px',
+                          border: 'none',
+                          backgroundColor: '#ef4444',
+                          color: '#ffffff',
+                          fontWeight: 700,
+                          fontSize: '14px',
+                          cursor: deletingCategory === category || loading ? 'not-allowed' : 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        ×
+                      </span>
+                    )}
+                    {renderStatus(formData[category].status)}
+                  </div>
                 </div>
 
                 {/* Video Title (required if URL provided) */}
@@ -573,8 +681,44 @@ export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuth
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  gap: '8px'
                 }}>
+                    {formData[category].originalUrl && (
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (deletingCategory === category || loading) return;
+                          handleDeleteCategory(category);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (deletingCategory === category || loading) return;
+                            handleDeleteCategory(category);
+                          }
+                        }}
+                        style={{
+                          width: '26px',
+                          height: '26px',
+                          borderRadius: '999px',
+                          border: 'none',
+                          backgroundColor: '#ef4444',
+                          color: '#ffffff',
+                          fontWeight: 700,
+                          fontSize: '14px',
+                          cursor: deletingCategory === category || loading ? 'not-allowed' : 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        ×
+                      </span>
+                    )}
                   {renderStatus(formData[category].status)}
                 </div>
               </div>
@@ -601,15 +745,6 @@ export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuth
             marginTop: '8px',
             gap: isMobile ? '12px' : '0'
           }}>
-            <p style={{
-              fontSize: isMobile ? '12px' : '13px',
-              color: '#9ca3af',
-              lineHeight: '1.5',
-              margin: 0,
-              textAlign: isMobile ? 'center' : 'left'
-            }}>
-              Your submission will be reviewed by our team before appearing on the site
-            </p>
             <button
               type="submit"
               disabled={loading}
@@ -633,7 +768,7 @@ export default function SubmissionForm({ countryCode, onClose, onSuccess, onAuth
                 if (!loading) e.currentTarget.style.backgroundColor = '#f97316';
               }}
             >
-              {loading ? 'Submitting...' : 'Submit for Review'}
+              {loading ? 'Submitting...' : 'Submit'}
             </button>
           </div>
         </form>

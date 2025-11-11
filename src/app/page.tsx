@@ -163,12 +163,13 @@ export default function Home() {
       const visibleFavorites = favorites.filter((fav) =>
         VISIBLE_CATEGORIES.includes(fav.category)
       );
+      // Allow user to see their own submissions even if not in visible categories
       const visibleSubmissions = submissions.filter(
         (submission: VideoSubmission) =>
           VISIBLE_CATEGORIES.includes(submission.category as VideoCategory)
       );
 
-      setProfileData({ favorites: visibleFavorites, submissions: visibleSubmissions });
+      setProfileData({ favorites: visibleFavorites, submissions: submissions });
     } catch (error) {
       console.error('Error preloading profile data:', error);
     }
@@ -248,8 +249,6 @@ export default function Home() {
 
       if (error) throw error;
 
-      const videos = data || [];
-
       const { data: privateProfiles, error: privacyError } = await supabase
         .from('user_profiles')
         .select('id')
@@ -262,10 +261,31 @@ export default function Home() {
       const privateIds = new Set((privateProfiles || []).map(profile => profile.id));
       const currentUserId = user?.id || null;
 
+      const videos = data || [];
       const filteredVideos = videos
         .filter((video) => VISIBLE_CATEGORIES.includes(video.category as VideoCategory))
         .filter((video) => !privateIds.has(video.user_id) || video.user_id === currentUserId);
-      setVideoCache(filteredVideos);
+
+      let combinedVideos = [...filteredVideos];
+
+      if (currentUserId) {
+        const { data: userVideos, error: userVideosError } = await supabase
+          .from('video_submissions')
+          .select('*')
+          .eq('user_id', currentUserId);
+
+        if (!userVideosError && userVideos) {
+          userVideos
+            .filter(video => VISIBLE_CATEGORIES.includes(video.category as VideoCategory))
+            .forEach(video => {
+              if (!combinedVideos.some(existing => existing.id === video.id)) {
+                combinedVideos.push(video);
+              }
+            });
+        }
+      }
+
+      setVideoCache(combinedVideos);
       setVideoCacheReady(true);
 
       // Calculate category counts from cached data
@@ -277,12 +297,12 @@ export default function Home() {
         street_voices: 0,
       };
 
-      filteredVideos.forEach((video) => {
+      combinedVideos.forEach((video) => {
         counts[video.category as VideoCategory]++;
       });
 
       setCategoryCounts(counts);
-      console.log(`✅ Cache refreshed: ${filteredVideos.length} videos (visible cats), counts:`, counts);
+      console.log(`✅ Cache refreshed: ${combinedVideos.length} videos (visible cats), counts:`, counts);
     } catch (error) {
       console.error('Error refreshing video cache:', error);
     }
