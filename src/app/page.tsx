@@ -598,7 +598,8 @@ export default function Home() {
       setShowToast(false);
     }, 3000);
 
-    // Refresh profile data to show new submission
+    // Refresh video cache and profile data to show new submission immediately
+    refreshVideoCache();
     if (user) {
       preloadProfileData(user.id);
     }
