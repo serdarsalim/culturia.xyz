@@ -15,8 +15,8 @@ const CATEGORY_ICON_MAP: Record<VideoCategory, string> = {
   inspiration: '💡',
   music: '🎵',
   comedy: '😄',
-  cooking: '🍳',
-  street_voices: '🎤',
+  daily_life: '📹',
+  talks: '🎤',
 };
 
 export default function Home() {
@@ -1186,7 +1186,7 @@ export default function Home() {
                   { icon: '🎤', title: 'Talks', body: 'Listen to real people discuss ideas, share stories, give speeches, and have conversations. This is where you hear how people think and communicate.' },
                   { icon: '🎵', title: 'Music', body: 'Every culture expresses itself through music. From traditional folk songs to modern hits, experience the sounds that define a place.' },
                   { icon: '😄', title: 'Comedy', body: 'Humor reveals what a culture finds funny, clever, or absurd. It’s cultural insight wrapped in entertainment.' },
-                  { icon: '🍴', title: 'Food', body: 'Food is universal but deeply personal. Watch locals cook, eat, and talk about the dishes that matter to them.' },
+                  { icon: '📹', title: 'Daily Life', body: 'Experience authentic everyday moments—market scenes, local customs, daily routines, and cultural practices that reveal how people truly live.' },
                 ].map(({ icon, title, body }) => (
                   <div key={title} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
                     <span style={{ fontSize: '24px' }}>{icon}</span>
