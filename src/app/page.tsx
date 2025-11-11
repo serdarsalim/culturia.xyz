@@ -47,10 +47,23 @@ export default function Home() {
     daily_life: 0,
     talks: 0,
   });
-  const [mapSources, setMapSources] = useState<{ all: boolean; favorites: boolean; mine: boolean }>({
-    all: true,
-    favorites: false,
-    mine: false,
+  const [mapSources, setMapSources] = useState<{ all: boolean; favorites: boolean; mine: boolean }>(() => {
+    // Load from localStorage on initial render
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('mapSources');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.error('Failed to parse mapSources from localStorage:', e);
+        }
+      }
+    }
+    return {
+      all: true,
+      favorites: false,
+      mine: false,
+    };
   });
   const pendingSubmissionCountryRef = useRef<string | null>(null);
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<VideoCategory | null>(null);
@@ -228,10 +241,19 @@ export default function Home() {
       return counts;
     }
 
-    videoCache.forEach((video) => {
-      if (video.country_code === countryCode) {
-        counts[video.category as VideoCategory]++;
-      }
+    // Filter videos based on current map source
+    let filteredVideos = videoCache.filter(v => v.country_code === countryCode);
+
+    // Apply mapSources filter
+    if (mapSources.mine && user?.id) {
+      filteredVideos = filteredVideos.filter(v => v.user_id === user.id);
+    } else if (mapSources.favorites && profileData?.favorites) {
+      const favoriteVideoIds = new Set(profileData.favorites.map(fav => fav.video.id));
+      filteredVideos = filteredVideos.filter(v => favoriteVideoIds.has(v.id));
+    }
+
+    filteredVideos.forEach((video) => {
+      counts[video.category as VideoCategory]++;
     });
 
     return counts;
@@ -606,6 +628,33 @@ export default function Home() {
         if (value) {
           next.all = false;
         }
+      }
+
+      // Save to localStorage
+      localStorage.setItem('mapSources', JSON.stringify(next));
+
+      // Show success message
+      if (key === 'mine' && value) {
+        setToastMessage({
+          title: 'My Submissions',
+          description: 'Now showing only your submissions on the map'
+        });
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 2000);
+      } else if (key === 'favorites' && value) {
+        setToastMessage({
+          title: 'My Favorites',
+          description: 'Now showing only your favorites on the map'
+        });
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 2000);
+      } else if (key === 'all' && value) {
+        setToastMessage({
+          title: 'All Videos',
+          description: 'Now showing all approved videos on the map'
+        });
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 2000);
       }
 
       return next;
