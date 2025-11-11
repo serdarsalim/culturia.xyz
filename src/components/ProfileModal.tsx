@@ -329,19 +329,13 @@ export default function ProfileModal({
 
   async function handleToggleVisibility(video: VideoSubmission) {
     try {
-      let newStatus: 'private' | 'pending' | 'approved';
+      let newStatus: 'private' | 'pending';
 
-      // If currently private, switch to pending (submit for review)
-      // If pending or approved, allow switching back to private
+      // Toggle between private and public (pending/approved both become private)
       if (video.status === 'private') {
-        newStatus = 'pending';
-      } else if (video.status === 'pending') {
-        newStatus = 'private';
-      } else if (video.status === 'approved') {
-        // Can't change approved videos back to private
-        return;
+        newStatus = 'pending'; // Submit for review
       } else {
-        return;
+        newStatus = 'private'; // Make private (works for both pending and approved)
       }
 
       const { error } = await supabase
@@ -360,7 +354,7 @@ export default function ProfileModal({
         title: newStatus === 'pending' ? 'Submitted for Review' : 'Made Private',
         description: newStatus === 'pending'
           ? 'Your video has been submitted for admin approval'
-          : 'Your video is now private',
+          : 'Your video is now private and removed from the map',
         type: 'success'
       });
       setShowToast(true);
@@ -626,36 +620,33 @@ export default function ProfileModal({
                             </button>
                           </div>
                           <div style={{ display: 'flex', gap: isMobile ? '4px' : '8px', alignItems: 'center', flexShrink: 0 }}>
-                            {/* Private/Public Toggle */}
-                            {video.status !== 'approved' && (
-                              <button
-                                onClick={() => handleToggleVisibility(video)}
-                                style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '4px',
-                                  padding: isMobile ? '4px 6px' : '4px 8px',
-                                  borderRadius: '12px',
-                                  backgroundColor: video.status === 'private' ? '#f3f4f6' : '#dbeafe',
-                                  border: 'none',
-                                  cursor: 'pointer',
-                                  fontSize: isMobile ? '10px' : '11px',
-                                  fontWeight: '600',
-                                  transition: 'all 0.2s'
-                                }}
-                                title={video.status === 'private' ? 'Click to submit for review' : 'Click to make private'}
-                              >
-                                <span style={{ fontSize: isMobile ? '10px' : '12px' }}>
-                                  {video.status === 'private' ? '🔒' : '🌐'}
+                            {/* Private/Public Toggle - works for all statuses */}
+                            <button
+                              onClick={() => handleToggleVisibility(video)}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                padding: isMobile ? '4px 6px' : '4px 8px',
+                                borderRadius: '12px',
+                                backgroundColor: video.status === 'private' ? '#f3f4f6' : video.status === 'approved' ? '#d1fae5' : '#dbeafe',
+                                border: 'none',
+                                cursor: 'pointer',
+                                fontSize: isMobile ? '10px' : '11px',
+                                fontWeight: '600',
+                                transition: 'all 0.2s'
+                              }}
+                              title={video.status === 'private' ? 'Click to submit for review' : 'Click to make private'}
+                            >
+                              <span style={{ fontSize: isMobile ? '10px' : '12px' }}>
+                                {video.status === 'private' ? '🔒' : video.status === 'approved' ? '✓' : '🌐'}
+                              </span>
+                              {!isMobile && (
+                                <span style={{ color: video.status === 'private' ? '#4b5563' : video.status === 'approved' ? '#065f46' : '#1e40af' }}>
+                                  {video.status === 'private' ? 'Private' : video.status === 'approved' ? 'Approved' : 'Pending'}
                                 </span>
-                                {!isMobile && (
-                                  <span style={{ color: video.status === 'private' ? '#4b5563' : '#1e40af' }}>
-                                    {video.status === 'private' ? 'Private' : 'Public'}
-                                  </span>
-                                )}
-                              </button>
-                            )}
-                            {video.status === 'approved' && renderStatusBadge(video.status)}
+                              )}
+                            </button>
                             <button
                               onClick={() => setEditingSubmission(video)}
                               style={{
