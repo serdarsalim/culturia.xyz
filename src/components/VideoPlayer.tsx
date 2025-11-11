@@ -249,6 +249,13 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
   function onPlayerReady(event: YouTubeEvent) {
     playerRef.current = event.target;
 
+    // Auto-play the video (important for background tab auto-advance)
+    try {
+      event.target.playVideo();
+    } catch (e) {
+      console.log('Autoplay blocked:', e);
+    }
+
     // Get video duration and set up auto-advance timer
     const duration = event.target.getDuration();
     videoDurationRef.current = duration;
