@@ -23,7 +23,7 @@ export default function Home() {
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [currentVideo, setCurrentVideo] = useState<{ video: VideoSubmission; category: VideoCategory } | null>(null);
   const [user, setUser] = useState<any>(null);
-  const [userProfile, setUserProfile] = useState<{ username: string | null; display_name: string | null } | null>(null);
+  const [userProfile, setUserProfile] = useState<{ username: string | null; display_name: string | null; is_private: boolean | null } | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('signup');
   const [showSubmissionForm, setShowSubmissionForm] = useState(false);
@@ -178,14 +178,18 @@ export default function Home() {
     try {
       const { data, error } = await supabase
         .from('user_profiles')
-        .select('username, display_name')
+        .select('username, display_name, is_private')
         .eq('id', userId)
         .single();
 
       if (error) {
         // If no profile row yet, clear state silently
         if (error.code === 'PGRST116') {
-          setUserProfile(null);
+          setUserProfile({
+            username: null,
+            display_name: null,
+            is_private: false,
+          });
           return;
         }
         console.error('Error fetching user profile:', error);
@@ -196,9 +200,14 @@ export default function Home() {
         setUserProfile({
           username: data.username ?? null,
           display_name: data.display_name ?? null,
+          is_private: data.is_private ?? false,
         });
       } else {
-        setUserProfile(null);
+        setUserProfile({
+          username: null,
+          display_name: null,
+          is_private: false,
+        });
       }
     } catch (error) {
       console.error('Error fetching user profile:', error);
@@ -240,9 +249,22 @@ export default function Home() {
       if (error) throw error;
 
       const videos = data || [];
-      const filteredVideos = videos.filter((video) =>
-        VISIBLE_CATEGORIES.includes(video.category as VideoCategory)
-      );
+
+      const { data: privateProfiles, error: privacyError } = await supabase
+        .from('user_profiles')
+        .select('id')
+        .eq('is_private', true);
+
+      if (privacyError) {
+        console.error('Error fetching private profiles:', privacyError);
+      }
+
+      const privateIds = new Set((privateProfiles || []).map(profile => profile.id));
+      const currentUserId = user?.id || null;
+
+      const filteredVideos = videos
+        .filter((video) => VISIBLE_CATEGORIES.includes(video.category as VideoCategory))
+        .filter((video) => !privateIds.has(video.user_id) || video.user_id === currentUserId);
       setVideoCache(filteredVideos);
       setVideoCacheReady(true);
 
@@ -302,6 +324,10 @@ export default function Home() {
       clearInterval(intervalId);
     };
   }, []);
+
+  useEffect(() => {
+    refreshVideoCache();
+  }, [user?.id]);
 
   function handleCountryClick(countryCode: string) {
     console.log('handleCountryClick called with:', countryCode);
@@ -395,6 +421,14 @@ export default function Home() {
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
     }
+  }
+
+  function handleProfileSettingsChange(updates: { username: string | null; display_name: string | null; is_private: boolean }) {
+    setUserProfile({
+      username: updates.username,
+      display_name: updates.display_name,
+      is_private: updates.is_private,
+    });
   }
 
   function handleNextVideo() {
@@ -1030,6 +1064,8 @@ export default function Home() {
           }}
           onEditSubmission={handleEditSubmission}
           initialData={profileData}
+          initialProfile={userProfile}
+          onProfileSettingsChange={handleProfileSettingsChange}
           mapSources={mapSources}
           onToggleMapSource={(key, value) => setMapSources((prev) => ({ ...prev, [key]: value }))}
           initialTab={profileModalTab}

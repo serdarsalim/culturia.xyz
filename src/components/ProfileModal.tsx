@@ -16,9 +16,21 @@ interface ProfileModalProps {
   mapSources: { all: boolean; favorites: boolean; mine: boolean };
   onToggleMapSource: (key: 'all' | 'favorites' | 'mine', value: boolean) => void;
   initialTab?: 'favorites' | 'submissions' | 'settings';
+  initialProfile?: { username: string | null; display_name: string | null; is_private: boolean | null } | null;
+  onProfileSettingsChange?: (data: { username: string | null; display_name: string | null; is_private: boolean }) => void;
 }
 
-export default function ProfileModal({ onClose, onPlayVideo, onEditSubmission, initialData, mapSources, onToggleMapSource, initialTab = 'favorites' }: ProfileModalProps) {
+export default function ProfileModal({
+  onClose,
+  onPlayVideo,
+  onEditSubmission,
+  initialData,
+  mapSources,
+  onToggleMapSource,
+  initialTab = 'favorites',
+  initialProfile,
+  onProfileSettingsChange
+}: ProfileModalProps) {
   const [activeTab, setActiveTab] = useState<'favorites' | 'submissions' | 'settings'>(initialTab);
   const [favorites, setFavorites] = useState<Array<{ video: VideoSubmission; category: VideoCategory }>>(initialData?.favorites || []);
   const [submissions, setSubmissions] = useState<VideoSubmission[]>(initialData?.submissions || []);
@@ -29,15 +41,19 @@ export default function ProfileModal({ onClose, onPlayVideo, onEditSubmission, i
   const [showLibrarySubmissions, setShowLibrarySubmissions] = useState(true);
 
   // Profile settings state
-  const [username, setUsername] = useState('');
-  const [displayName, setDisplayName] = useState('');
+  const [username, setUsername] = useState(initialProfile?.username || '');
+  const [displayName, setDisplayName] = useState(initialProfile?.display_name || '');
   const [profileLoading, setProfileLoading] = useState(false);
   const [usernameError, setUsernameError] = useState('');
   const [isMobile, setIsMobile] = useState(false);
   const [saveTimeout, setSaveTimeout] = useState<NodeJS.Timeout | null>(null);
-  const [profileLoaded, setProfileLoaded] = useState(false);
-  const [initialUsername, setInitialUsername] = useState('');
-  const [initialDisplayName, setInitialDisplayName] = useState('');
+  const [profileLoaded, setProfileLoaded] = useState(!!initialProfile);
+  const [initialUsername, setInitialUsername] = useState(initialProfile?.username || '');
+  const [initialDisplayName, setInitialDisplayName] = useState(initialProfile?.display_name || '');
+  const [isPrivate, setIsPrivate] = useState<boolean | null>(
+    initialProfile?.is_private ?? false
+  );
+  const [initialIsPrivate, setInitialIsPrivate] = useState(initialProfile?.is_private ?? false);
 
   // Detect mobile
   useEffect(() => {
@@ -138,7 +154,7 @@ export default function ProfileModal({ onClose, onPlayVideo, onEditSubmission, i
 
       const { data, error } = await supabase
         .from('user_profiles')
-        .select('username, display_name')
+        .select('username, display_name, is_private')
         .eq('id', user.id)
         .single();
 
@@ -150,11 +166,14 @@ export default function ProfileModal({ onClose, onPlayVideo, onEditSubmission, i
       if (data) {
         const fetchedUsername = data.username || '';
         const fetchedDisplayName = data.display_name || '';
+        const fetchedIsPrivate = data.is_private ?? false;
         setUsername(fetchedUsername);
         setDisplayName(fetchedDisplayName);
+        setIsPrivate(fetchedIsPrivate);
         // Store initial values to compare against later
         setInitialUsername(fetchedUsername);
         setInitialDisplayName(fetchedDisplayName);
+        setInitialIsPrivate(fetchedIsPrivate);
       }
       // Mark profile as loaded after setting initial values
       setProfileLoaded(true);
@@ -169,7 +188,7 @@ export default function ProfileModal({ onClose, onPlayVideo, onEditSubmission, i
     setUsernameError('');
 
     // Don't save if nothing has changed
-    if (username === initialUsername && displayName === initialDisplayName) {
+    if (username === initialUsername && displayName === initialDisplayName && isPrivate === initialIsPrivate) {
       return;
     }
 
@@ -188,12 +207,15 @@ export default function ProfileModal({ onClose, onPlayVideo, onEditSubmission, i
         return;
       }
 
+      if (isPrivate === null) return;
+
       const { error } = await supabase
         .from('user_profiles')
         .upsert({
           id: user.id,
           username: username || null,
           display_name: displayName || null,
+          is_private: isPrivate,
         });
 
       if (error) {
@@ -208,6 +230,12 @@ export default function ProfileModal({ onClose, onPlayVideo, onEditSubmission, i
       // Update initial values after successful save
       setInitialUsername(username);
       setInitialDisplayName(displayName);
+      setInitialIsPrivate(isPrivate);
+      onProfileSettingsChange?.({
+        username: username || null,
+        display_name: displayName || null,
+        is_private: isPrivate,
+      });
 
       // Success toast
       setToastMessage({
@@ -247,7 +275,7 @@ export default function ProfileModal({ onClose, onPlayVideo, onEditSubmission, i
     return () => {
       if (timeout) clearTimeout(timeout);
     };
-  }, [username, displayName]);
+  }, [username, displayName, isPrivate]);
 
   async function handleDeleteSubmission(id: string) {
     if (!confirm('Are you sure you want to delete this submission?')) return;
@@ -566,11 +594,10 @@ export default function ProfileModal({ onClose, onPlayVideo, onEditSubmission, i
               {/* Profile Settings */}
               <div>
                 <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#111827', marginBottom: isMobile ? '2px' : '4px' }}>Profile Information</h3>
-                <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: isMobile ? '8px' : '12px' }}>Customize your public profile</p>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '8px' : '12px', maxWidth: '100%' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '12px' : '18px', maxWidth: '100%' }}>
                   {/* Display Name and Username - 2 column grid */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: isMobile ? '8px' : '12px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: isMobile ? '8px' : '12px' }}>
                     {/* Display Name */}
                     <div>
                       <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
@@ -633,6 +660,49 @@ export default function ProfileModal({ onClose, onPlayVideo, onEditSubmission, i
                         </p>
                       )}
                     </div>
+
+                    {/* Account Visibility */}
+                    {isPrivate !== null && (
+                      <div>
+                        <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                          Account Visibility
+                        </label>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          {[
+                            { label: 'Public', value: false },
+                            { label: 'Private', value: true }
+                          ].map(option => {
+                            const active = isPrivate === option.value;
+                            return (
+                              <button
+                                key={option.label}
+                                type="button"
+                                onClick={() => setIsPrivate(option.value)}
+                                style={{
+                                  flex: 1,
+                                  padding: '10px 12px',
+                                  borderRadius: '999px',
+                                  border: active ? '2px solid #f97316' : '1px solid #d1d5db',
+                                  backgroundColor: active ? '#fff7ed' : '#ffffff',
+                                  color: active ? '#c2410c' : '#111827',
+                                  fontSize: '13px',
+                                  fontWeight: 600,
+                                  cursor: 'pointer',
+                                  transition: 'all 0.2s'
+                                }}
+                              >
+                                {option.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px', lineHeight: 1.4 }}>
+                          {isPrivate
+                            ? 'Only you can view your submissions.'
+                            : 'Your submissions are visible to everyone.'}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
