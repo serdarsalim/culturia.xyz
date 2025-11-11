@@ -15,9 +15,11 @@ interface VideoPlayerProps {
   onSubmitVideo: (countryCode: string, category: VideoCategory) => void;
   categoryCounts?: Record<VideoCategory, number>;
   onChangeCategory?: (category: VideoCategory) => void;
+  playlist?: VideoSubmission[];
+  onSelectVideo?: (video: VideoSubmission) => void;
 }
 
-export default function VideoPlayer({ video, category, onClose, onNext, onSubmitVideo, categoryCounts, onChangeCategory }: VideoPlayerProps) {
+export default function VideoPlayer({ video, category, onClose, onNext, onSubmitVideo, categoryCounts, onChangeCategory, playlist, onSelectVideo }: VideoPlayerProps) {
   const CATEGORY_EMOJI: Record<VideoCategory, string> = {
     inspiration: '💡',
     music: '🎵',
@@ -38,6 +40,8 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
   const playerRef = useRef<YouTubePlayer | null>(null);
   const [showFullTitle, setShowFullTitle] = useState(false);
   const [playbackBlocked, setPlaybackBlocked] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [playlistWithUsers, setPlaylistWithUsers] = useState<(VideoSubmission & { user_display?: string })[]>([]);
 
   // Detect mobile screen size
   useEffect(() => {
@@ -108,6 +112,56 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
 
     checkFavorited();
   }, [video.id]);
+
+  // Get current user
+  useEffect(() => {
+    async function getCurrentUser() {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUserId(user?.id || null);
+    }
+    getCurrentUser();
+  }, []);
+
+  // Load playlist with user information
+  useEffect(() => {
+    async function loadPlaylistWithUsers() {
+      if (!playlist || playlist.length === 0) {
+        setPlaylistWithUsers([]);
+        return;
+      }
+
+      try {
+        // Get unique user IDs from playlist
+        const userIds = Array.from(new Set(playlist.map(v => v.user_id)));
+
+        // Fetch user profiles
+        const { data: profilesData } = await supabase
+          .from('user_profiles')
+          .select('id, username, display_name')
+          .in('id', userIds);
+
+        // Create a map of user profiles
+        const profilesMap = new Map(
+          profilesData?.map(p => [p.id, p]) || []
+        );
+
+        // Combine playlist with user display names
+        const playlistWithNames = playlist.map(video => ({
+          ...video,
+          user_display: profilesMap.get(video.user_id)?.display_name ||
+                       profilesMap.get(video.user_id)?.username ||
+                       'Anonymous'
+        }));
+
+        setPlaylistWithUsers(playlistWithNames);
+      } catch (error) {
+        console.error('Error loading playlist users:', error);
+        setPlaylistWithUsers(playlist);
+      }
+    }
+
+    loadPlaylistWithUsers();
+  }, [playlist]);
 
   async function handleFlagSubmit() {
     const { data: { user } } = await supabase.auth.getUser();
@@ -236,8 +290,21 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
   }
 
   async function onPlayerEnd() {
-    // Auto-play next video when current one ends
-    onNext();
+    // Auto-play next video in playlist when current one ends
+    if (playlist && playlist.length > 0 && onSelectVideo) {
+      const currentIndex = playlist.findIndex(v => v.id === video.id);
+      if (currentIndex !== -1) {
+        // Move to next video, or loop back to first
+        const nextIndex = (currentIndex + 1) % playlist.length;
+        onSelectVideo(playlist[nextIndex]);
+      } else {
+        // Fallback to random next
+        onNext();
+      }
+    } else {
+      // No playlist, use random next
+      onNext();
+    }
   }
 
   const opts = {
@@ -293,6 +360,128 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
         }}
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Playlist Panel - Desktop only */}
+        {!isMobile && playlistWithUsers.length > 0 && (
+          <div style={{
+            width: '300px',
+            backgroundColor: '#0a0a0a',
+            borderRight: '1px solid #1f1f1f',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden'
+          }}>
+            {/* Playlist Header */}
+            <div style={{
+              padding: '20px 16px',
+              borderBottom: '1px solid #1f1f1f'
+            }}>
+              <div style={{
+                fontSize: '14px',
+                fontWeight: 700,
+                color: '#ffffff',
+                marginBottom: '4px'
+              }}>
+                Playlist
+              </div>
+              <div style={{
+                fontSize: '12px',
+                color: '#9ca3af'
+              }}>
+                {playlistWithUsers.length} {playlistWithUsers.length === 1 ? 'video' : 'videos'}
+              </div>
+            </div>
+
+            {/* Playlist Items */}
+            <div style={{
+              flex: 1,
+              overflowY: 'auto',
+              overflowX: 'hidden'
+            }}>
+              {playlistWithUsers.map((playlistVideo, index) => {
+                const isCurrentVideo = playlistVideo.id === video.id;
+                const isOwnVideo = currentUserId && playlistVideo.user_id === currentUserId;
+
+                return (
+                  <div
+                    key={playlistVideo.id}
+                    onClick={() => {
+                      if (onSelectVideo && !isCurrentVideo) {
+                        onSelectVideo(playlistVideo);
+                      }
+                    }}
+                    style={{
+                      padding: '12px 16px',
+                      borderBottom: '1px solid #1f1f1f',
+                      cursor: isCurrentVideo ? 'default' : 'pointer',
+                      backgroundColor: isCurrentVideo ? '#1a1a1a' : 'transparent',
+                      borderLeft: isCurrentVideo ? '3px solid #3b82f6' : isOwnVideo ? '3px solid #10b981' : '3px solid transparent',
+                      transition: 'background-color 0.2s',
+                      position: 'relative'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isCurrentVideo) {
+                        e.currentTarget.style.backgroundColor = '#111111';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isCurrentVideo) {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                      }
+                    }}
+                  >
+                    {/* Video Title */}
+                    <div style={{
+                      fontSize: '13px',
+                      fontWeight: isCurrentVideo ? 600 : 400,
+                      color: isCurrentVideo ? '#3b82f6' : '#ffffff',
+                      marginBottom: '6px',
+                      lineHeight: '1.4',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden'
+                    }}>
+                      {playlistVideo.title || 'Untitled Video'}
+                    </div>
+
+                    {/* User Name */}
+                    <div style={{
+                      fontSize: '11px',
+                      color: '#9ca3af',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}>
+                      <span>{playlistVideo.user_display || 'Anonymous'}</span>
+                      {isOwnVideo && (
+                        <span style={{
+                          backgroundColor: '#10b981',
+                          color: '#ffffff',
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                          fontSize: '10px',
+                          fontWeight: 600
+                        }}>
+                          You
+                        </span>
+                      )}
+                      {isCurrentVideo && (
+                        <span style={{
+                          marginLeft: 'auto',
+                          color: '#3b82f6',
+                          fontSize: '12px'
+                        }}>
+                          ▶
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Main Video Section */}
         <div style={{
           flex: isMobile ? 'none' : '1',

@@ -475,6 +475,20 @@ export default function Home() {
     }
   }
 
+  function getCurrentPlaylist(): VideoSubmission[] {
+    if (!currentVideo || !videoCacheReady) return [];
+    // Get all videos for the same country and category
+    return videoCache.filter(v =>
+      v.country_code === currentVideo.video.country_code &&
+      v.category === currentVideo.category
+    );
+  }
+
+  function handleSelectVideoFromPlaylist(video: VideoSubmission) {
+    if (!currentVideo) return;
+    setCurrentVideo({ video, category: currentVideo.category });
+  }
+
   function handleChangeCategoryInPlayer(newCategory: VideoCategory) {
     if (!currentVideo || !videoCacheReady) return;
     const country = currentVideo.video.country_code;
@@ -1051,6 +1065,8 @@ export default function Home() {
           onSubmitVideo={handleOpenSubmitFromPlayer}
           categoryCounts={getCategoryCountsForCountry(currentVideo.video.country_code)}
           onChangeCategory={handleChangeCategoryInPlayer}
+          playlist={getCurrentPlaylist()}
+          onSelectVideo={handleSelectVideoFromPlaylist}
         />
       )}
 
