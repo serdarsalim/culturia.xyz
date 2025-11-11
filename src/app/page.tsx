@@ -457,11 +457,19 @@ export default function Home() {
     if (!currentVideo || !videoCacheReady) return;
 
     // Filter cached videos for same category and country, excluding current
-    const matchingVideos = videoCache.filter(v =>
+    let matchingVideos = videoCache.filter(v =>
       v.country_code === currentVideo.video.country_code &&
       v.category === currentVideo.category &&
       v.id !== currentVideo.video.id
     );
+
+    // Apply mapSources filter
+    if (mapSources.mine && user?.id) {
+      matchingVideos = matchingVideos.filter(v => v.user_id === user.id);
+    } else if (mapSources.favorites && profileData?.favorites) {
+      const favoriteVideoIds = new Set(profileData.favorites.map(fav => fav.video_id));
+      matchingVideos = matchingVideos.filter(v => favoriteVideoIds.has(v.id));
+    }
 
     if (matchingVideos.length > 0) {
       const randomVideo = matchingVideos[Math.floor(Math.random() * matchingVideos.length)];
@@ -479,11 +487,24 @@ export default function Home() {
 
   function getCurrentPlaylist(): VideoSubmission[] {
     if (!currentVideo || !videoCacheReady) return [];
+
     // Get all videos for the same country and category
-    return videoCache.filter(v =>
+    let filtered = videoCache.filter(v =>
       v.country_code === currentVideo.video.country_code &&
       v.category === currentVideo.category
     );
+
+    // Apply mapSources filter
+    if (mapSources.mine && user?.id) {
+      // Only show user's own videos
+      filtered = filtered.filter(v => v.user_id === user.id);
+    } else if (mapSources.favorites && profileData?.favorites) {
+      // Only show favorited videos
+      const favoriteVideoIds = new Set(profileData.favorites.map(fav => fav.video_id));
+      filtered = filtered.filter(v => favoriteVideoIds.has(v.id));
+    }
+
+    return filtered;
   }
 
   function handleSelectVideoFromPlaylist(video: VideoSubmission) {
@@ -494,7 +515,16 @@ export default function Home() {
   function handleChangeCategoryInPlayer(newCategory: VideoCategory) {
     if (!currentVideo || !videoCacheReady) return;
     const country = currentVideo.video.country_code;
-    const matches = videoCache.filter(v => v.country_code === country && v.category === newCategory);
+    let matches = videoCache.filter(v => v.country_code === country && v.category === newCategory);
+
+    // Apply mapSources filter
+    if (mapSources.mine && user?.id) {
+      matches = matches.filter(v => v.user_id === user.id);
+    } else if (mapSources.favorites && profileData?.favorites) {
+      const favoriteVideoIds = new Set(profileData.favorites.map(fav => fav.video_id));
+      matches = matches.filter(v => favoriteVideoIds.has(v.id));
+    }
+
     if (matches.length > 0) {
       const randomVideo = matches[Math.floor(Math.random() * matches.length)];
       setCurrentVideo({ video: randomVideo, category: newCategory });
