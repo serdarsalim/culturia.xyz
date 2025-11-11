@@ -41,7 +41,6 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
   const [showFullTitle, setShowFullTitle] = useState(false);
   const [playbackBlocked, setPlaybackBlocked] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [playlistWithUsers, setPlaylistWithUsers] = useState<(VideoSubmission & { user_display?: string })[]>([]);
 
   // Detect mobile screen size
   useEffect(() => {
@@ -122,54 +121,6 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
     getCurrentUser();
   }, []);
 
-  // Load playlist with user information
-  useEffect(() => {
-    async function loadPlaylistWithUsers() {
-      if (!playlist || playlist.length === 0) {
-        setPlaylistWithUsers([]);
-        return;
-      }
-
-      // Immediately set playlist with email fallback for instant display
-      const playlistWithEmails = playlist.map(video => ({
-        ...video,
-        user_display: video.user_email?.split('@')[0] || 'Anonymous'
-      }));
-      setPlaylistWithUsers(playlistWithEmails);
-
-      try {
-        // Get unique user IDs from playlist
-        const userIds = Array.from(new Set(playlist.map(v => v.user_id)));
-
-        // Fetch user profiles asynchronously to update with proper names
-        const { data: profilesData } = await supabase
-          .from('user_profiles')
-          .select('id, username, display_name')
-          .in('id', userIds);
-
-        // Create a map of user profiles
-        const profilesMap = new Map(
-          profilesData?.map(p => [p.id, p]) || []
-        );
-
-        // Update playlist with user display names
-        const playlistWithNames = playlist.map(video => ({
-          ...video,
-          user_display: profilesMap.get(video.user_id)?.display_name ||
-                       profilesMap.get(video.user_id)?.username ||
-                       video.user_email?.split('@')[0] ||
-                       'Anonymous'
-        }));
-
-        setPlaylistWithUsers(playlistWithNames);
-      } catch (error) {
-        console.error('Error loading playlist users:', error);
-        // Keep the email-based display names if profile fetch fails
-      }
-    }
-
-    loadPlaylistWithUsers();
-  }, [playlist]);
 
   async function handleFlagSubmit() {
     const { data: { user } } = await supabase.auth.getUser();
@@ -369,7 +320,7 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
         onClick={(e) => e.stopPropagation()}
       >
         {/* Playlist Panel - Desktop only */}
-        {!isMobile && playlistWithUsers.length > 0 && (
+        {!isMobile && playlist && playlist.length > 0 && (
           <div style={{
             width: '300px',
             backgroundColor: '#0a0a0a',
@@ -397,7 +348,7 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
                 fontSize: '12px',
                 color: '#9ca3af'
               }}>
-                {playlistWithUsers.length} {playlistWithUsers.length === 1 ? 'video' : 'videos'}
+                {playlist.length} {playlist.length === 1 ? 'video' : 'videos'}
               </div>
             </div>
 
@@ -407,7 +358,7 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
               overflowY: 'auto',
               overflowX: 'hidden'
             }}>
-              {playlistWithUsers.map((playlistVideo, index) => {
+              {playlist.map((playlistVideo, index) => {
                 const isCurrentVideo = playlistVideo.id === video.id;
                 const isOwnVideo = currentUserId && playlistVideo.user_id === currentUserId;
 
@@ -439,53 +390,56 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
                       }
                     }}
                   >
-                    {/* Video Title */}
-                    <div
-                      title={playlistVideo.title || 'Untitled Video'}
-                      style={{
-                        fontSize: '13px',
-                        fontWeight: isCurrentVideo ? 600 : 400,
-                        color: isCurrentVideo ? '#3b82f6' : '#ffffff',
-                        marginBottom: '6px',
-                        lineHeight: '1.4',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis'
-                      }}
-                    >
-                      {playlistVideo.title || 'Untitled Video'}
-                    </div>
-
-                    {/* User Name */}
+                    {/* Video Title and Indicators */}
                     <div style={{
-                      fontSize: '11px',
-                      color: '#9ca3af',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '6px'
+                      gap: '8px'
                     }}>
-                      <span>{playlistVideo.user_display || 'Anonymous'}</span>
-                      {isOwnVideo && (
-                        <span style={{
-                          backgroundColor: '#10b981',
-                          color: '#ffffff',
-                          padding: '2px 6px',
-                          borderRadius: '4px',
-                          fontSize: '10px',
-                          fontWeight: 600
-                        }}>
-                          You
-                        </span>
-                      )}
-                      {isCurrentVideo && (
-                        <span style={{
-                          marginLeft: 'auto',
-                          color: '#3b82f6',
-                          fontSize: '12px'
-                        }}>
-                          ▶
-                        </span>
-                      )}
+                      <div
+                        title={playlistVideo.title || 'Untitled Video'}
+                        style={{
+                          fontSize: '13px',
+                          fontWeight: isCurrentVideo ? 600 : 400,
+                          color: isCurrentVideo ? '#3b82f6' : '#ffffff',
+                          lineHeight: '1.4',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          flex: 1
+                        }}
+                      >
+                        {playlistVideo.title || 'Untitled Video'}
+                      </div>
+
+                      {/* Badges and Indicators */}
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        flexShrink: 0
+                      }}>
+                        {isOwnVideo && (
+                          <span style={{
+                            backgroundColor: '#10b981',
+                            color: '#ffffff',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            fontSize: '10px',
+                            fontWeight: 600
+                          }}>
+                            You
+                          </span>
+                        )}
+                        {isCurrentVideo && (
+                          <span style={{
+                            color: '#3b82f6',
+                            fontSize: '12px'
+                          }}>
+                            ▶
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
