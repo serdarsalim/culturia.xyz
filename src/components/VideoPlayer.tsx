@@ -41,8 +41,6 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
   const [showFullTitle, setShowFullTitle] = useState(false);
   const [playbackBlocked, setPlaybackBlocked] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const autoAdvanceTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const videoDurationRef = useRef<number | null>(null);
 
   // Detect mobile screen size
   useEffect(() => {
@@ -248,32 +246,9 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
 
   function onPlayerReady(event: YouTubeEvent) {
     playerRef.current = event.target;
-
-    // Auto-play the video (important for background tab auto-advance)
-    try {
-      event.target.playVideo();
-    } catch (e) {
-      console.log('Autoplay blocked:', e);
-    }
-
-    // Get video duration and set up auto-advance timer
-    const duration = event.target.getDuration();
-    videoDurationRef.current = duration;
-
-    // Clear any existing timer
-    if (autoAdvanceTimerRef.current) {
-      clearTimeout(autoAdvanceTimerRef.current);
-    }
-
-    // Set timer to auto-advance after video duration (works in background tabs)
-    if (duration && duration > 0) {
-      autoAdvanceTimerRef.current = setTimeout(() => {
-        handleAutoAdvance();
-      }, duration * 1000 + 500); // Add 500ms buffer
-    }
   }
 
-  function handleAutoAdvance() {
+  async function onPlayerEnd() {
     // Auto-play next video in playlist when current one ends
     if (playlist && playlist.length > 0 && onSelectVideo) {
       const currentIndex = playlist.findIndex(v => v.id === video.id);
@@ -281,30 +256,6 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
         // Move to next video, or loop back to first
         const nextIndex = (currentIndex + 1) % playlist.length;
         onSelectVideo(playlist[nextIndex]);
-
-        // Try to force play after a short delay (for background tabs)
-        setTimeout(() => {
-          if (playerRef.current) {
-            try {
-              playerRef.current.playVideo();
-            } catch (e) {
-              // Retry a few times
-              let retries = 0;
-              const retryInterval = setInterval(() => {
-                if (playerRef.current && retries < 5) {
-                  try {
-                    playerRef.current.playVideo();
-                    retries++;
-                  } catch (e) {
-                    console.log('Retry play:', retries);
-                  }
-                } else {
-                  clearInterval(retryInterval);
-                }
-              }, 200);
-            }
-          }
-        }, 500);
       } else {
         // Fallback to random next
         onNext();
@@ -315,16 +266,6 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
     }
   }
 
-  async function onPlayerEnd() {
-    // Clear the timer since video ended naturally
-    if (autoAdvanceTimerRef.current) {
-      clearTimeout(autoAdvanceTimerRef.current);
-      autoAdvanceTimerRef.current = null;
-    }
-
-    handleAutoAdvance();
-  }
-
   const opts = {
     width: '100%',
     height: '100%',
@@ -333,21 +274,11 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
       modestbranding: 1,
       rel: 0,
       playsinline: 1,
-      mute: 0, // Keep unmuted but this helps signal intent to browser
-      enablejsapi: 1, // Enable JS API for better control
     },
   };
 
   useEffect(() => {
     setPlaybackBlocked(false);
-
-    // Clear timer when video changes
-    return () => {
-      if (autoAdvanceTimerRef.current) {
-        clearTimeout(autoAdvanceTimerRef.current);
-        autoAdvanceTimerRef.current = null;
-      }
-    };
   }, [video.id]);
 
   function handlePlayerError(event: YouTubeEvent) {
