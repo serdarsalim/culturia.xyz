@@ -373,13 +373,15 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
             {/* Playlist Header */}
             <div style={{
               padding: '20px 16px',
-              borderBottom: '1px solid #1f1f1f'
+              borderBottom: '1px solid #1f1f1f',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
             }}>
               <div style={{
                 fontSize: '14px',
                 fontWeight: 700,
-                color: '#ffffff',
-                marginBottom: '4px'
+                color: '#ffffff'
               }}>
                 Playlist
               </div>
