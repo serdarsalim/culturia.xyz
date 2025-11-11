@@ -468,13 +468,13 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
           title="Close"
           style={{
             position: 'absolute',
-            top: isMobile ? '12px' : '12px',
-            right: isMobile ? '12px' : '12px',
-            width: isMobile ? '40px' : '40px',
-            height: isMobile ? '40px' : '40px',
+            top: isMobile ? 'max(env(safe-area-inset-top, 0px) + 12px, 48px)' : '12px',
+            right: isMobile ? 'max(env(safe-area-inset-right, 0px) + 12px, 16px)' : '12px',
+            width: isMobile ? '44px' : '40px',
+            height: isMobile ? '44px' : '40px',
             borderRadius: '9999px',
-            backgroundColor: isMobile ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.6)',
-            border: 'none',
+            backgroundColor: isMobile ? 'rgba(0, 0, 0, 0.85)' : 'rgba(0, 0, 0, 0.6)',
+            border: isMobile ? '2px solid rgba(255, 255, 255, 0.3)' : 'none',
             color: '#ffffff',
             display: 'flex',
             alignItems: 'center',
@@ -483,7 +483,8 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
             transition: 'all 0.15s ease',
             zIndex: 2,
             fontSize: isMobile ? '24px' : '22px',
-            fontWeight: '300'
+            fontWeight: '300',
+            boxShadow: isMobile ? '0 4px 12px rgba(0, 0, 0, 0.5)' : 'none'
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
@@ -491,7 +492,7 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
             e.currentTarget.style.transform = 'scale(1.1)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = isMobile ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.6)';
+            e.currentTarget.style.backgroundColor = isMobile ? 'rgba(0, 0, 0, 0.85)' : 'rgba(0, 0, 0, 0.6)';
             e.currentTarget.style.color = '#ffffff';
             e.currentTarget.style.transform = 'scale(1)';
           }}
