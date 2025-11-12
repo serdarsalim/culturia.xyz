@@ -1,16 +1,25 @@
 import { google, youtube_v3 } from 'googleapis';
 import { supabase } from '@/lib/supabase/client';
 
-const YOUTUBE_CLIENT_ID = process.env.YOUTUBE_CLIENT_ID!;
-const YOUTUBE_CLIENT_SECRET = process.env.YOUTUBE_CLIENT_SECRET!;
-const REDIRECT_URI = process.env.NODE_ENV === 'production'
-  ? 'https://culturia.xyz/api/auth/youtube/callback'
-  : 'http://localhost:3000/api/auth/youtube/callback';
-
 export interface YouTubeTokens {
   access_token: string;
   refresh_token: string;
   expires_at: number;
+}
+
+function getYouTubeCredentials() {
+  const clientId = process.env.YOUTUBE_CLIENT_ID;
+  const clientSecret = process.env.YOUTUBE_CLIENT_SECRET;
+
+  if (!clientId || !clientSecret) {
+    throw new Error('YouTube credentials not configured. Check YOUTUBE_CLIENT_ID and YOUTUBE_CLIENT_SECRET environment variables.');
+  }
+
+  const redirectUri = process.env.NODE_ENV === 'production'
+    ? 'https://culturia.xyz/api/auth/youtube/callback'
+    : 'http://localhost:3000/api/auth/youtube/callback';
+
+  return { clientId, clientSecret, redirectUri };
 }
 
 export class YouTubeClient {
@@ -18,10 +27,11 @@ export class YouTubeClient {
   private youtube: youtube_v3.Youtube | null = null;
 
   constructor() {
+    const { clientId, clientSecret, redirectUri } = getYouTubeCredentials();
     this.oauth2Client = new google.auth.OAuth2(
-      YOUTUBE_CLIENT_ID,
-      YOUTUBE_CLIENT_SECRET,
-      REDIRECT_URI
+      clientId,
+      clientSecret,
+      redirectUri
     );
   }
 
