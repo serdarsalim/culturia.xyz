@@ -19,6 +19,7 @@ interface ProfileModalProps {
   initialTab?: 'favorites' | 'submissions' | 'settings';
   initialProfile?: { username: string | null; display_name: string | null; is_private: boolean | null } | null;
   onProfileSettingsChange?: (data: { username: string | null; display_name: string | null; is_private: boolean }) => void;
+  isAdmin?: boolean;
 }
 
 export default function ProfileModal({
@@ -30,7 +31,8 @@ export default function ProfileModal({
   onToggleMapSource,
   initialTab = 'favorites',
   initialProfile,
-  onProfileSettingsChange
+  onProfileSettingsChange,
+  isAdmin = false
 }: ProfileModalProps) {
   const [activeTab, setActiveTab] = useState<'favorites' | 'submissions' | 'settings'>(initialTab);
   const [favorites, setFavorites] = useState<Array<{ video: VideoSubmission; category: VideoCategory }>>(initialData?.favorites || []);
@@ -56,6 +58,7 @@ export default function ProfileModal({
     initialProfile?.is_private ?? false
   );
   const [initialIsPrivate, setInitialIsPrivate] = useState(initialProfile?.is_private ?? false);
+  const [updatingSubmissionId, setUpdatingSubmissionId] = useState<string | null>(null);
 
   // Detect mobile
   useEffect(() => {
@@ -329,40 +332,50 @@ export default function ProfileModal({
 
   async function handleToggleVisibility(video: VideoSubmission) {
     try {
+      setUpdatingSubmissionId(video.id);
       let newStatus: 'private' | 'pending' | 'approved';
 
       // Toggle between private and public
       if (video.status === 'private') {
-        // If video was previously approved, restore approved status
-        // Otherwise, submit for review (pending)
-        newStatus = video.was_approved ? 'approved' : 'pending';
+        if (isAdmin || video.was_approved) {
+          newStatus = 'approved';
+        } else {
+          newStatus = 'pending';
+        }
       } else {
         // Make private (works for both pending and approved)
         newStatus = 'private';
       }
 
+      const updateData: Partial<VideoSubmission> = { status: newStatus };
+      if (newStatus === 'approved') {
+        updateData.was_approved = true;
+      }
+
       const { error } = await supabase
         .from('video_submissions')
-        .update({ status: newStatus })
+        .update(updateData)
         .eq('id', video.id);
 
       if (error) throw error;
 
       // Update local state
       setSubmissions(prev => prev.map(s =>
-        s.id === video.id ? { ...s, status: newStatus } : s
+        s.id === video.id
+          ? { ...s, status: newStatus, ...(newStatus === 'approved' ? { was_approved: true } : {}) }
+          : s
       ));
 
       setToastMessage({
         title: newStatus === 'private'
           ? 'Made Private'
           : newStatus === 'approved'
-            ? 'Published'
+            ? 'Now Public'
             : 'Submitted for Review',
         description: newStatus === 'private'
           ? 'Your video is now private and removed from the map'
           : newStatus === 'approved'
-            ? 'Your video is now live on the map'
+            ? 'Your video is now live and visible to everyone'
             : 'Your video has been submitted for admin approval',
         type: 'success'
       });
@@ -377,6 +390,8 @@ export default function ProfileModal({
       });
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
+    } finally {
+      setUpdatingSubmissionId(null);
     }
   }
 
@@ -384,7 +399,7 @@ export default function ProfileModal({
     const statusConfig = {
       private: { text: 'Private', icon: '🔒', bg: '#f3f4f6', color: '#4b5563' },
       pending: { text: 'Pending', icon: '⏳', bg: '#fef3c7', color: '#92400e' },
-      approved: { text: 'Approved', icon: '✓', bg: '#d1fae5', color: '#065f46' },
+      approved: { text: 'Public', icon: '🌐', bg: '#d1fae5', color: '#065f46' },
       rejected: { text: 'Rejected', icon: '✕', bg: '#fee2e2', color: '#991b1b' }
     };
 
@@ -631,6 +646,8 @@ export default function ProfileModal({
                             {/* Private/Public Toggle - works for all statuses */}
                             <button
                               onClick={() => handleToggleVisibility(video)}
+                              disabled={updatingSubmissionId === video.id}
+                              aria-busy={updatingSubmissionId === video.id}
                               style={{
                                 display: 'flex',
                                 alignItems: 'center',
@@ -639,19 +656,32 @@ export default function ProfileModal({
                                 borderRadius: '12px',
                                 backgroundColor: video.status === 'private' ? '#f3f4f6' : video.status === 'approved' ? '#d1fae5' : '#dbeafe',
                                 border: 'none',
-                                cursor: 'pointer',
+                                cursor: updatingSubmissionId === video.id ? 'default' : 'pointer',
                                 fontSize: isMobile ? '10px' : '11px',
                                 fontWeight: '600',
-                                transition: 'all 0.2s'
+                                transition: 'all 0.2s',
+                                opacity: updatingSubmissionId === video.id ? 0.6 : 1
                               }}
-                              title={video.status === 'private' ? 'Click to submit for review' : 'Click to make private'}
+                              title={video.status === 'private'
+                                ? 'Click to make public (admins publish immediately)'
+                                : 'Click to make private'}
                             >
                               <span style={{ fontSize: isMobile ? '10px' : '12px' }}>
-                                {video.status === 'private' ? '🔒' : video.status === 'approved' ? '✓' : '🌐'}
+                                {video.status === 'private'
+                                  ? '🔒'
+                                  : video.status === 'approved'
+                                    ? '🌐'
+                                    : '⏳'}
                               </span>
                               {!isMobile && (
                                 <span style={{ color: video.status === 'private' ? '#4b5563' : video.status === 'approved' ? '#065f46' : '#1e40af' }}>
-                                  {video.status === 'private' ? 'Private' : video.status === 'approved' ? 'Approved' : 'Pending'}
+                                  {updatingSubmissionId === video.id
+                                    ? 'Updating…'
+                                    : video.status === 'private'
+                                      ? 'Private'
+                                      : video.status === 'approved'
+                                        ? 'Public'
+                                        : 'Pending'}
                                 </span>
                               )}
                             </button>
@@ -755,48 +785,6 @@ export default function ProfileModal({
                       )}
                     </div>
 
-                    {/* Account Visibility */}
-                    {isPrivate !== null && (
-                      <div>
-                        <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
-                          Account Visibility
-                        </label>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          {[
-                            { label: 'Public', value: false },
-                            { label: 'Private', value: true }
-                          ].map(option => {
-                            const active = isPrivate === option.value;
-                            return (
-                              <button
-                                key={option.label}
-                                type="button"
-                                onClick={() => setIsPrivate(option.value)}
-                                style={{
-                                  flex: 1,
-                                  padding: '10px 12px',
-                                  borderRadius: '999px',
-                                  border: active ? '2px solid #f97316' : '1px solid #d1d5db',
-                                  backgroundColor: active ? '#fff7ed' : '#ffffff',
-                                  color: active ? '#c2410c' : '#111827',
-                                  fontSize: '13px',
-                                  fontWeight: 600,
-                                  cursor: 'pointer',
-                                  transition: 'all 0.2s'
-                                }}
-                              >
-                                {option.label}
-                              </button>
-                            );
-                          })}
-                        </div>
-                        <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px', lineHeight: 1.4 }}>
-                          {isPrivate
-                            ? 'Only you can view your submissions.'
-                            : 'Your submissions are visible to everyone.'}
-                        </p>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>

@@ -25,6 +25,8 @@ export default function Home() {
   const [submissionCountry, setSubmissionCountry] = useState<string | null>(null);
   const [currentVideo, setCurrentVideo] = useState<{ video: VideoSubmission; category: VideoCategory } | null>(null);
   const [user, setUser] = useState<any>(null);
+  const [isAdminUser, setIsAdminUser] = useState(false);
+  const [checkingAdmin, setCheckingAdmin] = useState(false);
   const [userProfile, setUserProfile] = useState<{ username: string | null; display_name: string | null; is_private: boolean | null } | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('signup');
@@ -121,6 +123,7 @@ export default function Home() {
       } else {
         setProfileData(null);
         setUserProfile(null);
+        setIsAdminUser(false);
       }
     });
 
@@ -134,6 +137,7 @@ export default function Home() {
       } else {
         setProfileData(null);
         setUserProfile(null);
+        setIsAdminUser(false);
       }
     });
 
@@ -149,6 +153,12 @@ export default function Home() {
       setShowSubmissionForm(true);
     }
   }, [user, isMobile]);
+
+  useEffect(() => {
+    if (showProfileModal && user?.id && !checkingAdmin) {
+      checkAdminStatus(user.id);
+    }
+  }, [showProfileModal, user?.id, checkingAdmin]);
 
   // Preload profile data when user logs in
   async function preloadProfileData(userId: string) {
@@ -189,6 +199,28 @@ export default function Home() {
       setProfileData({ favorites: visibleFavorites, submissions: submissions });
     } catch (error) {
       console.error('Error preloading profile data:', error);
+    }
+  }
+
+  async function checkAdminStatus(userId: string) {
+    try {
+      setCheckingAdmin(true);
+      const { data, error } = await supabase
+        .from('admin_users')
+        .select('id')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      setIsAdminUser(!!data);
+    } catch (error) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('Unable to verify admin status, defaulting to non-admin:', error);
+      }
+      setIsAdminUser(false);
+    } finally {
+      setCheckingAdmin(false);
     }
   }
 
@@ -1332,6 +1364,7 @@ export default function Home() {
           onEditSubmission={handleEditSubmission}
           initialData={profileData}
           initialProfile={userProfile}
+          isAdmin={isAdminUser}
           onProfileSettingsChange={handleProfileSettingsChange}
           mapSources={mapSources}
           onToggleMapSource={handleMapSourceToggle}
