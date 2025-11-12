@@ -343,10 +343,14 @@ export default function YouTubePage() {
               ? '✓ YouTube Disconnected Successfully'
               : syncResult.success ? '✓ Sync Successful' : '⚠ Sync Completed with Errors'}
           </div>
-          {(syncResult.videosAdded > 0 || syncResult.playlistsCreated > 0 || syncResult.playlistsUpdated > 0) && (
+          {(syncResult.videosAdded > 0 || syncResult.playlistsCreated > 0 || syncResult.playlistsUpdated > 0) ? (
             <div style={{ fontSize: '13px' }}>
-              {syncResult.videosAdded} videos synced to {syncResult.playlistsCreated + syncResult.playlistsUpdated} playlists
-              ({syncResult.playlistsCreated} created, {syncResult.playlistsUpdated} updated)
+              {syncResult.videosAdded || 0} videos synced to {(syncResult.playlistsCreated || 0) + (syncResult.playlistsUpdated || 0)} playlists
+              ({syncResult.playlistsCreated || 0} created, {syncResult.playlistsUpdated || 0} updated)
+            </div>
+          ) : (
+            <div style={{ fontSize: '13px', color: '#9ca3af' }}>
+              No new videos to sync. All playlists are up to date.
             </div>
           )}
         </div>
