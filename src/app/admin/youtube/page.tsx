@@ -36,6 +36,8 @@ export default function YouTubePage() {
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<SyncResult | null>(null);
   const [lastSync, setLastSync] = useState<string | null>(null);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorDetails, setErrorDetails] = useState<string[]>([]);
 
   useEffect(() => {
     checkYouTubeStatus();
@@ -159,14 +161,16 @@ export default function YouTubePage() {
       setLastSync(result.timestamp);
 
       if (result.success) {
-        alert(`Sync successful! ${result.videosAdded} videos synced to ${result.playlistsCreated + result.playlistsUpdated} playlists.`);
+        // Success - no errors
+        setErrorDetails([]);
       } else {
-        alert(`Sync completed with errors. ${result.videosAdded} videos synced. Check console for details.`);
-        console.error('Sync errors:', result.errors);
+        // Has errors - show modal
+        setErrorDetails(result.errors || []);
+        setShowErrorModal(true);
       }
-    } catch (error) {
-      console.error('Error syncing:', error);
-      alert('Sync failed. Please try again.');
+    } catch (error: any) {
+      setErrorDetails([error.message || 'Unknown error occurred']);
+      setShowErrorModal(true);
     } finally {
       setSyncing(false);
     }
@@ -488,6 +492,157 @@ export default function YouTubePage() {
               })}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Error Modal */}
+      {showErrorModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 200,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '24px'
+          }}
+          onClick={() => setShowErrorModal(false)}
+        >
+          <div
+            style={{
+              backgroundColor: '#1a1a1a',
+              borderRadius: '16px',
+              maxWidth: '700px',
+              width: '100%',
+              maxHeight: '80vh',
+              overflow: 'hidden',
+              border: '1px solid #ef4444',
+              boxShadow: '0 25px 50px -12px rgba(239, 68, 68, 0.3)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{
+              padding: '24px',
+              borderBottom: '1px solid #333333',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <div>
+                <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#ef4444', marginBottom: '4px' }}>
+                  ⚠️ Sync Errors
+                </h2>
+                <p style={{ fontSize: '14px', color: '#9ca3af' }}>
+                  {errorDetails.length} error{errorDetails.length !== 1 ? 's' : ''} occurred during sync
+                </p>
+              </div>
+              <button
+                onClick={() => setShowErrorModal(false)}
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '50%',
+                  backgroundColor: '#333333',
+                  border: 'none',
+                  color: '#ffffff',
+                  fontSize: '20px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'background-color 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#4b5563'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#333333'}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Error List */}
+            <div style={{
+              padding: '24px',
+              maxHeight: '400px',
+              overflowY: 'auto'
+            }}>
+              {errorDetails.some(err => err.includes('insufficient authentication scopes')) && (
+                <div style={{
+                  backgroundColor: '#7f1d1d',
+                  border: '1px solid #ef4444',
+                  borderRadius: '12px',
+                  padding: '16px',
+                  marginBottom: '20px'
+                }}>
+                  <div style={{ fontSize: '16px', fontWeight: 600, color: '#fca5a5', marginBottom: '8px' }}>
+                    🔒 Authentication Issue Detected
+                  </div>
+                  <div style={{ fontSize: '14px', color: '#fecaca', lineHeight: 1.6 }}>
+                    Your YouTube connection doesn't have the required permissions.
+                    <br /><br />
+                    <strong>To fix this:</strong>
+                    <ol style={{ marginTop: '8px', marginLeft: '20px' }}>
+                      <li>Click "Disconnect" at the top of this page</li>
+                      <li>Click "Connect YouTube Account" again</li>
+                      <li>Make sure to grant "Manage your YouTube account" permission</li>
+                      <li>Try syncing again</li>
+                    </ol>
+                  </div>
+                </div>
+              )}
+
+              <div style={{ fontSize: '14px', fontWeight: 600, color: '#9ca3af', marginBottom: '12px' }}>
+                Error Details:
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {errorDetails.map((error, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      padding: '12px',
+                      backgroundColor: '#0a0a0a',
+                      borderRadius: '8px',
+                      border: '1px solid #333333',
+                      fontSize: '13px',
+                      color: '#ffffff',
+                      fontFamily: 'monospace'
+                    }}
+                  >
+                    {error}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div style={{
+              padding: '16px 24px',
+              borderTop: '1px solid #333333',
+              display: 'flex',
+              justifyContent: 'flex-end'
+            }}>
+              <button
+                onClick={() => setShowErrorModal(false)}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: '#3b82f6',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#3b82f6'}
+              >
+                Got it
+              </button>
+            </div>
+          </div>
         </div>
       )}
       </div>
