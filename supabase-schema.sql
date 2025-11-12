@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS country_comments (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   country_code VARCHAR(3) NOT NULL, -- ISO 3166-1 alpha-3
-  content TEXT NOT NULL CHECK (char_length(content) <= 500),
+  content TEXT NOT NULL CHECK (char_length(content) <= 1000),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
 

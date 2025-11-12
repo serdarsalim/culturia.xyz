@@ -293,11 +293,13 @@ export default function CommentSection({ videoId, isMobile }: CommentSectionProp
   }
 
   return (
+    <>
     <div style={{
       display: 'flex',
       flexDirection: 'column',
       height: '100%',
-      color: '#ffffff'
+      color: '#ffffff',
+      backgroundColor: '#0a0a0a'
     }}>
       {/* Header with toggle button */}
       <div
@@ -327,7 +329,7 @@ export default function CommentSection({ videoId, isMobile }: CommentSectionProp
 
       {/* Comment List - collapsible on mobile */}
       {(!isMobile || isExpanded) && (
-      <div style={{
+      <div className="comment-scroll" style={{
         flex: 1,
         overflowY: 'auto',
         padding: isMobile ? '12px' : '16px',
@@ -492,9 +494,11 @@ export default function CommentSection({ videoId, isMobile }: CommentSectionProp
 
       {/* Comment Input Area - collapsible on mobile */}
       {(!isMobile || isExpanded) && (
-      <div style={{
+      <div className="comment-input-container" style={{
         padding: isMobile ? '12px' : '16px',
-        backgroundColor: '#0a0a0a'
+        backgroundColor: '#0a0a0a',
+        overflowY: 'auto',
+        maxHeight: isMobile ? 'none' : '320px'
       }}>
         {!user ? (
           <div style={{
@@ -740,5 +744,32 @@ export default function CommentSection({ videoId, isMobile }: CommentSectionProp
         </div>
       )}
     </div>
+    {!isMobile && (
+      <style jsx global>{`
+        .comment-scroll,
+        .comment-input-container {
+          scrollbar-width: thin;
+          scrollbar-color: rgba(71, 85, 105, 0.75) transparent;
+        }
+        .comment-scroll::-webkit-scrollbar,
+        .comment-input-container::-webkit-scrollbar {
+          width: 8px;
+        }
+        .comment-scroll::-webkit-scrollbar-track,
+        .comment-input-container::-webkit-scrollbar-track {
+          background: rgba(15, 23, 42, 0.35);
+        }
+        .comment-scroll::-webkit-scrollbar-thumb,
+        .comment-input-container::-webkit-scrollbar-thumb {
+          background: rgba(71, 85, 105, 0.85);
+          border-radius: 999px;
+        }
+        .comment-scroll::-webkit-scrollbar-thumb:hover,
+        .comment-input-container::-webkit-scrollbar-thumb:hover {
+          background: rgba(71, 85, 105, 1);
+        }
+      `}</style>
+    )}
+    </>
   );
 }

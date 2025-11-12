@@ -68,6 +68,7 @@ export default function Home() {
   const pendingSubmissionCountryRef = useRef<string | null>(null);
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<VideoCategory | null>(null);
   const [showAboutModal, setShowAboutModal] = useState(false);
+  const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
 
   // Set of countries that currently have at least one approved video
   const countriesWithVideos = useMemo(() => {
