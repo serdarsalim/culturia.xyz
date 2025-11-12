@@ -1,6 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
+// Superadmin email that cannot be demoted
+const SUPERADMIN_EMAIL = 'slmxyz@gmail.com';
+
 // Create admin client with service role key
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -169,6 +172,11 @@ export async function POST(request: Request) {
     }
 
     if (action === 'delete') {
+      // Prevent deleting superadmin
+      if (email === SUPERADMIN_EMAIL) {
+        return NextResponse.json({ error: 'Cannot delete superadmin' }, { status: 403 });
+      }
+
       // First delete all their submissions
       const { error: submissionsError } = await supabaseAdmin
         .from('video_submissions')
@@ -183,6 +191,43 @@ export async function POST(request: Request) {
       if (userDeleteError) throw userDeleteError;
 
       return NextResponse.json({ success: true, message: 'User deleted' });
+    }
+
+    if (action === 'make_admin') {
+      // Add user to admin_users table
+      const { error } = await supabaseAdmin
+        .from('admin_users')
+        .insert({
+          id: userId,
+          email: email,
+          role: 'admin'
+        });
+
+      if (error) {
+        // If already exists, that's fine
+        if (error.code !== '23505') {
+          throw error;
+        }
+      }
+
+      return NextResponse.json({ success: true, message: 'User promoted to admin' });
+    }
+
+    if (action === 'remove_admin') {
+      // Prevent removing superadmin
+      if (email === SUPERADMIN_EMAIL) {
+        return NextResponse.json({ error: 'Cannot demote superadmin' }, { status: 403 });
+      }
+
+      // Remove user from admin_users table
+      const { error } = await supabaseAdmin
+        .from('admin_users')
+        .delete()
+        .eq('id', userId);
+
+      if (error) throw error;
+
+      return NextResponse.json({ success: true, message: 'Admin privileges removed' });
     }
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
