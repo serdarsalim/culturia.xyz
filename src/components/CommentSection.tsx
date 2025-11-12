@@ -7,9 +7,12 @@ import { type VideoComment } from '@/types';
 interface CommentSectionProps {
   videoId: string;
   isMobile: boolean;
+  forceExpanded?: boolean;
+  hideHeader?: boolean;
+  onCommentsLoaded?: (count: number) => void;
 }
 
-export default function CommentSection({ videoId, isMobile }: CommentSectionProps) {
+export default function CommentSection({ videoId, isMobile, forceExpanded = false, hideHeader = false, onCommentsLoaded }: CommentSectionProps) {
   const [comments, setComments] = useState<VideoComment[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
@@ -125,6 +128,11 @@ export default function CommentSection({ videoId, isMobile }: CommentSectionProp
       });
 
       setComments(sortedComments);
+
+      // Notify parent of comment count
+      if (onCommentsLoaded) {
+        onCommentsLoaded(sortedComments.length);
+      }
 
       // Check if current user has commented
       if (user) {
@@ -302,33 +310,35 @@ export default function CommentSection({ videoId, isMobile }: CommentSectionProp
       backgroundColor: '#0a0a0a'
     }}>
       {/* Header with toggle button */}
-      <div
-        onClick={() => isMobile && setIsExpanded(!isExpanded)}
-        style={{
-          padding: isMobile ? '12px' : '16px',
-          fontWeight: 700,
-          fontSize: isMobile ? '14px' : '16px',
-          cursor: isMobile ? 'pointer' : 'default',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          userSelect: 'none'
-        }}
-      >
-        <span>Comments ({comments.length})</span>
-        {isMobile && (
-          <span style={{
-            fontSize: '20px',
-            transition: 'transform 0.2s ease',
-            transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)'
-          }}>
-            ▼
-          </span>
-        )}
-      </div>
+      {!hideHeader && (
+        <div
+          onClick={() => isMobile && !forceExpanded && setIsExpanded(!isExpanded)}
+          style={{
+            padding: isMobile ? '12px' : '16px',
+            fontWeight: 700,
+            fontSize: isMobile ? '14px' : '16px',
+            cursor: (isMobile && !forceExpanded) ? 'pointer' : 'default',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            userSelect: 'none'
+          }}
+        >
+          <span>Comments ({comments.length})</span>
+          {isMobile && !forceExpanded && (
+            <span style={{
+              fontSize: '20px',
+              transition: 'transform 0.2s ease',
+              transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)'
+            }}>
+              ▼
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Comment List - collapsible on mobile */}
-      {(!isMobile || isExpanded) && (
+      {(!isMobile || isExpanded || forceExpanded) && (
       <div className="comment-scroll" style={{
         flex: 1,
         overflowY: 'auto',
@@ -493,7 +503,7 @@ export default function CommentSection({ videoId, isMobile }: CommentSectionProp
       )}
 
       {/* Comment Input Area - collapsible on mobile */}
-      {(!isMobile || isExpanded) && (
+      {(!isMobile || isExpanded || forceExpanded) && (
       <div className="comment-input-container" style={{
         padding: isMobile ? '12px' : '16px',
         backgroundColor: '#0a0a0a',
