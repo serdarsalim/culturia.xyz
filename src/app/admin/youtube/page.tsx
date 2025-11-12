@@ -287,33 +287,23 @@ export default function YouTubePage() {
         )}
       </div>
 
-      {/* Sync All Button */}
+      {/* YouTube API Limits Warning */}
       {youtubeStatus.connected && (
-        <div style={{ marginBottom: '32px' }}>
-          <button
-            onClick={() => handleSync('all')}
-            disabled={syncing}
-            style={{
-              padding: '16px 32px',
-              backgroundColor: syncing ? '#4b5563' : '#f97316',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '12px',
-              fontSize: '16px',
-              fontWeight: 700,
-              cursor: syncing ? 'not-allowed' : 'pointer',
-              width: '100%',
-              transition: 'background-color 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              if (!syncing) e.currentTarget.style.backgroundColor = '#ea580c';
-            }}
-            onMouseLeave={(e) => {
-              if (!syncing) e.currentTarget.style.backgroundColor = '#f97316';
-            }}
-          >
-            {syncing ? '🔄 Syncing...' : '🔄 Sync All Countries'}
-          </button>
+        <div style={{
+          backgroundColor: '#7f1d1d',
+          border: '1px solid #ef4444',
+          borderRadius: '12px',
+          padding: '16px',
+          marginBottom: '32px'
+        }}>
+          <div style={{ fontSize: '14px', fontWeight: 600, color: '#fca5a5', marginBottom: '8px' }}>
+            ⚠️ YouTube API Limits
+          </div>
+          <div style={{ fontSize: '13px', color: '#fecaca', lineHeight: 1.6 }}>
+            YouTube limits playlist creation to <strong>~50 playlists per day per channel</strong>.
+            <br />
+            Sync countries individually to avoid hitting limits. Each country/category combination creates one playlist.
+          </div>
         </div>
       )}
 

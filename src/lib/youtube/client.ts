@@ -126,6 +126,7 @@ export class YouTubeClient {
   async searchPlaylist(title: string): Promise<string | null> {
     if (!this.youtube) throw new Error('YouTube client not initialized');
 
+    console.log('[YouTube API] Calling playlists.list (Cost: ~1 unit)');
     const response = await this.youtube.playlists.list({
       part: ['snippet'],
       mine: true,
@@ -135,6 +136,7 @@ export class YouTubeClient {
     const playlists = response.data.items || [];
     const playlist = playlists.find(p => p.snippet?.title === title);
 
+    console.log(`[YouTube API] Found ${playlists.length} playlists, match: ${playlist ? 'YES' : 'NO'}`);
     return playlist?.id || null;
   }
 
@@ -144,25 +146,57 @@ export class YouTubeClient {
   async createPlaylist(title: string, description: string): Promise<string> {
     if (!this.youtube) throw new Error('YouTube client not initialized');
 
-    const response = await this.youtube.playlists.insert({
-      part: ['snippet', 'status'],
-      requestBody: {
-        snippet: {
-          title,
-          description,
-        },
-        status: {
-          privacyStatus: 'public',
-        },
-      },
-    });
+    console.log('[YouTube API] Calling playlists.insert (Cost: ~50 units)');
+    console.log(`[YouTube API] Creating playlist: "${title}"`);
 
-    const playlistId = response.data.id;
-    if (!playlistId) {
-      throw new Error('Failed to create playlist');
+    try {
+      console.log('[YouTube API] Sending playlist creation request...');
+      const response = await this.youtube.playlists.insert({
+        part: ['snippet', 'status'],
+        requestBody: {
+          snippet: {
+            title,
+            description,
+          },
+          status: {
+            privacyStatus: 'public',
+          },
+        },
+      });
+
+      console.log('[YouTube API] Received response from YouTube');
+      console.log(`[YouTube API] Response status: ${response.status}`);
+      console.log(`[YouTube API] Response data:`, JSON.stringify(response.data, null, 2));
+
+      const playlistId = response.data.id;
+      if (!playlistId) {
+        console.error('[YouTube API] No playlist ID in response!');
+        throw new Error('Failed to create playlist - no ID returned from YouTube');
+      }
+
+      console.log(`[YouTube API] Playlist created successfully: ${playlistId}`);
+      return playlistId;
+    } catch (error: any) {
+      console.error('[YouTube API] Playlist creation FAILED!');
+      console.error(`Error type: ${error.constructor?.name}`);
+      console.error(`Error code: ${error.code}`);
+      console.error(`Error status: ${error.status}`);
+      console.error(`Error message: ${error.message}`);
+      console.error(`Full error object:`, JSON.stringify(error, null, 2));
+      if (error.errors && error.errors.length > 0) {
+        console.error('Detailed API errors:', JSON.stringify(error.errors, null, 2));
+      }
+      if (error.response) {
+        console.error('Error response data:', JSON.stringify(error.response.data, null, 2));
+      }
+
+      // Check for rate limit / quota errors
+      if (error.code === 429 || error.code === 403 || error.message?.includes('quota') || error.message?.includes('exhausted') || error.message?.includes('limit')) {
+        throw new Error('YouTube daily playlist creation limit reached (~50 playlists/day per channel). This limit resets at midnight Pacific Time. Please try again tomorrow or contact Google for quota increase: https://support.google.com/youtube/contact/yt_api_form');
+      }
+
+      throw error;
     }
-
-    return playlistId;
   }
 
   /**
@@ -173,8 +207,11 @@ export class YouTubeClient {
 
     const videoIds: string[] = [];
     let nextPageToken: string | undefined;
+    let pageCount = 0;
 
     do {
+      pageCount++;
+      console.log(`[YouTube API] Calling playlistItems.list page ${pageCount} (Cost: ~1 unit per page)`);
       const response = await this.youtube.playlistItems.list({
         part: ['contentDetails'],
         playlistId,
@@ -188,6 +225,7 @@ export class YouTubeClient {
       nextPageToken = response.data.nextPageToken || undefined;
     } while (nextPageToken);
 
+    console.log(`[YouTube API] Found ${videoIds.length} videos in playlist`);
     return videoIds;
   }
 
@@ -197,6 +235,8 @@ export class YouTubeClient {
   async addVideosToPlaylist(playlistId: string, videoIds: string[]): Promise<number> {
     if (!this.youtube) throw new Error('YouTube client not initialized');
 
+    console.log(`[YouTube API] Starting addVideosToPlaylist with ${videoIds.length} videos`);
+
     // Get existing videos in playlist
     const existingVideoIds = await this.getPlaylistVideoIds(playlistId);
 
@@ -204,13 +244,17 @@ export class YouTubeClient {
     const newVideoIds = videoIds.filter(id => !existingVideoIds.includes(id));
 
     if (newVideoIds.length === 0) {
+      console.log('[YouTube API] No new videos to add (all already in playlist)');
       return 0; // No new videos to add
     }
+
+    console.log(`[YouTube API] Adding ${newVideoIds.length} new videos to playlist (Cost: ~50 units each)`);
 
     // Add each video to the playlist
     let addedCount = 0;
     for (const videoId of newVideoIds) {
       try {
+        console.log(`[YouTube API] Calling playlistItems.insert for video ${videoId} (Cost: ~50 units)`);
         await this.youtube.playlistItems.insert({
           part: ['snippet'],
           requestBody: {
@@ -224,12 +268,14 @@ export class YouTubeClient {
           },
         });
         addedCount++;
-      } catch (error) {
-        console.error(`Failed to add video ${videoId} to playlist:`, error);
+        console.log(`[YouTube API] Successfully added video ${videoId}`);
+      } catch (error: any) {
+        console.error(`[YouTube API] Failed to add video ${videoId}:`, error.message);
         // Continue with next video
       }
     }
 
+    console.log(`[YouTube API] Total videos added: ${addedCount}`);
     return addedCount;
   }
 

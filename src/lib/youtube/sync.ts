@@ -95,6 +95,9 @@ async function syncPlaylist(
 ): Promise<{ created: boolean; videosAdded: number; error?: string }> {
   const { country_code, category, videoIds } = playlistInfo;
 
+  console.log(`\n=== SYNC PLAYLIST: ${country_code} - ${category} ===`);
+  console.log(`Videos to sync: ${videoIds.length}`);
+
   if (videoIds.length === 0) {
     return { created: false, videosAdded: 0, error: 'No videos to sync' };
   }
@@ -102,8 +105,10 @@ async function syncPlaylist(
   try {
     const playlistName = generatePlaylistName(country_code, category);
     const playlistDescription = generatePlaylistDescription(country_code, category);
+    console.log(`Playlist name: "${playlistName}"`);
 
     // Check if we have this playlist cached in database
+    console.log('Checking cache for existing playlist...');
     const { data: cachedPlaylist } = await supabase
       .from('youtube_playlists')
       .select('youtube_playlist_id')
@@ -115,20 +120,24 @@ async function syncPlaylist(
     let wasCreated = false;
 
     if (cachedPlaylist) {
+      console.log(`Found cached playlist: ${cachedPlaylist.youtube_playlist_id}`);
       // Use cached playlist ID, but verify it still exists
       try {
         playlistId = cachedPlaylist.youtube_playlist_id;
+        console.log('Verifying cached playlist still exists on YouTube...');
         // Try to get playlist videos to verify it exists
         await youtube.getPlaylistVideoIds(playlistId);
+        console.log('Cached playlist verified successfully');
       } catch (error: any) {
         // Cached playlist doesn't exist anymore, remove from cache and recreate
-        console.log(`Cached playlist ${playlistId} not found, removing from cache`);
+        console.log(`Cached playlist ${playlistId} not found on YouTube, removing from cache`);
         await supabase
           .from('youtube_playlists')
           .delete()
           .eq('country_code', country_code)
           .eq('category', category);
 
+        console.log('Creating new playlist to replace deleted one...');
         // Create new playlist
         playlistId = await youtube.createPlaylist(playlistName, playlistDescription);
         wasCreated = true;
@@ -143,10 +152,12 @@ async function syncPlaylist(
         });
       }
     } else {
+      console.log('No cached playlist found, searching YouTube...');
       // Search for playlist on YouTube
       const existingPlaylistId = await youtube.searchPlaylist(playlistName);
 
       if (existingPlaylistId) {
+        console.log(`Found existing playlist on YouTube: ${existingPlaylistId}`);
         playlistId = existingPlaylistId;
 
         // Cache it for future use
@@ -158,6 +169,7 @@ async function syncPlaylist(
           playlist_url: `https://www.youtube.com/playlist?list=${playlistId}`,
         });
       } else {
+        console.log('Playlist not found on YouTube, creating new one...');
         // Create new playlist
         playlistId = await youtube.createPlaylist(playlistName, playlistDescription);
         wasCreated = true;
@@ -174,6 +186,7 @@ async function syncPlaylist(
     }
 
     // Add videos to playlist
+    console.log(`Adding videos to playlist ${playlistId}...`);
     const videosAdded = await youtube.addVideosToPlaylist(playlistId, videoIds);
 
     // Update cache timestamp
@@ -183,9 +196,14 @@ async function syncPlaylist(
       .eq('country_code', country_code)
       .eq('category', category);
 
+    console.log(`=== SYNC COMPLETE: ${videosAdded} videos added ===\n`);
     return { created: wasCreated, videosAdded };
   } catch (error: any) {
-    console.error(`Error syncing playlist for ${country_code} - ${category}:`, error);
+    console.error(`\n!!! ERROR syncing playlist for ${country_code} - ${category}:`);
+    console.error(`Error type: ${error.constructor.name}`);
+    console.error(`Error message: ${error.message}`);
+    console.error(`Full error:`, error);
+    console.error(`===\n`);
     return {
       created: false,
       videosAdded: 0,
