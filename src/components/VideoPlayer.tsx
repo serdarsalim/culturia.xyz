@@ -249,19 +249,23 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
   }
 
   async function onPlayerEnd() {
+    console.log('[VideoPlayer] onPlayerEnd called - video naturally ended');
     // Auto-play next video in playlist when current one ends
     if (playlist && playlist.length > 0 && onSelectVideo) {
       const currentIndex = playlist.findIndex(v => v.id === video.id);
       if (currentIndex !== -1) {
         // Move to next video, or loop back to first
         const nextIndex = (currentIndex + 1) % playlist.length;
+        console.log('[VideoPlayer] Moving to next video in playlist');
         onSelectVideo(playlist[nextIndex]);
       } else {
         // Fallback to random next
+        console.log('[VideoPlayer] Current video not in playlist, using random next');
         onNext();
       }
     } else {
       // No playlist, use random next
+      console.log('[VideoPlayer] No playlist, using random next');
       onNext();
     }
   }

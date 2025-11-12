@@ -164,10 +164,10 @@ export default function CommentSection({ videoId, isMobile }: CommentSectionProp
       return;
     }
 
-    if (commentText.length > 500) {
+    if (commentText.length > 1000) {
       setToastMessage({
         title: 'Too Long',
-        description: 'Comments must be 500 characters or less',
+        description: 'Comments must be 1000 characters or less',
         type: 'error'
       });
       setShowToast(true);
@@ -515,7 +515,7 @@ export default function CommentSection({ videoId, isMobile }: CommentSectionProp
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
               placeholder="Share your perspective on this video..."
-              maxLength={500}
+              maxLength={1000}
               style={{
                 width: '100%',
                 minHeight: isMobile ? '60px' : '100px',
@@ -538,9 +538,9 @@ export default function CommentSection({ videoId, isMobile }: CommentSectionProp
             }}>
               <div style={{
                 fontSize: '12px',
-                color: commentText.length > 450 ? '#f97316' : '#6b7280'
+                color: commentText.length > 900 ? '#f97316' : '#6b7280'
               }}>
-                {commentText.length}/500
+                {commentText.length}/1000
               </div>
             </div>
             <div

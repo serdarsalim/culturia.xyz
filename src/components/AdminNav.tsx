@@ -23,6 +23,7 @@ export default function AdminNav({ pendingCount = 0, adminEmail }: AdminNavProps
     { href: '/admin/all', label: 'All Submissions', icon: '📹', showDot: false },
     { href: '/admin/rejected', label: 'Rejected', icon: '❌', showDot: false },
     { href: '/admin/users', label: 'Users', icon: '👥', showDot: false },
+    { href: '/admin/youtube', label: 'YouTube Sync', icon: '📺', showDot: false },
   ];
 
   return (
