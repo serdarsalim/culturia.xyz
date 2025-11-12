@@ -9,6 +9,7 @@ import AuthModal from '@/components/AuthModal';
 import AddVideoModal from '@/components/AddVideoModal';
 import ProfileModal from '@/components/ProfileModal';
 import CategoryPicker from '@/components/CategoryPicker';
+import ListView from '@/components/ListView';
 import { VISIBLE_CATEGORIES, CATEGORY_LABELS, type VideoSubmission, type VideoCategory } from '@/types';
 
 const CATEGORY_ICON_MAP: Record<VideoCategory, string> = {
@@ -21,6 +22,7 @@ const CATEGORY_ICON_MAP: Record<VideoCategory, string> = {
 
 export default function Home() {
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const [submissionCountry, setSubmissionCountry] = useState<string | null>(null);
   const [currentVideo, setCurrentVideo] = useState<{ video: VideoSubmission; category: VideoCategory } | null>(null);
   const [user, setUser] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<{ username: string | null; display_name: string | null; is_private: boolean | null } | null>(null);
@@ -143,6 +145,7 @@ export default function Home() {
       const countryCode = pendingSubmissionCountryRef.current;
       pendingSubmissionCountryRef.current = null;
       setSelectedCountry(isMobile ? countryCode : null);
+      setSubmissionCountry(countryCode);
       setShowSubmissionForm(true);
     }
   }, [user, isMobile]);
@@ -423,6 +426,7 @@ export default function Home() {
       // No videos for this country
       if (user) {
         setSelectedCountry(countryCode);
+        setSubmissionCountry(countryCode);
         setShowSubmissionForm(true);
       } else {
         pendingSubmissionCountryRef.current = countryCode;
@@ -459,6 +463,7 @@ export default function Home() {
 
   function handleOpenSubmitFromPlayer(countryCode: string, category: VideoCategory) {
     setSelectedCountry(countryCode);
+    setSubmissionCountry(countryCode);
     setShowSubmissionForm(true);
   }
 
@@ -573,11 +578,15 @@ export default function Home() {
 
   function handleSubmitClick() {
     // Allow submissions without login
+    if (selectedCountry) {
+      setSubmissionCountry(selectedCountry);
+    }
     setShowSubmissionForm(true);
   }
 
   function handleEditSubmission(countryCode: string) {
     setSelectedCountry(countryCode);
+    setSubmissionCountry(countryCode);
     setShowSubmissionForm(true);
   }
 
@@ -590,6 +599,7 @@ export default function Home() {
   function handleSubmissionSuccess() {
     setShowSubmissionForm(false);
     setSelectedCountry(null);
+    setSubmissionCountry(null);
     setToastMessage({
       title: 'Submitted for Review',
       description: 'Your submission will be reviewed by our team'
@@ -1025,6 +1035,48 @@ export default function Home() {
                 </button>
               )}
 
+              {/* View Toggle Button */}
+              <div style={{
+                display: 'flex',
+                gap: '8px',
+                marginBottom: '8px'
+              }}>
+                <button
+                  onClick={() => setViewMode('map')}
+                  style={{
+                    flex: 1,
+                    padding: '10px',
+                    backgroundColor: viewMode === 'map' ? '#f97316' : '#374151',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s'
+                  }}
+                >
+                  🗺️ Map
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  style={{
+                    flex: 1,
+                    padding: '10px',
+                    backgroundColor: viewMode === 'list' ? '#f97316' : '#374151',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s'
+                  }}
+                >
+                  📋 List
+                </button>
+              </div>
+
               <div style={{
                 display: 'grid',
                 gridTemplateColumns: isMobile ? 'repeat(2, minmax(0,1fr))' : '1fr',
@@ -1141,14 +1193,29 @@ export default function Home() {
         )}
       </div>
 
-      {/* Map Container - takes remaining space */}
+      {/* Map/List Container - takes remaining space */}
       <div className="home-map flex-1 relative overflow-hidden bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900">
-        <WorldMap
-          onCountryClick={handleCountryClick}
-          selectedCountry={selectedCountry}
-          onBackgroundClick={handleBackgroundClick}
-          countriesWithVideos={countriesWithVideos}
-        />
+        {viewMode === 'map' ? (
+          <WorldMap
+            onCountryClick={handleCountryClick}
+            selectedCountry={selectedCountry}
+            onBackgroundClick={handleBackgroundClick}
+            countriesWithVideos={countriesWithVideos}
+          />
+        ) : (
+          <div style={{
+            height: '100%',
+            overflowY: 'auto',
+            backgroundColor: '#0a0a0a'
+          }}>
+            <ListView
+              onVideoClick={(video, category) => {
+                setCurrentVideo({ video, category });
+              }}
+              categoryFilter={selectedCategoryFilter}
+            />
+          </div>
+        )}
       </div>
 
       {/* Video Player Overlay */}
@@ -1176,12 +1243,13 @@ export default function Home() {
       )}
 
       {/* Submission Form */}
-      {showSubmissionForm && selectedCountry && (
+      {showSubmissionForm && submissionCountry && (
         <AddVideoModal
-          countryCode={selectedCountry}
+          countryCode={submissionCountry}
           onClose={() => {
             setShowSubmissionForm(false);
             setSelectedCountry(null);
+            setSubmissionCountry(null);
           }}
           onSuccess={handleSubmissionSuccess}
           onChange={refreshVideoCache}
@@ -1202,6 +1270,7 @@ export default function Home() {
             setShowCategoryPicker(false);
             // Open submission form for this country
             setSelectedCountry(pickerCountry);
+            setSubmissionCountry(pickerCountry);
             setShowSubmissionForm(true);
           }}
           onClose={() => setShowCategoryPicker(false)}
