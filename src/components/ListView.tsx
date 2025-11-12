@@ -32,6 +32,8 @@ export default function ListView({ onVideoClick, categoryFilter }: ListViewProps
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [categoryVideos, setCategoryVideos] = useState<Map<string, VideoData[]>>(new Map());
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<'videos' | 'alphabetical'>('videos');
 
   useEffect(() => {
     loadCountryData();
@@ -140,6 +142,24 @@ export default function ListView({ onVideoClick, categoryFilter }: ListViewProps
     }
   }
 
+  // Filter and sort country data
+  const filteredAndSortedCountries = countryData
+    .filter((country) => {
+      if (!searchQuery) return true;
+
+      const countryName = getCountryName(country.country_code).toLowerCase();
+      const query = searchQuery.toLowerCase();
+
+      return countryName.includes(query);
+    })
+    .sort((a, b) => {
+      if (sortBy === 'alphabetical') {
+        return getCountryName(a.country_code).localeCompare(getCountryName(b.country_code));
+      }
+      // Default: sort by video count
+      return b.totalVideos - a.totalVideos;
+    });
+
   if (loading) {
     return (
       <div style={{
@@ -168,17 +188,66 @@ export default function ListView({ onVideoClick, categoryFilter }: ListViewProps
         Browse All Videos
       </h2>
 
-      {countryData.length === 0 ? (
+      {/* Search and Sort Controls */}
+      <div style={{
+        display: 'flex',
+        gap: '12px',
+        marginBottom: '24px',
+        flexWrap: 'wrap'
+      }}>
+        {/* Search Input */}
+        <input
+          type="text"
+          placeholder="Search countries or videos..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          style={{
+            flex: '1 1 300px',
+            padding: '12px 16px',
+            backgroundColor: '#1a1a1a',
+            border: '1px solid #333333',
+            borderRadius: '8px',
+            color: '#ffffff',
+            fontSize: '14px',
+            outline: 'none'
+          }}
+          onFocus={(e) => e.currentTarget.style.borderColor = '#f97316'}
+          onBlur={(e) => e.currentTarget.style.borderColor = '#333333'}
+        />
+
+        {/* Sort Dropdown */}
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as 'videos' | 'alphabetical')}
+          style={{
+            padding: '12px 16px',
+            backgroundColor: '#1a1a1a',
+            border: '1px solid #333333',
+            borderRadius: '8px',
+            color: '#ffffff',
+            fontSize: '14px',
+            cursor: 'pointer',
+            outline: 'none'
+          }}
+          onFocus={(e) => e.currentTarget.style.borderColor = '#f97316'}
+          onBlur={(e) => e.currentTarget.style.borderColor = '#333333'}
+        >
+          <option value="videos">Sort by: Most Videos</option>
+          <option value="alphabetical">Sort by: A-Z</option>
+        </select>
+      </div>
+
+      {filteredAndSortedCountries.length === 0 ? (
         <div style={{
           color: '#9ca3af',
           textAlign: 'center',
           padding: '40px'
         }}>
-          No videos yet
+          {searchQuery ? 'No results found' : 'No videos yet'}
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {countryData.map((country) => {
+          {filteredAndSortedCountries.map((country) => {
             const isExpanded = expandedCountries.has(country.country_code);
             const flag = getCountryFlag(country.country_code);
             const name = getCountryName(country.country_code);
@@ -288,7 +357,12 @@ export default function ListView({ onVideoClick, categoryFilter }: ListViewProps
                               flexDirection: 'column',
                               gap: '4px'
                             }}>
-                              {videos.map((video) => (
+                              {videos
+                                .filter((video) => {
+                                  if (!searchQuery) return true;
+                                  return video.title.toLowerCase().includes(searchQuery.toLowerCase());
+                                })
+                                .map((video) => (
                                 <div
                                   key={video.id}
                                   onClick={() => handleVideoClick(video)}

@@ -1192,7 +1192,7 @@ export default function Home() {
           <div style={{
             height: '100%',
             overflowY: 'auto',
-            backgroundColor: '#0a0a0a'
+            backgroundColor: '#475569'
           }}>
             <ListView
               onVideoClick={(video, category) => {
