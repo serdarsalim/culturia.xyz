@@ -688,9 +688,12 @@ export default function Home() {
     ? `${primaryIdentity} • ${secondaryIdentity}`
     : primaryIdentity;
 
+  const hideSidebarOnMobileList = isMobile && viewMode === 'list';
+
   return (
     <div className="home-layout h-screen overflow-hidden">
       {/* Sidebar - bottom on mobile, left on desktop */}
+      {!hideSidebarOnMobileList && (
       <div className="home-sidebar" style={{
         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
         flexShrink: 0,
@@ -711,7 +714,7 @@ export default function Home() {
             onCategoryFilterToggle={handleCategoryFilterToggle}
           />
         ) : (
-          <div className="h-full flex flex-col" style={{ padding: isMobile ? '34px 16px 16px' : '32px' }}>
+          <div className="h-full flex flex-col" style={{ padding: isMobile ? '20px 16px 16px' : '24px' }}>
             {/* Header - Logo and Auth Links */}
             {isMobile ? (
               <>
@@ -1014,7 +1017,7 @@ export default function Home() {
             )}
 
             {/* Main Content */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '20px', paddingTop: isMobile ? '8px' : '60px' }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '20px', paddingTop: isMobile ? '0px' : '48px' }}>
               {!isMobile && (
                 <button
                   onClick={() => setShowAboutModal(true)}
@@ -1039,7 +1042,10 @@ export default function Home() {
                 display: 'flex',
                 flexDirection: 'column',
                 gap: isMobile ? '10px' : '12px',
-                alignItems: 'center'
+                alignItems: 'center',
+                padding: isMobile ? '0 16px' : 0,
+                width: '100%',
+                marginTop: isMobile ? '12px' : '20px'
               }}>
                 {VISIBLE_CATEGORIES.map((key) => {
                   const icon = CATEGORY_ICON_MAP[key];
@@ -1054,7 +1060,7 @@ export default function Home() {
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: '12px',
-                      padding: '14px 24px',
+                      padding: isMobile ? '6px 18px' : '14px 24px',
                       borderRadius: '6px',
                       border: isSelected ? '2px solid #f97316' : '2px solid transparent',
                       background: isSelected
@@ -1178,9 +1184,13 @@ export default function Home() {
           </div>
         )}
       </div>
+      )}
 
       {/* Map/List Container - takes remaining space */}
-      <div className="home-map flex-1 relative overflow-hidden bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900">
+      <div
+        className="home-map flex-1 relative overflow-hidden bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900"
+        style={hideSidebarOnMobileList ? { height: '100%' } : undefined}
+      >
         {viewMode === 'map' ? (
           <WorldMap
             onCountryClick={handleCountryClick}
@@ -1191,15 +1201,59 @@ export default function Home() {
         ) : (
           <div style={{
             height: '100%',
-            overflowY: 'auto',
-            backgroundColor: '#475569'
+            backgroundColor: '#475569',
+            display: 'flex',
+            flexDirection: 'column'
           }}>
-            <ListView
-              onVideoClick={(video, category) => {
-                setCurrentVideo({ video, category });
-              }}
-              categoryFilter={selectedCategoryFilter}
-            />
+            {hideSidebarOnMobileList && (
+              <div style={{
+                padding: '18px 20px 22px',
+                background: 'linear-gradient(135deg, #0f172a, #1e293b 60%, #334155)',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                <button
+                  onClick={() => setViewMode('map')}
+                  style={{
+                    color: '#0f172a',
+                    background: '#f8fafc',
+                    border: 'none',
+                    padding: '10px 18px',
+                    borderRadius: '999px',
+                    fontWeight: 600,
+                    fontSize: '13px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    cursor: 'pointer',
+                    boxShadow: '0 10px 25px rgba(15, 23, 42, 0.45)',
+                    transition: 'transform 0.15s ease, box-shadow 0.15s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                    e.currentTarget.style.boxShadow = '0 14px 28px rgba(15, 23, 42, 0.55)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'none';
+                    e.currentTarget.style.boxShadow = '0 10px 25px rgba(15, 23, 42, 0.45)';
+                  }}
+                >
+                  <span role="img" aria-label="Map">🗺️</span>
+                  Back to Map View
+                </button>
+              </div>
+            )}
+            <div style={{ flex: 1, overflowY: 'auto' }}>
+              <ListView
+                onVideoClick={(video, category) => {
+                  setCurrentVideo({ video, category });
+                }}
+                categoryFilter={selectedCategoryFilter}
+              />
+            </div>
           </div>
         )}
       </div>
