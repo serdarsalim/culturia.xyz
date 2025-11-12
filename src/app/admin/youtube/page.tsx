@@ -14,6 +14,14 @@ interface CountryData {
   totalVideos: number;
 }
 
+interface VideoData {
+  id: string;
+  youtube_video_id: string;
+  title: string;
+  country_code: string;
+  category: VideoCategory;
+}
+
 interface YouTubeStatus {
   connected: boolean;
   email: string | null;
@@ -33,6 +41,8 @@ export default function YouTubePage() {
   const [loading, setLoading] = useState(true);
   const [countryData, setCountryData] = useState<CountryData[]>([]);
   const [expandedCountries, setExpandedCountries] = useState<Set<string>>(new Set());
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [categoryVideos, setCategoryVideos] = useState<Map<string, VideoData[]>>(new Map());
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<SyncResult | null>(null);
   const [lastSync, setLastSync] = useState<string | null>(null);
@@ -191,6 +201,40 @@ export default function YouTubePage() {
       newExpanded.add(countryCode);
     }
     setExpandedCountries(newExpanded);
+  }
+
+  async function toggleCategory(countryCode: string, category: VideoCategory) {
+    const key = `${countryCode}-${category}`;
+    const newExpanded = new Set(expandedCategories);
+
+    if (newExpanded.has(key)) {
+      newExpanded.delete(key);
+    } else {
+      newExpanded.add(key);
+
+      // Load videos if not already loaded
+      if (!categoryVideos.has(key)) {
+        try {
+          const { data: videos, error } = await supabase
+            .from('video_submissions')
+            .select('id, youtube_video_id, title, country_code, category')
+            .eq('status', 'approved')
+            .eq('country_code', countryCode)
+            .eq('category', category)
+            .order('created_at', { ascending: false });
+
+          if (error) throw error;
+
+          const newVideosMap = new Map(categoryVideos);
+          newVideosMap.set(key, videos || []);
+          setCategoryVideos(newVideosMap);
+        } catch (error) {
+          console.error('Error loading videos:', error);
+        }
+      }
+    }
+
+    setExpandedCategories(newExpanded);
   }
 
   function formatTimestamp(timestamp: string) {
@@ -444,49 +488,125 @@ export default function YouTubePage() {
                           const count = country.categories[category];
                           if (!count) return null;
 
+                          const categoryKey = `${country.country_code}-${category}`;
+                          const isCategoryExpanded = expandedCategories.has(categoryKey);
+                          const videos = categoryVideos.get(categoryKey) || [];
+
                           return (
                             <div
                               key={category}
                               style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                padding: '12px 16px',
                                 backgroundColor: '#0a0a0a',
-                                borderRadius: '8px'
+                                borderRadius: '8px',
+                                overflow: 'hidden'
                               }}
                             >
-                              <div>
-                                <div style={{ fontSize: '14px', fontWeight: 600 }}>
-                                  {CATEGORY_LABELS[category]}
-                                </div>
-                                <div style={{ fontSize: '12px', color: '#9ca3af' }}>
-                                  {count} {count === 1 ? 'video' : 'videos'}
-                                </div>
-                              </div>
-                              <button
-                                onClick={() => handleSync('category', country.country_code, category)}
-                                disabled={syncing}
+                              {/* Category Header */}
+                              <div
                                 style={{
-                                  padding: '8px 16px',
-                                  backgroundColor: syncing ? '#4b5563' : '#374151',
-                                  color: '#ffffff',
-                                  border: 'none',
-                                  borderRadius: '8px',
-                                  fontSize: '13px',
-                                  fontWeight: 600,
-                                  cursor: syncing ? 'not-allowed' : 'pointer',
-                                  transition: 'background-color 0.2s'
-                                }}
-                                onMouseEnter={(e) => {
-                                  if (!syncing) e.currentTarget.style.backgroundColor = '#4b5563';
-                                }}
-                                onMouseLeave={(e) => {
-                                  if (!syncing) e.currentTarget.style.backgroundColor = '#374151';
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  padding: '12px 16px'
                                 }}
                               >
-                                Sync
-                              </button>
+                                <div
+                                  onClick={() => toggleCategory(country.country_code, category)}
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    cursor: 'pointer',
+                                    userSelect: 'none',
+                                    flex: 1
+                                  }}
+                                >
+                                  <span style={{
+                                    fontSize: '16px',
+                                    transform: isCategoryExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                                    transition: 'transform 0.2s'
+                                  }}>
+                                    ▼
+                                  </span>
+                                  <div>
+                                    <div style={{ fontSize: '14px', fontWeight: 600 }}>
+                                      {CATEGORY_LABELS[category]}
+                                    </div>
+                                    <div style={{ fontSize: '12px', color: '#9ca3af' }}>
+                                      {count} {count === 1 ? 'video' : 'videos'}
+                                    </div>
+                                  </div>
+                                </div>
+                                <button
+                                  onClick={() => handleSync('category', country.country_code, category)}
+                                  disabled={syncing}
+                                  style={{
+                                    padding: '8px 16px',
+                                    backgroundColor: syncing ? '#4b5563' : '#374151',
+                                    color: '#ffffff',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    fontSize: '13px',
+                                    fontWeight: 600,
+                                    cursor: syncing ? 'not-allowed' : 'pointer',
+                                    transition: 'background-color 0.2s'
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    if (!syncing) e.currentTarget.style.backgroundColor = '#4b5563';
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    if (!syncing) e.currentTarget.style.backgroundColor = '#374151';
+                                  }}
+                                >
+                                  Sync
+                                </button>
+                              </div>
+
+                              {/* Videos List */}
+                              {isCategoryExpanded && videos.length > 0 && (
+                                <div style={{
+                                  borderTop: '1px solid #1a1a1a',
+                                  padding: '8px',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  gap: '4px'
+                                }}>
+                                  {videos.map((video) => (
+                                    <a
+                                      key={video.id}
+                                      href={`https://www.youtube.com/watch?v=${video.youtube_video_id}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      style={{
+                                        padding: '8px 12px',
+                                        backgroundColor: '#000000',
+                                        borderRadius: '6px',
+                                        fontSize: '12px',
+                                        color: '#9ca3af',
+                                        textDecoration: 'none',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        transition: 'all 0.2s'
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        e.currentTarget.style.backgroundColor = '#1a1a1a';
+                                        e.currentTarget.style.color = '#ffffff';
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        e.currentTarget.style.backgroundColor = '#000000';
+                                        e.currentTarget.style.color = '#9ca3af';
+                                      }}
+                                    >
+                                      <span style={{ fontSize: '14px' }}>▶️</span>
+                                      <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        {video.title}
+                                      </span>
+                                      <span style={{ fontSize: '12px', opacity: 0.5 }}>↗</span>
+                                    </a>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           );
                         })}
