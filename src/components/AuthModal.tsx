@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
+import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 
 interface AuthModalProps {
   onClose: () => void;
@@ -19,6 +20,12 @@ export default function AuthModal({ onClose, onSuccess, initialMode = 'signup' }
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [showResetView, setShowResetView] = useState(false);
+
+  // Google OAuth linking state
+  const [linkingAccount, setLinkingAccount] = useState(false);
+  const [pendingGoogleCredential, setPendingGoogleCredential] = useState<string | null>(null);
+  const [linkEmail, setLinkEmail] = useState('');
+  const [linkPassword, setLinkPassword] = useState('');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -69,33 +76,135 @@ export default function AuthModal({ onClose, onSuccess, initialMode = 'signup' }
     }
   }
 
-  async function handleGoogleSignIn() {
+  async function handleGoogleSuccess(credentialResponse: CredentialResponse) {
+    if (!credentialResponse.credential) {
+      setError('No credential received from Google');
+      return;
+    }
+
     setLoading(true);
     setError('');
     setMessage('');
 
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
-          skipBrowserRedirect: false,
-        },
+      const response = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          credential: credentialResponse.credential,
+        }),
       });
 
-      if (error) throw error;
+      const data = await response.json();
 
-      // OAuth redirect will happen automatically
-      console.log('Google OAuth initiated:', data);
+      if (!response.ok) {
+        throw new Error(data.error || 'Authentication failed');
+      }
+
+      // Handle different response actions
+      if (data.action === 'link_required') {
+        // Email exists with password - need to link
+        setLinkingAccount(true);
+        setPendingGoogleCredential(credentialResponse.credential);
+        setLinkEmail(data.email);
+        setMessage(data.message);
+      } else if (data.action === 'signin' || data.action === 'signup_and_signin' || data.action === 'linked_and_signin') {
+        // Sign in with the credentials
+        if (data.action === 'signup_and_signin' || data.action === 'signin') {
+          // New user created via Google OR existing Google user - sign in with temp password
+          const { error: signInError } = await supabase.auth.signInWithPassword({
+            email: data.email,
+            password: data.tempPassword,
+          });
+
+          if (signInError) throw signInError;
+        } else if (data.action === 'linked_and_signin') {
+          // Just linked account - use the password they provided
+          const { error: signInError } = await supabase.auth.signInWithPassword({
+            email: data.email,
+            password: linkPassword,
+          });
+
+          if (signInError) {
+            throw new Error('Authentication succeeded but session creation failed');
+          }
+        }
+
+        setMessage(data.message || 'Logged in successfully!');
+        setTimeout(() => {
+          onSuccess();
+        }, 1000);
+      }
     } catch (err: any) {
-      console.error('Google OAuth error:', err);
-      setError(err.message || 'An error occurred with Google sign-in');
+      console.error('Google sign-in error:', err);
+      setError(err.message || 'Failed to sign in with Google');
+    } finally {
       setLoading(false);
     }
+  }
+
+  async function handleLinkAccount() {
+    if (!linkPassword) {
+      setError('Please enter your password');
+      return;
+    }
+
+    if (!pendingGoogleCredential) {
+      setError('No pending Google credential');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          credential: pendingGoogleCredential,
+          password: linkPassword,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to link account');
+      }
+
+      if (data.action === 'link_failed') {
+        setError(data.error);
+        return;
+      }
+
+      // Link successful - sign in
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: linkEmail,
+        password: linkPassword,
+      });
+
+      if (signInError) throw signInError;
+
+      setMessage('Account linked successfully!');
+      setTimeout(() => {
+        onSuccess();
+      }, 1000);
+    } catch (err: any) {
+      console.error('Account linking error:', err);
+      setError(err.message || 'Failed to link account');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function cancelLinking() {
+    setLinkingAccount(false);
+    setPendingGoogleCredential(null);
+    setLinkEmail('');
+    setLinkPassword('');
+    setError('');
+    setMessage('');
   }
 
   async function handlePasswordResetRequest() {
@@ -121,6 +230,152 @@ export default function AuthModal({ onClose, onSuccess, initialMode = 'signup' }
     } finally {
       setResetLoading(false);
     }
+  }
+
+  // If in linking mode, show linking UI
+  if (linkingAccount) {
+    return (
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 70,
+        backgroundColor: 'rgba(0, 0, 0, 0.75)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '24px'
+      }} onClick={cancelLinking}>
+        <div style={{
+          backgroundColor: '#ffffff',
+          borderRadius: '16px',
+          maxWidth: '480px',
+          width: '100%',
+          padding: '32px',
+          position: 'relative',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+        }} onClick={(e) => e.stopPropagation()}>
+
+          {/* Close Button */}
+          <button
+            onClick={cancelLinking}
+            style={{
+              position: 'absolute',
+              top: '20px',
+              right: '20px',
+              width: '32px',
+              height: '32px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#6b7280',
+              cursor: 'pointer',
+              border: 'none',
+              backgroundColor: '#f3f4f6',
+              borderRadius: '50%',
+              transition: 'all 0.2s'
+            }}
+          >
+            ✕
+          </button>
+
+          <h2 style={{
+            fontSize: '24px',
+            fontWeight: '700',
+            color: '#000000',
+            marginBottom: '16px',
+          }}>
+            Link Google Account
+          </h2>
+
+          <p style={{
+            fontSize: '15px',
+            color: '#6b7280',
+            marginBottom: '24px',
+            lineHeight: '1.6'
+          }}>
+            An account with <strong>{linkEmail}</strong> already exists. Enter your password to link your Google account.
+          </p>
+
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{
+              display: 'block',
+              fontSize: '14px',
+              fontWeight: '600',
+              color: '#374151',
+              marginBottom: '8px'
+            }}>
+              Password
+            </label>
+            <input
+              type="password"
+              value={linkPassword}
+              onChange={(e) => setLinkPassword(e.target.value)}
+              placeholder="Enter your password"
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                fontSize: '15px',
+                border: 'none',
+                borderRadius: '8px',
+                backgroundColor: '#f3f4f6',
+                color: '#000000',
+                outline: 'none'
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleLinkAccount();
+              }}
+            />
+          </div>
+
+          {error && (
+            <div style={{
+              padding: '16px',
+              backgroundColor: '#fee2e2',
+              borderRadius: '8px',
+              marginBottom: '20px'
+            }}>
+              <p style={{ fontSize: '14px', color: '#991b1b' }}>{error}</p>
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button
+              onClick={cancelLinking}
+              style={{
+                flex: 1,
+                padding: '14px 24px',
+                fontSize: '15px',
+                fontWeight: '600',
+                color: '#6b7280',
+                backgroundColor: '#f3f4f6',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer'
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleLinkAccount}
+              disabled={loading}
+              style={{
+                flex: 1,
+                padding: '14px 24px',
+                fontSize: '15px',
+                fontWeight: '600',
+                color: '#ffffff',
+                backgroundColor: loading ? '#9ca3af' : '#f97316',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: loading ? 'not-allowed' : 'pointer'
+              }}
+            >
+              {loading ? 'Linking...' : 'Link Account'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -188,44 +443,19 @@ export default function AuthModal({ onClose, onSuccess, initialMode = 'signup' }
         </h2>
 
         {/* Google Sign-In Button */}
-        <button
-          type="button"
-          onClick={handleGoogleSignIn}
-          disabled={loading}
-          style={{
-            width: '100%',
-            padding: '14px 24px',
-            fontSize: '15px',
-            fontWeight: '600',
-            color: '#374151',
-            backgroundColor: '#ffffff',
-            border: '1px solid #d1d5db',
-            borderRadius: '8px',
-            cursor: loading ? 'not-allowed' : 'pointer',
-            transition: 'all 0.2s',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '12px',
-            marginBottom: '20px'
-          }}
-          onMouseEnter={(e) => {
-            if (!loading) e.currentTarget.style.backgroundColor = '#f9fafb';
-          }}
-          onMouseLeave={(e) => {
-            if (!loading) e.currentTarget.style.backgroundColor = '#ffffff';
-          }}
-        >
-          <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
-            <g fill="none" fillRule="evenodd">
-              <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
-              <path d="M9.003 18c2.43 0 4.467-.806 5.956-2.184l-2.909-2.259c-.806.54-1.836.86-3.047.86-2.344 0-4.328-1.584-5.036-3.711H.96v2.332C2.44 15.983 5.485 18 9.003 18z" fill="#34A853"/>
-              <path d="M3.964 10.71c-.18-.54-.282-1.117-.282-1.71 0-.593.102-1.17.282-1.71V4.958H.957C.347 6.173 0 7.548 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
-              <path d="M9.003 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.464.891 11.426 0 9.003 0 5.485 0 2.44 2.017.96 4.958L3.967 7.29c.708-2.127 2.692-3.71 5.036-3.71z" fill="#EA4335"/>
-            </g>
-          </svg>
-          {loading ? 'Please wait...' : 'Continue with Google'}
-        </button>
+        <div style={{ marginBottom: '20px' }}>
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => {
+              setError('Google sign-in failed. Please try again.');
+            }}
+            useOneTap={false}
+            text={mode === 'signup' ? 'signup_with' : 'signin_with'}
+            theme="outline"
+            size="large"
+            width="100%"
+          />
+        </div>
 
         {/* Divider */}
         <div style={{ position: 'relative', marginBottom: '20px' }}>
