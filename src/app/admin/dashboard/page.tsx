@@ -13,11 +13,13 @@ interface Stats {
   rejected: number;
   flagged: number;
   byCountry: Array<{ country_code: string; count: number }>;
+  allCountries: Array<{ country_code: string; count: number }>;
   byCategory: Record<VideoCategory, number>;
 }
 
 export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
+  const [showAllCountries, setShowAllCountries] = useState(false);
   const [stats, setStats] = useState<Stats>({
     total: 0,
     pending: 0,
@@ -25,6 +27,7 @@ export default function AdminDashboard() {
     rejected: 0,
     flagged: 0,
     byCountry: [],
+    allCountries: [],
     byCategory: {
       inspiration: 0,
       music: 0,
@@ -64,10 +67,11 @@ export default function AdminDashboard() {
         countryMap.set(s.country_code, (countryMap.get(s.country_code) || 0) + 1);
       });
 
-      const byCountry = Array.from(countryMap.entries())
+      const allCountries = Array.from(countryMap.entries())
         .map(([country_code, count]) => ({ country_code, count }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 5);
+        .sort((a, b) => b.count - a.count);
+
+      const byCountry = allCountries.slice(0, 5);
 
       // Count by category
       const byCategory: Record<VideoCategory, number> = {
@@ -91,6 +95,7 @@ export default function AdminDashboard() {
         rejected,
         flagged,
         byCountry,
+        allCountries,
         byCategory,
       });
     } catch (error) {
@@ -196,29 +201,86 @@ export default function AdminDashboard() {
                 boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)',
                 border: '1px solid #27272a',
               }}>
-                <h2 style={{
-                  fontSize: '20px',
-                  fontWeight: 'bold',
-                  color: 'white',
-                  marginBottom: '24px',
-                }}>
-                  Top 5 Countries
-                </h2>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  {stats.byCountry.map((item, idx) => (
+                <div
+                  onClick={() => setShowAllCountries(!showAllCountries)}
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '24px',
+                    cursor: 'pointer',
+                    transition: 'opacity 0.2s',
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.opacity = '0.8'}
+                  onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
+                >
+                  <h2 style={{
+                    fontSize: '20px',
+                    fontWeight: 'bold',
+                    color: 'white',
+                    margin: 0,
+                  }}>
+                    {showAllCountries ? 'All Countries' : `Top 5 Countries`}
+                    <span style={{
+                      fontSize: '14px',
+                      color: '#f59e0b',
+                      fontWeight: '600',
+                      marginLeft: '12px',
+                    }}>
+                      {stats.allCountries.length} {stats.allCountries.length === 1 ? 'country' : 'countries'}
+                    </span>
+                  </h2>
+                  <span style={{
+                    fontSize: '20px',
+                    color: '#a1a1aa',
+                  }}>
+                    {showAllCountries ? '▼' : '▶'}
+                  </span>
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: showAllCountries ? '8px' : '16px',
+                    maxHeight: showAllCountries ? '500px' : 'none',
+                    overflowY: showAllCountries ? 'auto' : 'visible',
+                    paddingRight: showAllCountries ? '8px' : '0',
+                    scrollbarWidth: 'thin',
+                    scrollbarColor: '#3f3f46 transparent',
+                  }}
+                  className="custom-scrollbar"
+                >
+                  <style jsx>{`
+                    .custom-scrollbar::-webkit-scrollbar {
+                      width: 6px;
+                    }
+                    .custom-scrollbar::-webkit-scrollbar-track {
+                      background: transparent;
+                    }
+                    .custom-scrollbar::-webkit-scrollbar-thumb {
+                      background-color: #3f3f46;
+                      border-radius: 3px;
+                    }
+                    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                      background-color: #52525b;
+                    }
+                  `}</style>
+                  {(showAllCountries ? stats.allCountries : stats.byCountry).map((item, idx) => (
                     <div
                       key={item.country_code}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
+                        padding: showAllCountries ? '8px 0' : '0',
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <span style={{
-                          fontSize: '24px',
+                          fontSize: showAllCountries ? '16px' : '24px',
                           fontWeight: 'bold',
-                          color: '#f59e0b',
+                          color: idx < 3 ? '#f59e0b' : '#71717a',
+                          minWidth: showAllCountries ? '40px' : 'auto',
                         }}>
                           #{idx + 1}
                         </span>
