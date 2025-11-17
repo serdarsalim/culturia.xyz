@@ -61,6 +61,9 @@ export default function ProfileModal({
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileSaveState, setProfileSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [profileDirty, setProfileDirty] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const projectRef =
+    process.env.NEXT_PUBLIC_SUPABASE_URL?.match(/https?:\/\/([^.]+)\.supabase\.co/)?.[1] || null;
 
   // Detect mobile
   useEffect(() => {
@@ -104,6 +107,38 @@ export default function ProfileModal({
       if (submissions.length === 0) fetchSubmissions();
     }
   }, [activeTab]);
+
+  async function handleLogout() {
+    setLoggingOut(true);
+    try {
+      // Invalidate all refresh tokens for this user to avoid silent reauth in other tabs
+      await supabase.auth.signOut({ scope: 'global' });
+    } catch (error) {
+      console.error('Global sign-out error:', error);
+    }
+
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error('Sign-out error:', error);
+    }
+
+    try {
+      if (typeof window !== 'undefined') {
+        if (projectRef) {
+          const keyPrefix = `sb-${projectRef}-auth-token`;
+          Object.keys(localStorage).forEach((key) => {
+            if (key.startsWith(keyPrefix)) {
+              localStorage.removeItem(key);
+            }
+          });
+        }
+        window.location.href = '/';
+      }
+    } finally {
+      setLoggingOut(false);
+    }
+  }
 
   async function fetchAllData() {
     setLoading(true);
@@ -907,31 +942,33 @@ export default function ProfileModal({
               <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: isMobile ? '12px' : '16px' }}>
                 <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#111827', marginBottom: isMobile ? '6px' : '8px' }}>Account</h3>
                 <button
-                  onClick={async () => {
-                    await supabase.auth.signOut();
-                    window.location.reload();
-                  }}
+                  onClick={handleLogout}
+                  disabled={loggingOut}
                   style={{
                     padding: '10px 20px',
                     fontSize: '14px',
                     fontWeight: 600,
                     color: '#ef4444',
-                    backgroundColor: '#ffffff',
+                    backgroundColor: loggingOut ? '#fef2f2' : '#ffffff',
                     border: '1px solid #fecaca',
                     borderRadius: '8px',
-                    cursor: 'pointer',
+                    cursor: loggingOut ? 'not-allowed' : 'pointer',
                     transition: 'all 0.2s'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#fef2f2';
-                    e.currentTarget.style.borderColor = '#ef4444';
+                    if (!loggingOut) {
+                      e.currentTarget.style.backgroundColor = '#fef2f2';
+                      e.currentTarget.style.borderColor = '#ef4444';
+                    }
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#ffffff';
-                    e.currentTarget.style.borderColor = '#fecaca';
+                    if (!loggingOut) {
+                      e.currentTarget.style.backgroundColor = '#ffffff';
+                      e.currentTarget.style.borderColor = '#fecaca';
+                    }
                   }}
                 >
-                  Log Out
+                  {loggingOut ? 'Logging out...' : 'Log Out'}
                 </button>
               </div>
             </div>
