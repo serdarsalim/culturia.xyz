@@ -557,10 +557,9 @@ export default function Home() {
   function getCurrentPlaylist(): VideoSubmission[] {
     if (!currentVideo || !videoCacheReady) return [];
 
-    // Get all videos for the same country and category
+    // Get all videos for the same country (all categories)
     let filtered = videoCache.filter(v =>
-      v.country_code === currentVideo.video.country_code &&
-      v.category === currentVideo.category
+      v.country_code === currentVideo.video.country_code
     );
 
     // Apply mapSources filter

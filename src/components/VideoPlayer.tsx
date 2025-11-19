@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import YouTube, { YouTubePlayer, YouTubeEvent } from 'react-youtube';
 import { supabase } from '@/lib/supabase/client';
 import { type VideoSubmission, type VideoCategory, CATEGORY_LABELS, VISIBLE_CATEGORIES } from '@/types';
@@ -43,6 +43,43 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [mobileTab, setMobileTab] = useState<'playlist' | 'comments'>('playlist');
   const [commentCount, setCommentCount] = useState(0);
+  const [expandedCategories, setExpandedCategories] = useState<Set<VideoCategory>>(new Set(VISIBLE_CATEGORIES));
+
+  // Toggle category expansion
+  const toggleCategory = (category: VideoCategory) => {
+    setExpandedCategories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(category)) {
+        newSet.delete(category);
+      } else {
+        newSet.add(category);
+      }
+      return newSet;
+    });
+  };
+
+  // Group playlist by category
+  const groupedPlaylist = useMemo(() => {
+    if (!playlist || playlist.length === 0) return [];
+
+    const groups: { category: VideoCategory; videos: VideoSubmission[] }[] = [];
+    const categoriesInPlaylist = new Set<VideoCategory>();
+
+    // Collect all unique categories
+    playlist.forEach(video => categoriesInPlaylist.add(video.category));
+
+    // Order categories by VISIBLE_CATEGORIES order
+    VISIBLE_CATEGORIES.forEach(cat => {
+      if (categoriesInPlaylist.has(cat)) {
+        const videosInCategory = playlist.filter(v => v.category === cat);
+        if (videosInCategory.length > 0) {
+          groups.push({ category: cat, videos: videosInCategory });
+        }
+      }
+    });
+
+    return groups;
+  }, [playlist]);
 
   // Detect mobile screen size
   useEffect(() => {
@@ -401,80 +438,127 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
               overflowY: 'auto',
               overflowX: 'hidden'
             }}>
-              {playlist.map((playlistVideo, index) => {
-                const isCurrentVideo = playlistVideo.id === video.id;
-                const isOwnVideo = currentUserId && playlistVideo.user_id === currentUserId;
+              {groupedPlaylist.map((group) => {
+                const isExpanded = expandedCategories.has(group.category);
 
                 return (
-                  <div
-                    key={playlistVideo.id}
-                    onClick={() => {
-                      if (onSelectVideo && !isCurrentVideo) {
-                        onSelectVideo(playlistVideo);
-                      }
-                    }}
-                    style={{
-                      padding: '12px 16px',
-                      borderBottom: '1px solid #1f1f1f',
-                      cursor: isCurrentVideo ? 'default' : 'pointer',
-                      backgroundColor: isCurrentVideo ? '#1a1a1a' : 'transparent',
-                      transition: 'background-color 0.2s',
-                      position: 'relative'
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isCurrentVideo) {
-                        e.currentTarget.style.backgroundColor = '#111111';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isCurrentVideo) {
-                        e.currentTarget.style.backgroundColor = 'transparent';
-                      }
-                    }}
-                  >
-                    {/* Video Title and Indicators */}
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px'
-                    }}>
+                  <div key={group.category}>
+                    {/* Category Header */}
+                    <div
+                      onClick={() => toggleCategory(group.category)}
+                      style={{
+                        padding: '8px 16px',
+                        backgroundColor: '#161616',
+                        borderBottom: '1px solid #1f1f1f',
+                        position: 'sticky',
+                        top: 0,
+                        zIndex: 1,
+                        cursor: 'pointer',
+                        transition: 'background-color 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1f1f1f'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#161616'}
+                    >
+                      <div style={{
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        color: '#9ca3af',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}>
+                        <span style={{
+                          fontSize: '10px',
+                          transition: 'transform 0.2s',
+                          transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                          display: 'inline-block'
+                        }}>▶</span>
+                        <span>{CATEGORY_EMOJI[group.category]}</span>
+                        <span>{CATEGORY_LABELS[group.category]}</span>
+                        <span style={{ color: '#6b7280' }}>({group.videos.length})</span>
+                      </div>
+                    </div>
+
+                    {/* Videos in this category */}
+                    {isExpanded && group.videos.map((playlistVideo) => {
+                    const isCurrentVideo = playlistVideo.id === video.id;
+                    const isOwnVideo = currentUserId && playlistVideo.user_id === currentUserId;
+
+                    return (
                       <div
-                        title={playlistVideo.title || 'Untitled Video'}
+                        key={playlistVideo.id}
+                        onClick={() => {
+                          if (onSelectVideo && !isCurrentVideo) {
+                            onSelectVideo(playlistVideo);
+                          }
+                        }}
                         style={{
-                          fontSize: '13px',
-                          fontWeight: isCurrentVideo ? 600 : 400,
-                          color: isCurrentVideo ? '#3b82f6' : '#ffffff',
-                          lineHeight: '1.4',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          flex: 1
+                          padding: '12px 16px',
+                          borderBottom: '1px solid #1f1f1f',
+                          cursor: isCurrentVideo ? 'default' : 'pointer',
+                          backgroundColor: isCurrentVideo ? '#1a1a1a' : 'transparent',
+                          transition: 'background-color 0.2s',
+                          position: 'relative'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isCurrentVideo) {
+                            e.currentTarget.style.backgroundColor = '#111111';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isCurrentVideo) {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }
                         }}
                       >
-                        {playlistVideo.title || 'Untitled Video'}
-                      </div>
-
-                      {/* Badges and Indicators */}
-                      {isOwnVideo && (
+                        {/* Video Title and Indicators */}
                         <div style={{
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '6px',
-                          flexShrink: 0
+                          gap: '8px'
                         }}>
-                          <span style={{
-                            backgroundColor: '#10b981',
-                            color: '#ffffff',
-                            padding: '2px 6px',
-                            borderRadius: '4px',
-                            fontSize: '10px',
-                            fontWeight: 600
-                          }}>
-                            You
-                          </span>
+                          <div
+                            title={playlistVideo.title || 'Untitled Video'}
+                            style={{
+                              fontSize: '13px',
+                              fontWeight: isCurrentVideo ? 600 : 400,
+                              color: isCurrentVideo ? '#3b82f6' : '#ffffff',
+                              lineHeight: '1.4',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              flex: 1
+                            }}
+                          >
+                            {playlistVideo.title || 'Untitled Video'}
+                          </div>
+
+                          {/* Badges and Indicators */}
+                          {isOwnVideo && (
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              flexShrink: 0
+                            }}>
+                              <span style={{
+                                backgroundColor: '#10b981',
+                                color: '#ffffff',
+                                padding: '2px 6px',
+                                borderRadius: '4px',
+                                fontSize: '10px',
+                                fontWeight: 600
+                              }}>
+                                You
+                              </span>
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    );
+                  })}
                   </div>
                 );
               })}
@@ -1054,67 +1138,114 @@ export default function VideoPlayer({ video, category, onClose, onNext, onSubmit
               overflowY: 'auto',
               overflowX: 'hidden'
             }}>
-              {playlist.map((playlistVideo) => {
-                const isCurrentVideo = playlistVideo.id === video.id;
-                const isOwnVideo = currentUserId && playlistVideo.user_id === currentUserId;
+              {groupedPlaylist.map((group) => {
+                const isExpanded = expandedCategories.has(group.category);
 
                 return (
-                  <div
-                    key={playlistVideo.id}
-                    onClick={() => {
-                      if (onSelectVideo && !isCurrentVideo) {
-                        onSelectVideo(playlistVideo);
-                      }
-                    }}
-                    style={{
-                      padding: '12px 16px',
-                      borderBottom: '1px solid #1f1f1f',
-                      cursor: isCurrentVideo ? 'default' : 'pointer',
-                      backgroundColor: isCurrentVideo ? '#1a1a1a' : 'transparent',
-                      transition: 'background-color 0.2s'
-                    }}
-                  >
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px'
-                    }}>
+                  <div key={group.category}>
+                    {/* Category Header */}
+                    <div
+                      onClick={() => toggleCategory(group.category)}
+                      style={{
+                        padding: '8px 16px',
+                        backgroundColor: '#161616',
+                        borderBottom: '1px solid #1f1f1f',
+                        position: 'sticky',
+                        top: 0,
+                        zIndex: 1,
+                        cursor: 'pointer',
+                        transition: 'background-color 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1f1f1f'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#161616'}
+                    >
+                      <div style={{
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        color: '#9ca3af',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}>
+                        <span style={{
+                          fontSize: '10px',
+                          transition: 'transform 0.2s',
+                          transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                          display: 'inline-block'
+                        }}>▶</span>
+                        <span>{CATEGORY_EMOJI[group.category]}</span>
+                        <span>{CATEGORY_LABELS[group.category]}</span>
+                        <span style={{ color: '#6b7280' }}>({group.videos.length})</span>
+                      </div>
+                    </div>
+
+                    {/* Videos in this category */}
+                    {isExpanded && group.videos.map((playlistVideo) => {
+                    const isCurrentVideo = playlistVideo.id === video.id;
+                    const isOwnVideo = currentUserId && playlistVideo.user_id === currentUserId;
+
+                    return (
                       <div
-                        title={playlistVideo.title || 'Untitled Video'}
+                        key={playlistVideo.id}
+                        onClick={() => {
+                          if (onSelectVideo && !isCurrentVideo) {
+                            onSelectVideo(playlistVideo);
+                          }
+                        }}
                         style={{
-                          fontSize: '13px',
-                          fontWeight: isCurrentVideo ? 600 : 400,
-                          color: isCurrentVideo ? '#3b82f6' : '#ffffff',
-                          lineHeight: '1.4',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          flex: 1
+                          padding: '12px 16px',
+                          borderBottom: '1px solid #1f1f1f',
+                          cursor: isCurrentVideo ? 'default' : 'pointer',
+                          backgroundColor: isCurrentVideo ? '#1a1a1a' : 'transparent',
+                          transition: 'background-color 0.2s'
                         }}
                       >
-                        {playlistVideo.title || 'Untitled Video'}
-                      </div>
-
-                      {isOwnVideo && (
                         <div style={{
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '6px',
-                          flexShrink: 0
+                          gap: '8px'
                         }}>
-                          <span style={{
-                            backgroundColor: '#10b981',
-                            color: '#ffffff',
-                            padding: '2px 6px',
-                            borderRadius: '4px',
-                            fontSize: '10px',
-                            fontWeight: 600
-                          }}>
-                            You
-                          </span>
+                          <div
+                            title={playlistVideo.title || 'Untitled Video'}
+                            style={{
+                              fontSize: '13px',
+                              fontWeight: isCurrentVideo ? 600 : 400,
+                              color: isCurrentVideo ? '#3b82f6' : '#ffffff',
+                              lineHeight: '1.4',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              flex: 1
+                            }}
+                          >
+                            {playlistVideo.title || 'Untitled Video'}
+                          </div>
+
+                          {isOwnVideo && (
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              flexShrink: 0
+                            }}>
+                              <span style={{
+                                backgroundColor: '#10b981',
+                                color: '#ffffff',
+                                padding: '2px 6px',
+                                borderRadius: '4px',
+                                fontSize: '10px',
+                                fontWeight: 600
+                              }}>
+                                You
+                              </span>
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    );
+                  })}
                   </div>
                 );
               })}
