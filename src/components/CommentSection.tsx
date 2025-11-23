@@ -10,9 +10,10 @@ interface CommentSectionProps {
   forceExpanded?: boolean;
   hideHeader?: boolean;
   onCommentsLoaded?: (count: number) => void;
+  noScroll?: boolean;
 }
 
-export default function CommentSection({ videoId, isMobile, forceExpanded = false, hideHeader = false, onCommentsLoaded }: CommentSectionProps) {
+export default function CommentSection({ videoId, isMobile, forceExpanded = false, hideHeader = false, onCommentsLoaded, noScroll = false }: CommentSectionProps) {
   const [comments, setComments] = useState<VideoComment[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
@@ -305,7 +306,7 @@ export default function CommentSection({ videoId, isMobile, forceExpanded = fals
     <div style={{
       display: 'flex',
       flexDirection: 'column',
-      height: '100%',
+      height: noScroll ? 'auto' : '100%',
       color: '#ffffff',
       backgroundColor: '#0a0a0a'
     }}>
@@ -339,15 +340,15 @@ export default function CommentSection({ videoId, isMobile, forceExpanded = fals
 
       {/* Comment List - collapsible on mobile */}
       {(!isMobile || isExpanded || forceExpanded) && (
-      <div className="comment-scroll" style={{
-        flex: 1,
-        overflowY: 'auto',
+      <div className={noScroll ? '' : 'comment-scroll'} style={{
+        flex: noScroll ? 'none' : 1,
+        overflowY: noScroll ? 'visible' : 'auto',
         padding: isMobile ? '12px' : '16px',
-        paddingBottom: '150px',
+        paddingBottom: noScroll ? '16px' : '150px',
         display: 'flex',
         flexDirection: 'column',
         gap: isMobile ? '12px' : '16px',
-        WebkitOverflowScrolling: 'touch',
+        WebkitOverflowScrolling: noScroll ? 'auto' : 'touch',
         minHeight: 0
       }}>
         {loading ? (
@@ -754,32 +755,6 @@ export default function CommentSection({ videoId, isMobile, forceExpanded = fals
         </div>
       )}
     </div>
-    {!isMobile && (
-      <style jsx global>{`
-        .comment-scroll,
-        .comment-input-container {
-          scrollbar-width: thin;
-          scrollbar-color: rgba(71, 85, 105, 0.75) transparent;
-        }
-        .comment-scroll::-webkit-scrollbar,
-        .comment-input-container::-webkit-scrollbar {
-          width: 8px;
-        }
-        .comment-scroll::-webkit-scrollbar-track,
-        .comment-input-container::-webkit-scrollbar-track {
-          background: rgba(15, 23, 42, 0.35);
-        }
-        .comment-scroll::-webkit-scrollbar-thumb,
-        .comment-input-container::-webkit-scrollbar-thumb {
-          background: rgba(71, 85, 105, 0.85);
-          border-radius: 999px;
-        }
-        .comment-scroll::-webkit-scrollbar-thumb:hover,
-        .comment-input-container::-webkit-scrollbar-thumb:hover {
-          background: rgba(71, 85, 105, 1);
-        }
-      `}</style>
-    )}
     </>
   );
 }

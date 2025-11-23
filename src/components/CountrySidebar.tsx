@@ -206,7 +206,7 @@ export default function CountrySidebar({
       <div style={{
         flex: 1,
         overflowY: 'auto',
-        padding: isMobile ? '12px 16px' : '24px 32px',
+        padding: isMobile ? '12px 16px' : '16px 20px',
         backgroundColor: '#f3f4f6'
       }}>
         {isMobile ? (
@@ -273,13 +273,24 @@ export default function CountrySidebar({
           </div>
         ) : (
           <>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {VISIBLE_CATEGORIES.map((category) => {
                 const label = CATEGORY_LABELS[category];
                 const count = videoCounts[category];
                 const hasVideos = count > 0;
-                const colors = CATEGORY_COLORS[category];
                 const isSelected = selectedCategoryFilter === category;
+                const colors = CATEGORY_COLORS[category];
+
+                // Accent colors for each category
+                const accents: Record<string, string> = {
+                  inspiration: '#f59e0b',
+                  music: '#ec4899',
+                  comedy: '#22c55e',
+                  daily_life: '#ef4444',
+                  talks: '#3b82f6'
+                };
+                const accent = accents[category];
+
                 return (
                   <button
                     key={category}
@@ -288,28 +299,47 @@ export default function CountrySidebar({
                     style={{
                       width: '100%',
                       textAlign: 'left',
-                      padding: '14px 18px',
-                      borderRadius: '8px',
-                      border: isSelected
-                        ? '2px solid #f97316'
-                        : hasVideos
-                          ? '1px solid rgba(148, 163, 184, 0.4)'
-                          : '1px solid #f3f4f6',
-                      backgroundColor: isSelected ? '#fff7ed' : hasVideos ? '#ffffff' : '#f8fafc',
+                      padding: '10px 12px',
+                      borderRadius: '10px',
+                      border: 'none',
+                      background: isSelected ? `${accent}12` : hasVideos ? '#fff' : '#f1f5f9',
                       cursor: hasVideos ? 'pointer' : 'not-allowed',
-                      opacity: hasVideos ? 1 : 0.5,
-                      transition: 'all 0.2s'
+                      opacity: hasVideos ? 1 : 0.4,
+                      transition: 'all 0.15s ease',
+                      boxShadow: isSelected
+                        ? `inset 0 0 0 2px ${accent}`
+                        : hasVideos
+                          ? '0 1px 3px rgba(0,0,0,0.06)'
+                          : 'none',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (hasVideos && !isSelected) {
+                        e.currentTarget.style.background = '#f8fafc';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (hasVideos && !isSelected) {
+                        e.currentTarget.style.background = '#fff';
+                      }
                     }}
                     aria-pressed={isSelected}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <span style={{ fontSize: '22px' }}>{colors.icon}</span>
-                        <span style={{ fontSize: '14px', fontWeight: 500, color: '#000000' }}>{label}</span>
-                      </div>
-                      <span style={{ fontSize: '18px', color: isSelected ? '#f97316' : '#94a3b8' }}>
-                        {isSelected ? '✓' : '→'}
-                      </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{
+                        fontSize: '16px',
+                        width: '28px',
+                        height: '28px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: '6px',
+                        background: `${accent}18`
+                      }}>{colors.icon}</span>
+                      <span style={{
+                        fontSize: '13px',
+                        fontWeight: 500,
+                        color: '#1f2937'
+                      }}>{label}</span>
                     </div>
                   </button>
                 );
@@ -321,25 +351,29 @@ export default function CountrySidebar({
               onClick={onSubmitClick}
               style={{
                 width: '100%',
-                marginTop: '24px',
-                padding: '12px 20px',
-                fontSize: '14px',
-                fontWeight: '500',
+                marginTop: '16px',
+                padding: '11px 16px',
+                fontSize: '13px',
+                fontWeight: '600',
                 borderRadius: '8px',
-                backgroundColor: '#f97316',
+                background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
                 color: '#ffffff',
                 border: 'none',
                 cursor: 'pointer',
-                transition: 'all 0.2s'
+                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                boxShadow: '0 4px 14px rgba(249, 115, 22, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-1px)';
+                e.currentTarget.style.boxShadow = '0 6px 20px rgba(249, 115, 22, 0.5), inset 0 1px 0 rgba(255,255,255,0.2)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 14px rgba(249, 115, 22, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)';
               }}
             >
-              Submit Videos
+              + Submit Videos
             </button>
-
-            {/* Info Text */}
-            <p style={{ marginTop: '12px', fontSize: '12px', textAlign: 'center', color: '#6b7280', lineHeight: '1.5' }}>
-              Help build our cultural library by submitting videos
-            </p>
           </>
         )}
       </div>
