@@ -53,8 +53,6 @@ interface EntryDraft {
   livedThere: boolean;
 }
 
-type AutoSaveState = 'idle' | 'saving' | 'saved' | 'error';
-
 export default function CountryImpressionModal({
   countryCode,
   entries,
@@ -78,7 +76,6 @@ export default function CountryImpressionModal({
   const [livedThere, setLivedThere] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [autoSaveState, setAutoSaveState] = useState<AutoSaveState>('idle');
   const [favoriteBusyId, setFavoriteBusyId] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [expandedEntries, setExpandedEntries] = useState<Set<string>>(new Set());
@@ -247,7 +244,6 @@ export default function CountryImpressionModal({
     setProsInput('');
     setConsInput('');
     setFormError(null);
-    setAutoSaveState('idle');
   }
 
   function applyDraft(draft: EntryDraft) {
@@ -259,7 +255,6 @@ export default function CountryImpressionModal({
     setBeenThere(!!draft.beenThere);
     setLivedThere(!!draft.livedThere);
     setFormError(null);
-    setAutoSaveState('idle');
   }
 
   function loadDraftFromStorage(): EntryDraft | null {
@@ -275,13 +270,62 @@ export default function CountryImpressionModal({
     }
   }
 
+  function isMeaningfulDraft(draft: EntryDraft): boolean {
+    return Boolean(
+      draft.content?.trim() ||
+      draft.prosInput?.trim() ||
+      draft.consInput?.trim() ||
+      (draft.pros && draft.pros.length > 0) ||
+      (draft.cons && draft.cons.length > 0) ||
+      draft.beenThere ||
+      draft.livedThere
+    );
+  }
+
   function hydrateEntryForm() {
     const draft = loadDraftFromStorage();
-    if (draft) {
+    if (draft && isMeaningfulDraft(draft)) {
       applyDraft(draft);
       return;
     }
     resetToExisting();
+  }
+
+  async function handleRequestClose() {
+    if (isEntryMode && currentUserId) {
+      const trimmed = content.trim();
+      if (trimmed) {
+        const snapshot = JSON.stringify({
+          content: trimmed,
+          pros,
+          cons,
+          beenThere,
+          livedThere,
+        });
+        if (snapshot !== lastSavedSnapshotRef.current) {
+          setIsSaving(true);
+          setFormError(null);
+          const ok = await onSaveEntry({
+            countryCode,
+            content: trimmed,
+            pros,
+            cons,
+            beenThere,
+            livedThere,
+          });
+          setIsSaving(false);
+          if (ok) {
+            lastSavedSnapshotRef.current = snapshot;
+            if (typeof window !== 'undefined') {
+              window.localStorage.removeItem(draftStorageKey);
+            }
+          } else {
+            setFormError('Could not save post. Please try again.');
+          }
+        }
+      }
+    }
+    onClose();
   }
 
   function handleToggleEntryMode() {
@@ -381,54 +425,6 @@ export default function CountryImpressionModal({
   }, [isEntryMode, countryCode, existingUserEntry?.id, draftStorageKey]);
 
   useEffect(() => {
-    if (!isEntryMode || !currentUserId) return;
-    const trimmed = content.trim();
-    if (!trimmed) {
-      setAutoSaveState('idle');
-      return;
-    }
-
-    const snapshot = JSON.stringify({
-      content: trimmed,
-      pros,
-      cons,
-      beenThere,
-      livedThere,
-    });
-
-    if (snapshot === lastSavedSnapshotRef.current) {
-      if (autoSaveState !== 'saved') setAutoSaveState('idle');
-      return;
-    }
-
-    const timeoutId = window.setTimeout(async () => {
-      setAutoSaveState('saving');
-      setFormError(null);
-      setIsSaving(true);
-
-      const ok = await onSaveEntry({
-        countryCode,
-        content: trimmed,
-        pros,
-        cons,
-        beenThere,
-        livedThere,
-      });
-
-      setIsSaving(false);
-      if (ok) {
-        lastSavedSnapshotRef.current = snapshot;
-        setAutoSaveState('saved');
-      } else {
-        setAutoSaveState('error');
-        setFormError('Could not save post. Please try again.');
-      }
-    }, 650);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [isEntryMode, currentUserId, countryCode, content, pros, cons, beenThere, livedThere]);
-
-  useEffect(() => {
     if (typeof window === 'undefined') return;
     const draft: EntryDraft = {
       content,
@@ -458,7 +454,7 @@ export default function CountryImpressionModal({
         justifyContent: 'center',
         padding: isMobile ? '0' : '16px'
       }}
-      onClick={onClose}
+      onClick={handleRequestClose}
     >
       <div
         style={{
@@ -477,7 +473,7 @@ export default function CountryImpressionModal({
         onClick={(event) => event.stopPropagation()}
       >
         <button
-          onClick={onClose}
+          onClick={handleRequestClose}
           aria-label="Close"
           title="Close"
           style={{
@@ -716,9 +712,6 @@ export default function CountryImpressionModal({
                   }}
                 />
                 <div style={{ marginTop: '8px', color: '#94a3b8', fontSize: '12px' }}>{content.length}/2000</div>
-                <div style={{ marginTop: '4px', color: autoSaveState === 'error' ? '#b91c1c' : '#94a3b8', fontSize: '12px' }}>
-                  {autoSaveState === 'saving' ? 'Saving...' : autoSaveState === 'saved' ? 'Saved' : autoSaveState === 'error' ? 'Save failed' : ''}
-                </div>
 
                 <div
                   style={{
