@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { createClient } from "@supabase/supabase-js";
+import { countries } from "@/lib/countries";
 
 export const revalidate = 604800;
 export const runtime = "nodejs";
@@ -76,9 +77,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: latestUpdated,
     };
 
-    // Keep sitemap canonical-only. Query-param URLs like /?country=XXX are
-    // better discovered through internal links and can cause crawler issues.
-    return staticPages;
+    const knownCountryCodes = new Set(countries.map((country) => country.code));
+    const countryCodes = Array.from(
+      new Set(
+        publicEntries
+          .map((entry) => entry.country_code?.toUpperCase())
+          .filter((code): code is string => !!code && knownCountryCodes.has(code))
+      )
+    ).sort();
+
+    const countryPages: MetadataRoute.Sitemap = countryCodes.map((countryCode) => ({
+      url: `${baseUrl}/country/${countryCode}`,
+      lastModified: latestUpdated,
+      changeFrequency: "weekly",
+      priority: 0.6,
+    }));
+
+    return [...staticPages, ...countryPages];
   } catch {
     return staticPages;
   }

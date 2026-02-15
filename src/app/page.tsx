@@ -14,11 +14,17 @@ import CategoryPicker from '@/components/CategoryPicker';
 import ListView from '@/components/ListView';
 import { VISIBLE_CATEGORIES, type VideoSubmission, type VideoCategory, type CountryEntry } from '@/types';
 
-export default function Home() {
+interface HomePageProps {
+  initialCountryCode?: string | null;
+}
+
+export default function Home({ initialCountryCode = null }: HomePageProps) {
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [submissionCountry, setSubmissionCountry] = useState<string | null>(null);
   const [currentVideo, setCurrentVideo] = useState<{ video: VideoSubmission; category: VideoCategory } | null>(null);
-  const [activeCountryModal, setActiveCountryModal] = useState<string | null>(null);
+  const [activeCountryModal, setActiveCountryModal] = useState<string | null>(
+    initialCountryCode ? initialCountryCode.toUpperCase() : null
+  );
   const [user, setUser] = useState<any>(null);
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [checkingAdmin, setCheckingAdmin] = useState(false);
@@ -169,6 +175,11 @@ export default function Home() {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Keep modal state in sync with route-level country page.
+  useEffect(() => {
+    setActiveCountryModal(initialCountryCode ? initialCountryCode.toUpperCase() : null);
+  }, [initialCountryCode]);
 
   useEffect(() => {
     if (user && pendingSubmissionCountryRef.current) {
@@ -502,24 +513,37 @@ export default function Home() {
   }, []);
 
   function handleCountryClick(countryCode: string) {
+    const normalizedCode = countryCode.toUpperCase();
     setCurrentVideo(null);
     setSelectedCountry(null);
     setShowSubmissionForm(false);
     setShowCategoryPicker(false);
     setPickerCountry(null);
-    setActiveCountryModal(countryCode);
+    setActiveCountryModal(normalizedCode);
+    if (typeof window !== 'undefined') {
+      const nextPath = `/country/${normalizedCode}`;
+      if (window.location.pathname !== nextPath) {
+        window.history.pushState({}, '', nextPath);
+      }
+    }
   }
 
   function handleCloseSidebar() {
     setSelectedCountry(null);
     setCurrentVideo(null);
     setActiveCountryModal(null);
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/country/')) {
+      window.history.replaceState({}, '', '/');
+    }
   }
 
   function handleBackgroundClick() {
     setSelectedCountry(null);
     setCurrentVideo(null);
     setActiveCountryModal(null);
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/country/')) {
+      window.history.replaceState({}, '', '/');
+    }
   }
 
   function handleVideoSelect(video: VideoSubmission, category: VideoCategory) {
@@ -532,6 +556,9 @@ export default function Home() {
 
   function handleCloseCountryModal() {
     setActiveCountryModal(null);
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/country/')) {
+      window.history.replaceState({}, '', '/');
+    }
   }
 
   function getCountryEntries(countryCode: string): CountryEntry[] {
@@ -1586,6 +1613,7 @@ export default function Home() {
           key={activeCountryModal}
           countryCode={activeCountryModal}
           entries={getCountryEntries(activeCountryModal)}
+          entriesReady={entriesReady}
           authorNames={entryAuthorNames}
           favoriteEntryIds={favoriteEntryIds}
           currentUserId={user?.id ?? null}

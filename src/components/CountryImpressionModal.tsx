@@ -7,6 +7,7 @@ import { type CountryEntry } from '@/types';
 interface CountryImpressionModalProps {
   countryCode: string;
   entries: CountryEntry[];
+  entriesReady: boolean;
   authorNames: Record<string, string>;
   favoriteEntryIds: Set<string>;
   currentUserId: string | null;
@@ -61,6 +62,7 @@ interface EntryDraft {
 export default function CountryImpressionModal({
   countryCode,
   entries,
+  entriesReady,
   authorNames,
   favoriteEntryIds,
   currentUserId,
@@ -73,7 +75,7 @@ export default function CountryImpressionModal({
 }: CountryImpressionModalProps) {
   const [isMobile, setIsMobile] = useState(false);
   const [content, setContent] = useState('');
-  const [isEntryMode, setIsEntryMode] = useState(entries.length === 0);
+  const [isEntryMode, setIsEntryMode] = useState(false);
   const [pros, setPros] = useState<string[]>([]);
   const [cons, setCons] = useState<string[]>([]);
   const [prosInput, setProsInput] = useState('');
@@ -458,6 +460,11 @@ export default function CountryImpressionModal({
     if (!isEntryMode) return;
     hydrateEntryForm();
   }, [isEntryMode, countryCode, existingUserEntry?.id, draftStorageKey]);
+
+  useEffect(() => {
+    if (!entriesReady) return;
+    setIsEntryMode(entries.length === 0);
+  }, [entriesReady, countryCode, entries.length]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
