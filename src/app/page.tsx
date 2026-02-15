@@ -884,8 +884,13 @@ export default function Home() {
         code,
         count,
         name: getCountryName(code),
+        hasLived: entriesWithContent.some((entry) => entry.country_code === code && !!entry.lived_there),
+        hasBeen: entriesWithContent.some((entry) => entry.country_code === code && !!entry.been_there),
       }))
       .sort((a, b) => {
+        const aPriority = a.hasLived ? 2 : a.hasBeen ? 1 : 0;
+        const bPriority = b.hasLived ? 2 : b.hasBeen ? 1 : 0;
+        if (bPriority !== aPriority) return bPriority - aPriority;
         if (b.count !== a.count) return b.count - a.count;
         return a.name.localeCompare(b.name);
       })
