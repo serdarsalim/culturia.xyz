@@ -69,6 +69,10 @@ export default function Home() {
       mine: false,
     };
   });
+  const [entryPresenceFilters, setEntryPresenceFilters] = useState<{ been: boolean; lived: boolean }>({
+    been: false,
+    lived: false,
+  });
   const pendingSubmissionCountryRef = useRef<string | null>(null);
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<VideoCategory | null>(null);
   const [showAboutModal, setShowAboutModal] = useState(false);
@@ -90,14 +94,26 @@ export default function Home() {
     return visibleEntries;
   }, [mapSources, user?.id, favoriteEntryIds, visibleEntries]);
 
+  const presenceFilteredEntries = useMemo(() => {
+    if (!entryPresenceFilters.been && !entryPresenceFilters.lived) {
+      return filteredEntries;
+    }
+
+    return filteredEntries.filter((entry) => {
+      const matchesBeen = entryPresenceFilters.been && !!entry.been_there;
+      const matchesLived = entryPresenceFilters.lived && !!entry.lived_there;
+      return matchesBeen || matchesLived;
+    });
+  }, [filteredEntries, entryPresenceFilters]);
+
   // Set of countries highlighted on map based on post source filter
   const countriesWithVideos = useMemo(() => {
     const set = new Set<string>();
-    for (const entry of filteredEntries) {
+    for (const entry of presenceFilteredEntries) {
       if (entry.country_code) set.add(entry.country_code);
     }
     return set;
-  }, [filteredEntries]);
+  }, [presenceFilteredEntries]);
 
   // Detect mobile screen size
   useEffect(() => {
@@ -857,13 +873,32 @@ export default function Home() {
   const identityDisplay = secondaryIdentity && secondaryIdentity !== primaryIdentity
     ? `${primaryIdentity} • ${secondaryIdentity}`
     : primaryIdentity;
+  const isAllPresenceFilter = !entryPresenceFilters.been && !entryPresenceFilters.lived;
+  const presenceFilterCounts = useMemo(() => {
+    const allCountries = new Set<string>();
+    const beenCountries = new Set<string>();
+    const livedCountries = new Set<string>();
+
+    for (const entry of filteredEntries) {
+      if (!entry.country_code) continue;
+      allCountries.add(entry.country_code);
+      if (entry.been_there) beenCountries.add(entry.country_code);
+      if (entry.lived_there) livedCountries.add(entry.country_code);
+    }
+
+    return {
+      all: allCountries.size,
+      been: beenCountries.size,
+      lived: livedCountries.size,
+    };
+  }, [filteredEntries]);
 
   const hideSidebarOnMobileList = isMobile && viewMode === 'list';
   const topCountries = useMemo(() => {
-    if (!entriesReady || filteredEntries.length === 0) return [];
+    if (!entriesReady || presenceFilteredEntries.length === 0) return [];
 
     const counts = new Map<string, number>();
-    for (const entry of filteredEntries) {
+    for (const entry of presenceFilteredEntries) {
       if (!entry.country_code) continue;
       counts.set(entry.country_code, (counts.get(entry.country_code) || 0) + 1);
     }
@@ -878,8 +913,8 @@ export default function Home() {
         if (b.count !== a.count) return b.count - a.count;
         return a.name.localeCompare(b.name);
       })
-      .slice(0, 5);
-  }, [filteredEntries, entriesReady]);
+      .slice(0, 6);
+  }, [presenceFilteredEntries, entriesReady]);
 
   return (
     <div className="home-layout h-screen overflow-hidden">
@@ -1229,44 +1264,111 @@ export default function Home() {
                 {entriesReady && topCountries.length === 0 && (
                   <div style={{ fontSize: '13px', color: '#64748b' }}>No entries yet.</div>
                 )}
-                {topCountries.map((country, idx) => (
-                  <button
-                    key={country.code}
-                    onClick={() => handleCountryClick(country.code)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      width: '100%',
-                      padding: isMobile ? '10px 12px' : '12px 14px',
-                      borderRadius: '10px',
-                      border: 'none',
-                      backgroundColor: '#f8fafc',
-                      color: '#0f172a',
-                      cursor: 'pointer',
-                      textAlign: 'left',
-                      marginTop: idx === 0 ? '8px' : 0
-                    }}
-                  >
-                    <span style={{ fontSize: '14px', fontWeight: 600 }}>
-                      {idx + 1}. {country.name}
-                    </span>
-                    <span style={{ fontSize: '12px', color: '#64748b' }}>
-                      {country.count} {country.count === 1 ? 'post' : 'posts'}
-                    </span>
-                  </button>
-                ))}
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: isMobile ? '1fr 1fr' : '1fr',
+                    gap: isMobile ? '8px' : '10px',
+                    marginTop: '8px',
+                  }}
+                >
+                  {topCountries.map((country) => (
+                    <button
+                      key={country.code}
+                      onClick={() => handleCountryClick(country.code)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        width: '100%',
+                        padding: isMobile ? '10px 12px' : '12px 14px',
+                        borderRadius: '10px',
+                        border: 'none',
+                        backgroundColor: '#f8fafc',
+                        color: '#0f172a',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                      }}
+                    >
+                      <span style={{ fontSize: '14px', fontWeight: 600 }}>
+                        {country.name}
+                      </span>
+                      <span style={{ fontSize: '12px', color: '#64748b' }}>
+                        {country.count} {country.count === 1 ? 'post' : 'posts'}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
             {/* Footer - Subtitle and Links */}
             <div style={{ marginTop: 'auto', paddingTop: '24px', paddingBottom: isMobile ? '32px' : '60px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  marginBottom: user ? '18px' : '14px',
+                  fontSize: '14px',
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setEntryPresenceFilters({ been: false, lived: false })}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                    color: '#475569',
+                    cursor: 'pointer',
+                    fontWeight: isAllPresenceFilter ? 700 : 500,
+                    fontSize: '14px',
+                  }}
+                >
+                  All ({presenceFilterCounts.all})
+                </button>
+                <span style={{ color: '#cbd5e1' }}>|</span>
+                <button
+                  type="button"
+                  onClick={() => setEntryPresenceFilters((prev) => ({ ...prev, been: !prev.been }))}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                    color: '#475569',
+                    cursor: 'pointer',
+                    fontWeight: entryPresenceFilters.been ? 700 : 500,
+                    fontSize: '14px',
+                  }}
+                >
+                  Been ({presenceFilterCounts.been})
+                </button>
+                <span style={{ color: '#cbd5e1' }}>|</span>
+                <button
+                  type="button"
+                  onClick={() => setEntryPresenceFilters((prev) => ({ ...prev, lived: !prev.lived }))}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                    color: '#475569',
+                    cursor: 'pointer',
+                    fontWeight: entryPresenceFilters.lived ? 700 : 500,
+                    fontSize: '14px',
+                  }}
+                >
+                  Lived ({presenceFilterCounts.lived})
+                </button>
+              </div>
+
               {user && (
                 <div style={{
                   fontSize: '11px',
                   color: '#6b7280',
                   textAlign: 'center',
-                  marginTop: '-4px',
+                  marginTop: '0',
                   marginBottom: '8px',
                   display: 'flex',
                   alignItems: 'center',
