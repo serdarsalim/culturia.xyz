@@ -43,6 +43,18 @@ function toLabelCase(label: string): string {
     .join(' ');
 }
 
+interface EntryDraft {
+  content: string;
+  pros: string[];
+  cons: string[];
+  prosInput: string;
+  consInput: string;
+  beenThere: boolean;
+  livedThere: boolean;
+}
+
+type AutoSaveState = 'idle' | 'saving' | 'saved' | 'error';
+
 export default function CountryImpressionModal({
   countryCode,
   entries,
@@ -66,11 +78,13 @@ export default function CountryImpressionModal({
   const [livedThere, setLivedThere] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [autoSaveState, setAutoSaveState] = useState<AutoSaveState>('idle');
   const [favoriteBusyId, setFavoriteBusyId] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [expandedEntries, setExpandedEntries] = useState<Set<string>>(new Set());
   const [entryOverflowMap, setEntryOverflowMap] = useState<Record<string, boolean>>({});
   const contentRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const lastSavedSnapshotRef = useRef('');
 
   const countryName = getCountryName(countryCode);
   const flag = getCountryFlag(countryCode);
@@ -83,6 +97,10 @@ export default function CountryImpressionModal({
   const sortedEntries = useMemo(
     () => [...entries].sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()),
     [entries]
+  );
+  const draftStorageKey = useMemo(
+    () => `country-entry-draft:${currentUserId ?? 'guest'}:${countryCode}`,
+    [currentUserId, countryCode]
   );
   const topPros = useMemo(() => {
     const counts = new Map<string, number>();
@@ -229,51 +247,56 @@ export default function CountryImpressionModal({
     setProsInput('');
     setConsInput('');
     setFormError(null);
+    setAutoSaveState('idle');
+  }
+
+  function applyDraft(draft: EntryDraft) {
+    setContent(draft.content || '');
+    setPros((draft.pros || []).slice(0, 5));
+    setCons((draft.cons || []).slice(0, 5));
+    setProsInput(draft.prosInput || '');
+    setConsInput(draft.consInput || '');
+    setBeenThere(!!draft.beenThere);
+    setLivedThere(!!draft.livedThere);
+    setFormError(null);
+    setAutoSaveState('idle');
+  }
+
+  function loadDraftFromStorage(): EntryDraft | null {
+    if (typeof window === 'undefined') return null;
+    try {
+      const raw = window.localStorage.getItem(draftStorageKey);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as EntryDraft;
+      if (!parsed || typeof parsed !== 'object') return null;
+      return parsed;
+    } catch {
+      return null;
+    }
+  }
+
+  function hydrateEntryForm() {
+    const draft = loadDraftFromStorage();
+    if (draft) {
+      applyDraft(draft);
+      return;
+    }
+    resetToExisting();
   }
 
   function handleToggleEntryMode() {
-    if (!currentUserId) {
+    if (!isEntryMode && !currentUserId) {
       onRequireAuth();
       return;
     }
 
     setIsEntryMode((prev) => {
       const next = !prev;
-      resetToExisting();
+      if (next) {
+        hydrateEntryForm();
+      }
       return next;
     });
-  }
-
-  async function handleSave() {
-    if (!currentUserId) {
-      onRequireAuth();
-      return;
-    }
-
-    const trimmed = content.trim();
-    if (!trimmed) {
-      setFormError('Post cannot be empty.');
-      return;
-    }
-
-    setIsSaving(true);
-    setFormError(null);
-
-    const ok = await onSaveEntry({
-      countryCode,
-      content: trimmed,
-      pros,
-      cons,
-      beenThere,
-      livedThere,
-    });
-
-    setIsSaving(false);
-    if (ok) {
-      setIsEntryMode(false);
-    } else {
-      setFormError('Could not save post. Please try again.');
-    }
   }
 
   async function handleDelete() {
@@ -285,6 +308,9 @@ export default function CountryImpressionModal({
     setIsDeleting(false);
 
     if (ok) {
+      if (typeof window !== 'undefined') {
+        window.localStorage.removeItem(draftStorageKey);
+      }
       setIsEntryMode(false);
     } else {
       setFormError('Could not delete post. Please try again.');
@@ -297,7 +323,7 @@ export default function CountryImpressionModal({
     setFavoriteBusyId(null);
   }
 
-  const entryActionLabel = isEntryMode ? '(close post)' : existingUserEntry ? '(edit post)' : '(add post)';
+  const entryActionLabel = isEntryMode ? '(edit complete)' : existingUserEntry ? '(edit post)' : '(add post)';
   function toggleExpandedEntry(id: string) {
     setExpandedEntries((prev) => {
       const next = new Set(prev);
@@ -337,6 +363,88 @@ export default function CountryImpressionModal({
       return changed ? next : prev;
     });
   }, [sortedEntries, expandedEntries]);
+
+  useEffect(() => {
+    const savedSnapshot = JSON.stringify({
+      content: existingUserEntry?.content?.trim() || '',
+      pros: existingUserEntry?.pros || [],
+      cons: existingUserEntry?.cons || [],
+      beenThere: !!existingUserEntry?.been_there,
+      livedThere: !!existingUserEntry?.lived_there,
+    });
+    lastSavedSnapshotRef.current = savedSnapshot;
+  }, [existingUserEntry?.id, existingUserEntry?.updated_at, existingUserEntry?.content, existingUserEntry?.been_there, existingUserEntry?.lived_there, existingUserEntry?.pros, existingUserEntry?.cons]);
+
+  useEffect(() => {
+    if (!isEntryMode) return;
+    hydrateEntryForm();
+  }, [isEntryMode, countryCode, existingUserEntry?.id, draftStorageKey]);
+
+  useEffect(() => {
+    if (!isEntryMode || !currentUserId) return;
+    const trimmed = content.trim();
+    if (!trimmed) {
+      setAutoSaveState('idle');
+      return;
+    }
+
+    const snapshot = JSON.stringify({
+      content: trimmed,
+      pros,
+      cons,
+      beenThere,
+      livedThere,
+    });
+
+    if (snapshot === lastSavedSnapshotRef.current) {
+      if (autoSaveState !== 'saved') setAutoSaveState('idle');
+      return;
+    }
+
+    const timeoutId = window.setTimeout(async () => {
+      setAutoSaveState('saving');
+      setFormError(null);
+      setIsSaving(true);
+
+      const ok = await onSaveEntry({
+        countryCode,
+        content: trimmed,
+        pros,
+        cons,
+        beenThere,
+        livedThere,
+      });
+
+      setIsSaving(false);
+      if (ok) {
+        lastSavedSnapshotRef.current = snapshot;
+        setAutoSaveState('saved');
+      } else {
+        setAutoSaveState('error');
+        setFormError('Could not save post. Please try again.');
+      }
+    }, 650);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [isEntryMode, currentUserId, countryCode, content, pros, cons, beenThere, livedThere]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const draft: EntryDraft = {
+      content,
+      pros,
+      cons,
+      prosInput,
+      consInput,
+      beenThere,
+      livedThere,
+    };
+    try {
+      window.localStorage.setItem(draftStorageKey, JSON.stringify(draft));
+    } catch {
+      // Ignore localStorage write errors (quota/private mode).
+    }
+  }, [draftStorageKey, content, pros, cons, prosInput, consInput, beenThere, livedThere]);
 
   return (
     <div
@@ -379,7 +487,7 @@ export default function CountryImpressionModal({
             width: isMobile ? '44px' : '40px',
             height: isMobile ? '44px' : '40px',
             borderRadius: '9999px',
-            backgroundColor: 'transparent',
+            backgroundColor: isMobile ? '#f8fafc' : 'transparent',
             border: 'none',
             color: '#0f172a',
             display: 'flex',
@@ -397,9 +505,11 @@ export default function CountryImpressionModal({
         </button>
 
         <div
+          className="country-modal-scroll"
           style={{
             flex: 1,
             overflowY: 'auto',
+            scrollbarGutter: 'stable',
             paddingTop: isMobile ? '64px' : '56px',
             paddingLeft: isMobile ? '24px' : '120px',
             paddingRight: isMobile ? '24px' : '120px',
@@ -600,12 +710,15 @@ export default function CountryImpressionModal({
                     backgroundColor: '#ffffff',
                     color: '#0f172a',
                     padding: '12px',
-                    fontSize: '14px',
+                    fontSize: isMobile ? '16px' : '14px',
                     lineHeight: 1.5,
                     resize: 'vertical'
                   }}
                 />
                 <div style={{ marginTop: '8px', color: '#94a3b8', fontSize: '12px' }}>{content.length}/2000</div>
+                <div style={{ marginTop: '4px', color: autoSaveState === 'error' ? '#b91c1c' : '#94a3b8', fontSize: '12px' }}>
+                  {autoSaveState === 'saving' ? 'Saving...' : autoSaveState === 'saved' ? 'Saved' : autoSaveState === 'error' ? 'Save failed' : ''}
+                </div>
 
                 <div
                   style={{
@@ -645,7 +758,7 @@ export default function CountryImpressionModal({
                         backgroundColor: '#ffffff',
                         color: '#0f172a',
                         padding: '0 12px',
-                        fontSize: '14px'
+                        fontSize: isMobile ? '16px' : '14px'
                       }}
                     />
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '10px' }}>
@@ -701,7 +814,7 @@ export default function CountryImpressionModal({
                         backgroundColor: '#ffffff',
                         color: '#0f172a',
                         padding: '0 12px',
-                        fontSize: '14px'
+                        fontSize: isMobile ? '16px' : '14px'
                       }}
                     />
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '10px' }}>
@@ -795,26 +908,7 @@ export default function CountryImpressionModal({
                     }}
                     disabled={isSaving || isDeleting}
                   >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleSave}
-                    style={{
-                      height: '40px',
-                      borderRadius: '999px',
-                      border: '1px solid #cbd5e1',
-                      backgroundColor: '#f8fafc',
-                      color: '#0f172a',
-                      padding: '0 16px',
-                      fontSize: '14px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      opacity: isSaving ? 0.65 : 1
-                    }}
-                    disabled={isSaving || isDeleting}
-                  >
-                    {isSaving ? 'Saving...' : 'Save post'}
+                    Close
                   </button>
                 </div>
               </div>
@@ -824,6 +918,25 @@ export default function CountryImpressionModal({
         <style jsx>{`
           .entry-label-input::placeholder {
             color: #94a3b8;
+          }
+          .country-modal-scroll {
+            scrollbar-width: thin;
+            scrollbar-color: #94a3b8 #e2e8f0;
+          }
+          .country-modal-scroll::-webkit-scrollbar {
+            width: 10px;
+          }
+          .country-modal-scroll::-webkit-scrollbar-track {
+            background: #e2e8f0;
+            border-radius: 9999px;
+          }
+          .country-modal-scroll::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 9999px;
+            border: 2px solid #e2e8f0;
+          }
+          .country-modal-scroll::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
           }
         `}</style>
       </div>
