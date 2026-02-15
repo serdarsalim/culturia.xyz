@@ -6,18 +6,18 @@ import countries from '@/lib/countries';
 
 const geoUrl = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
 
-// Color palette for countries (no blue colors to avoid blending with ocean)
+// Professional, high-contrast map palette for country fills
 const COUNTRY_COLORS = [
-  '#FCA5A5', // red-300
-  '#FCD34D', // yellow-300
-  '#86EFAC', // green-300
-  '#C4B5FD', // violet-300
-  '#F9A8D4', // pink-300
-  '#FDBA74', // orange-300
-  '#6EE7B7', // emerald-300
-  '#D8B4FE', // purple-300
-  '#FDE047', // yellow-400
-  '#FB923C', // orange-400
+  '#ef4444', // red-500
+  '#f59e0b', // amber-500
+  '#22c55e', // green-500
+  '#3b82f6', // blue-500
+  '#a855f7', // purple-500
+  '#0ea5e9', // sky-500
+  '#14b8a6', // teal-500
+  '#f97316', // orange-500
+  '#e11d48', // rose-600
+  '#10b981', // emerald-500
 ];
 
 // Generate consistent color for a country based on its name
@@ -91,7 +91,7 @@ export default function WorldMap({ onCountryClick, selectedCountry, onBackground
   return (
     <div
       className="relative w-full h-full"
-      style={{ backgroundColor: '#475569' }} // Darker greyish-blue ocean (slate-600)
+      style={{ backgroundColor: '#cbd5e1' }} // Professional neutral sea
       onClick={onBackgroundClick}
     >
       {/* Tooltip */}
@@ -183,7 +183,7 @@ export default function WorldMap({ onCountryClick, selectedCountry, onBackground
 
                 const isSelected = selectedCountry === country?.code;
                 const hasVideos = country ? countriesWithVideos?.has(country.code) === true : false;
-                const countryColor = hasVideos ? getCountryColor(geoName) : '#9ca3af'; // slate-400 for no videos
+                const countryColor = hasVideos ? getCountryColor(geoName) : '#94a3b8'; // slate-400 for no posts
 
                 return (
                   <Geography
@@ -226,31 +226,31 @@ export default function WorldMap({ onCountryClick, selectedCountry, onBackground
                     style={{
                       default: {
                         fill: isSelected ? '#f59e0b' : countryColor,
-                        stroke: isSelected ? '#d97706' : '#fff',
-                        strokeWidth: isSelected ? 1.8 : 0.75,
+                        stroke: isSelected ? '#92400e' : '#e2e8f0',
+                        strokeWidth: isSelected ? 2 : 0.9,
                         outline: 'none',
                         transition: 'all 0.2s ease',
-                        opacity: hasVideos ? 1 : 0.6,
+                        opacity: hasVideos ? 1 : 0.72,
                         filter: 'none',
                       },
                       hover: {
                         fill: isSelected ? '#f59e0b' : countryColor,
-                        stroke: '#d97706',
-                        strokeWidth: 2,
+                        stroke: isSelected ? '#78350f' : '#cbd5e1',
+                        strokeWidth: isSelected ? 2.1 : 1.15,
                         outline: 'none',
                         cursor: 'pointer',
                         filter: isSelected
-                          ? 'brightness(0.95)'
-                          : hasVideos ? 'brightness(0.9)' : 'none',
+                          ? 'brightness(0.96)'
+                          : hasVideos ? 'brightness(0.96)' : 'brightness(0.985)',
                       },
                       pressed: {
                         fill: isSelected ? '#d97706' : countryColor,
-                        stroke: '#b45309',
-                        strokeWidth: 2,
+                        stroke: isSelected ? '#78350f' : '#94a3b8',
+                        strokeWidth: isSelected ? 2.2 : 1.2,
                         outline: 'none',
                         filter: isSelected
-                          ? 'brightness(0.9)'
-                          : hasVideos ? 'brightness(0.8)' : 'none',
+                          ? 'brightness(0.92)'
+                          : hasVideos ? 'brightness(0.93)' : 'brightness(0.97)',
                       },
                     }}
                   />

@@ -922,8 +922,8 @@ export default function Home() {
         boxShadow: activeCountryModal ? 'none' : '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
         flexShrink: 0,
         overflowY: 'auto',
-        backgroundColor: activeCountryModal ? 'transparent' : '#ffffff',
-        color: '#000000',
+        backgroundColor: activeCountryModal ? 'transparent' : '#1e293b',
+        color: '#cbd5e1',
         visibility: activeCountryModal ? 'hidden' : 'visible',
         pointerEvents: activeCountryModal ? 'none' : 'auto'
       }}>
@@ -960,7 +960,7 @@ export default function Home() {
                       fontWeight: 700,
                       letterSpacing: '-0.02em',
                       margin: 0,
-                      color: '#0f172a'
+                      color: '#f8fafc'
                     }}>
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                         <img src="/culturia.png" alt="Culturia logo" style={{ width: '22px', height: '22px', borderRadius: '5px' }} />
@@ -977,7 +977,7 @@ export default function Home() {
                             setShowAuthModal(true);
                           }}
                           style={{
-                            color: '#6b7280',
+                            color: '#94a3b8',
                             cursor: 'pointer',
                             border: 'none',
                             backgroundColor: 'transparent',
@@ -986,22 +986,22 @@ export default function Home() {
                             transition: 'color 0.2s'
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.color = '#000000';
+                            e.currentTarget.style.color = '#f8fafc';
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.color = '#6b7280';
+                            e.currentTarget.style.color = '#94a3b8';
                           }}
                         >
                           Sign Up
                         </button>
-                        <span style={{ color: '#d1d5db' }}>|</span>
+                        <span style={{ color: '#334155' }}>|</span>
                         <button
                           onClick={() => {
                             setAuthMode('login');
                             setShowAuthModal(true);
                           }}
                           style={{
-                            color: '#6b7280',
+                            color: '#94a3b8',
                             cursor: 'pointer',
                             border: 'none',
                             backgroundColor: 'transparent',
@@ -1010,10 +1010,10 @@ export default function Home() {
                             transition: 'color 0.2s'
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.color = '#000000';
+                            e.currentTarget.style.color = '#f8fafc';
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.color = '#6b7280';
+                            e.currentTarget.style.color = '#94a3b8';
                           }}
                         >
                           Log In
@@ -1027,7 +1027,7 @@ export default function Home() {
                             setShowProfileModal(true);
                           }}
                           style={{
-                            color: '#6b7280',
+                            color: '#94a3b8',
                             cursor: 'pointer',
                             border: 'none',
                             backgroundColor: 'transparent',
@@ -1037,23 +1037,23 @@ export default function Home() {
                             fontSize: '16px'
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.color = '#000000';
+                            e.currentTarget.style.color = '#f8fafc';
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.color = '#6b7280';
+                            e.currentTarget.style.color = '#94a3b8';
                           }}
                           title="Favorites"
                         >
                           ❤️
                         </button>
-                        <span style={{ color: '#d1d5db' }}>|</span>
+                        <span style={{ color: '#334155' }}>|</span>
                         <button
                           onClick={() => {
                             setProfileModalTab('submissions');
                             setShowProfileModal(true);
                           }}
                           style={{
-                            color: '#6b7280',
+                            color: '#94a3b8',
                             cursor: 'pointer',
                             border: 'none',
                             backgroundColor: 'transparent',
@@ -1063,23 +1063,23 @@ export default function Home() {
                             fontSize: '16px'
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.color = '#000000';
+                            e.currentTarget.style.color = '#f8fafc';
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.color = '#6b7280';
+                            e.currentTarget.style.color = '#94a3b8';
                           }}
                           title="My Submissions"
                         >
                           📤
                         </button>
-                        <span style={{ color: '#d1d5db' }}>|</span>
+                        <span style={{ color: '#334155' }}>|</span>
                         <button
                           onClick={() => {
                             setProfileModalTab('settings');
                             setShowProfileModal(true);
                           }}
                           style={{
-                            color: '#6b7280',
+                            color: '#94a3b8',
                             cursor: 'pointer',
                             border: 'none',
                             backgroundColor: 'transparent',
@@ -1089,10 +1089,10 @@ export default function Home() {
                             fontSize: '16px'
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.color = '#000000';
+                            e.currentTarget.style.color = '#f8fafc';
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.color = '#6b7280';
+                            e.currentTarget.style.color = '#94a3b8';
                           }}
                           title="Settings"
                         >
@@ -1121,7 +1121,7 @@ export default function Home() {
                       fontWeight: 700,
                       letterSpacing: '-0.02em',
                       margin: 0,
-                      color: '#0f172a'
+                      color: '#f8fafc'
                     }}>
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                         <img src="/culturia.png" alt="Culturia logo" style={{ width: '22px', height: '22px', borderRadius: '5px' }} />
@@ -1140,7 +1140,7 @@ export default function Home() {
                           setShowAuthModal(true);
                         }}
                         style={{
-                          color: '#6b7280',
+                          color: '#94a3b8',
                           cursor: 'pointer',
                           border: 'none',
                           backgroundColor: 'transparent',
@@ -1149,22 +1149,22 @@ export default function Home() {
                           transition: 'color 0.2s'
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.color = '#000000';
+                          e.currentTarget.style.color = '#f8fafc';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.color = '#6b7280';
+                          e.currentTarget.style.color = '#94a3b8';
                         }}
                       >
                         Sign Up
                       </button>
-                      <span style={{ color: '#d1d5db' }}>|</span>
+                      <span style={{ color: '#334155' }}>|</span>
                       <button
                         onClick={() => {
                           setAuthMode('login');
                           setShowAuthModal(true);
                         }}
                         style={{
-                          color: '#6b7280',
+                          color: '#94a3b8',
                           cursor: 'pointer',
                           border: 'none',
                           backgroundColor: 'transparent',
@@ -1173,10 +1173,10 @@ export default function Home() {
                           transition: 'color 0.2s'
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.color = '#000000';
+                          e.currentTarget.style.color = '#f8fafc';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.color = '#6b7280';
+                          e.currentTarget.style.color = '#94a3b8';
                         }}
                       >
                         Log In
@@ -1190,7 +1190,7 @@ export default function Home() {
                           setShowProfileModal(true);
                         }}
                         style={{
-                          color: '#6b7280',
+                          color: '#94a3b8',
                           cursor: 'pointer',
                           border: 'none',
                           backgroundColor: 'transparent',
@@ -1200,23 +1200,23 @@ export default function Home() {
                           fontSize: '18px'
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.color = '#000000';
+                          e.currentTarget.style.color = '#f8fafc';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.color = '#6b7280';
+                          e.currentTarget.style.color = '#94a3b8';
                         }}
                         title="Favorites"
                       >
                         ❤️
                       </button>
-                      <span style={{ color: '#d1d5db' }}>|</span>
+                      <span style={{ color: '#334155' }}>|</span>
                       <button
                         onClick={() => {
                           setProfileModalTab('submissions');
                           setShowProfileModal(true);
                         }}
                         style={{
-                          color: '#6b7280',
+                          color: '#94a3b8',
                           cursor: 'pointer',
                           border: 'none',
                           backgroundColor: 'transparent',
@@ -1226,23 +1226,23 @@ export default function Home() {
                           fontSize: '18px'
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.color = '#000000';
+                          e.currentTarget.style.color = '#f8fafc';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.color = '#6b7280';
+                          e.currentTarget.style.color = '#94a3b8';
                         }}
                         title="My Submissions"
                       >
                         📤
                       </button>
-                      <span style={{ color: '#d1d5db' }}>|</span>
+                      <span style={{ color: '#334155' }}>|</span>
                       <button
                         onClick={() => {
                           setProfileModalTab('settings');
                           setShowProfileModal(true);
                         }}
                         style={{
-                          color: '#6b7280',
+                          color: '#94a3b8',
                           cursor: 'pointer',
                           border: 'none',
                           backgroundColor: 'transparent',
@@ -1252,10 +1252,10 @@ export default function Home() {
                           fontSize: '18px'
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.color = '#000000';
+                          e.currentTarget.style.color = '#f8fafc';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.color = '#6b7280';
+                          e.currentTarget.style.color = '#94a3b8';
                         }}
                         title="Settings"
                       >
@@ -1278,14 +1278,14 @@ export default function Home() {
                 width: '100%',
                 marginTop: isMobile ? '12px' : '20px'
               }}>
-                <h2 style={{ fontSize: isMobile ? '16px' : '20px', fontWeight: 700, color: '#0f172a', margin: 0, textAlign: 'center' }}>
+                <h2 style={{ fontSize: isMobile ? '16px' : '20px', fontWeight: 700, color: '#f8fafc', margin: 0, textAlign: 'center' }}>
                   Top Posts
                 </h2>
                 {!entriesReady && (
-                  <div style={{ fontSize: '13px', color: '#64748b' }}>Loading...</div>
+                  <div style={{ fontSize: '13px', color: '#94a3b8' }}>Loading...</div>
                 )}
                 {entriesReady && topCountries.length === 0 && (
-                  <div style={{ fontSize: '13px', color: '#64748b' }}>No posts yet.</div>
+                  <div style={{ fontSize: '13px', color: '#94a3b8' }}>No posts yet.</div>
                 )}
                 <div
                   style={{
@@ -1307,8 +1307,8 @@ export default function Home() {
                         padding: isMobile ? '10px 12px' : '12px 14px',
                         borderRadius: '10px',
                         border: 'none',
-                        backgroundColor: '#f8fafc',
-                        color: '#0f172a',
+                        backgroundColor: '#334155',
+                        color: '#f8fafc',
                         cursor: 'pointer',
                         textAlign: 'left',
                       }}
@@ -1316,7 +1316,7 @@ export default function Home() {
                       <span style={{ fontSize: '14px', fontWeight: 600 }}>
                         {country.name}
                       </span>
-                      <span style={{ fontSize: '12px', color: '#64748b' }}>
+                      <span style={{ fontSize: '12px', color: '#94a3b8' }}>
                         {country.count} {country.count === 1 ? 'post' : 'posts'}
                       </span>
                     </button>
@@ -1344,7 +1344,7 @@ export default function Home() {
                     background: 'none',
                     border: 'none',
                     padding: 0,
-                    color: '#475569',
+                    color: '#cbd5e1',
                     cursor: 'pointer',
                     fontWeight: isAllPresenceFilter ? 700 : 500,
                     fontSize: '14px',
@@ -1352,7 +1352,7 @@ export default function Home() {
                 >
                   All ({presenceFilterCounts.all})
                 </button>
-                <span style={{ color: '#cbd5e1' }}>|</span>
+                <span style={{ color: '#334155' }}>|</span>
                 <button
                   type="button"
                   onClick={() => setEntryPresenceFilters((prev) => ({ ...prev, been: !prev.been }))}
@@ -1360,7 +1360,7 @@ export default function Home() {
                     background: 'none',
                     border: 'none',
                     padding: 0,
-                    color: '#475569',
+                    color: '#cbd5e1',
                     cursor: 'pointer',
                     fontWeight: entryPresenceFilters.been ? 700 : 500,
                     fontSize: '14px',
@@ -1368,7 +1368,7 @@ export default function Home() {
                 >
                   Been ({presenceFilterCounts.been})
                 </button>
-                <span style={{ color: '#cbd5e1' }}>|</span>
+                <span style={{ color: '#334155' }}>|</span>
                 <button
                   type="button"
                   onClick={() => setEntryPresenceFilters((prev) => ({ ...prev, lived: !prev.lived }))}
@@ -1376,7 +1376,7 @@ export default function Home() {
                     background: 'none',
                     border: 'none',
                     padding: 0,
-                    color: '#475569',
+                    color: '#cbd5e1',
                     cursor: 'pointer',
                     fontWeight: entryPresenceFilters.lived ? 700 : 500,
                     fontSize: '14px',
@@ -1389,7 +1389,7 @@ export default function Home() {
               {user && (
                 <div style={{
                   fontSize: '11px',
-                  color: '#6b7280',
+                  color: '#94a3b8',
                   textAlign: 'center',
                   marginTop: '0',
                   marginBottom: '8px',
@@ -1403,7 +1403,7 @@ export default function Home() {
                   <span style={{ textTransform: 'uppercase', letterSpacing: '0.08em', fontSize: '10px', color: '#94a3b8' }}>
                     Signed in as:
                   </span>
-                  <span style={{ fontWeight: 600, color: '#0f172a', fontSize: '12px' }}>
+                  <span style={{ fontWeight: 600, color: '#f8fafc', fontSize: '12px' }}>
                     {identityDisplay}
                   </span>
                 </div>
@@ -1414,38 +1414,38 @@ export default function Home() {
                 <a
                   href="/terms"
                   style={{
-                    color: '#6b7280',
+                    color: '#94a3b8',
                     textDecoration: 'none',
                     transition: 'color 0.2s'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = '#000000'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = '#6b7280'}
+                  onMouseEnter={(e) => e.currentTarget.style.color = '#f8fafc'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = '#94a3b8'}
                 >
                   Terms
                 </a>
-                <span style={{ color: '#d1d5db' }}>|</span>
+                <span style={{ color: '#334155' }}>|</span>
                 <a
                   href="/privacy"
                   style={{
-                    color: '#6b7280',
+                    color: '#94a3b8',
                     textDecoration: 'none',
                     transition: 'color 0.2s'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = '#000000'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = '#6b7280'}
+                  onMouseEnter={(e) => e.currentTarget.style.color = '#f8fafc'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = '#94a3b8'}
                 >
                   Privacy
                 </a>
-                <span style={{ color: '#d1d5db' }}>|</span>
+                <span style={{ color: '#334155' }}>|</span>
                 <a
                   href="#"
                   style={{
-                    color: '#6b7280',
+                    color: '#94a3b8',
                     textDecoration: 'none',
                     transition: 'color 0.2s'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = '#000000'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = '#6b7280'}
+                  onMouseEnter={(e) => e.currentTarget.style.color = '#f8fafc'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = '#94a3b8'}
                 >
                   About
                 </a>
