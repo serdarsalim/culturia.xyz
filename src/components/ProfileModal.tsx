@@ -616,7 +616,7 @@ export default function ProfileModal({
               flex: isMobile ? 1 : 'initial'
             }}
           >
-            {isMobile ? '📤' : '📤 Submissions'}
+            {isMobile ? '📤' : '📤 My Submissions'}
           </button>
           <button
             onClick={() => setActiveTab('settings')}

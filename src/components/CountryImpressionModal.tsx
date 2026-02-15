@@ -57,7 +57,7 @@ export default function CountryImpressionModal({
 }: CountryImpressionModalProps) {
   const [isMobile, setIsMobile] = useState(false);
   const [content, setContent] = useState('');
-  const [isEntryMode, setIsEntryMode] = useState(false);
+  const [isEntryMode, setIsEntryMode] = useState(entries.length === 0);
   const [pros, setPros] = useState<string[]>([]);
   const [cons, setCons] = useState<string[]>([]);
   const [prosInput, setProsInput] = useState('');
