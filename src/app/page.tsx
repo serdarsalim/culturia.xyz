@@ -100,12 +100,17 @@ export default function Home() {
       return filteredEntries;
     }
 
+    if (!user?.id) {
+      return [];
+    }
+
     return filteredEntries.filter((entry) => {
+      if (entry.user_id !== user.id) return false;
       const matchesBeen = entryPresenceFilters.been && !!entry.been_there;
       const matchesLived = entryPresenceFilters.lived && !!entry.lived_there;
       return matchesBeen || matchesLived;
     });
-  }, [filteredEntries, entryPresenceFilters]);
+  }, [filteredEntries, entryPresenceFilters, user?.id]);
 
   // Set of countries highlighted on map based on post source filter
   const countriesWithVideos = useMemo(() => {
@@ -864,23 +869,15 @@ export default function Home() {
     });
   }
 
-  const sanitizedUsername = userProfile?.username ? userProfile.username.replace(/^@/, '').trim() : '';
-  const primaryIdentity =
-    userProfile?.display_name?.trim() ||
-    sanitizedUsername ||
-    (user?.email ? user.email.split('@')[0] : 'Explorer');
-  const secondaryIdentity = sanitizedUsername ? `@${sanitizedUsername}` : (user?.email || '');
-
-  const identityDisplay = secondaryIdentity && secondaryIdentity !== primaryIdentity
-    ? `${primaryIdentity} • ${secondaryIdentity}`
-    : primaryIdentity;
+  const identityDisplay = userProfile?.display_name?.trim() || 'Explorer';
   const isAllPresenceFilter = !entryPresenceFilters.been && !entryPresenceFilters.lived;
   const presenceFilterCounts = useMemo(() => {
+    const myEntries = user?.id ? filteredEntries.filter((entry) => entry.user_id === user.id) : [];
     const allCountries = new Set<string>();
     const beenCountries = new Set<string>();
     const livedCountries = new Set<string>();
 
-    for (const entry of filteredEntries) {
+    for (const entry of myEntries) {
       if (!entry.country_code) continue;
       allCountries.add(entry.country_code);
       if (entry.been_there) beenCountries.add(entry.country_code);
@@ -892,7 +889,7 @@ export default function Home() {
       been: beenCountries.size,
       lived: livedCountries.size,
     };
-  }, [filteredEntries]);
+  }, [filteredEntries, user?.id]);
 
   const hideSidebarOnMobileList = isMobile && viewMode === 'list';
   const topCountries = useMemo(() => {
