@@ -65,9 +65,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const privateIds = new Set((privateProfilesResult.data || []).map((profile) => profile.id));
     const publicEntries = (entriesResult.data || []).filter((entry) => !privateIds.has(entry.user_id));
 
-    if (publicEntries.length === 0) {
-      return staticPages;
-    }
+    if (publicEntries.length === 0) return staticPages;
 
     const latestUpdated = publicEntries
       .map((entry) => new Date(entry.updated_at || entry.created_at))
@@ -78,16 +76,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: latestUpdated,
     };
 
-    const countries = Array.from(new Set(publicEntries.map((entry) => entry.country_code).filter(Boolean))).sort();
-
-    const countryPages: MetadataRoute.Sitemap = countries.map((countryCode) => ({
-      url: `${baseUrl}/?country=${countryCode}`,
-      lastModified: latestUpdated,
-      changeFrequency: "weekly",
-      priority: 0.6,
-    }));
-
-    return [...staticPages, ...countryPages];
+    // Keep sitemap canonical-only. Query-param URLs like /?country=XXX are
+    // better discovered through internal links and can cause crawler issues.
+    return staticPages;
   } catch {
     return staticPages;
   }
