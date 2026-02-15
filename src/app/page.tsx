@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { supabase } from '@/lib/supabase/client';
+import { getCountryName } from '@/lib/countries';
 import WorldMap from '@/components/WorldMap';
 import CountrySidebar from '@/components/CountrySidebar';
 import VideoPlayer from '@/components/VideoPlayer';
@@ -11,15 +12,7 @@ import AddVideoModal from '@/components/AddVideoModal';
 import ProfileModal from '@/components/ProfileModal';
 import CategoryPicker from '@/components/CategoryPicker';
 import ListView from '@/components/ListView';
-import { VISIBLE_CATEGORIES, CATEGORY_LABELS, type VideoSubmission, type VideoCategory } from '@/types';
-
-const CATEGORY_ICON_MAP: Record<VideoCategory, string> = {
-  inspiration: '💡',
-  music: '🎵',
-  comedy: '😄',
-  daily_life: '📹',
-  talks: '🎤',
-};
+import { VISIBLE_CATEGORIES, type VideoSubmission, type VideoCategory, type CountryEntry } from '@/types';
 
 export default function Home() {
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
@@ -42,6 +35,8 @@ export default function Home() {
     favorites: Array<{ video: VideoSubmission; category: VideoCategory }>;
     submissions: VideoSubmission[];
   } | null>(null);
+  const [countryEntries, setCountryEntries] = useState<CountryEntry[]>([]);
+  const [entriesReady, setEntriesReady] = useState(false);
   const [videoCache, setVideoCache] = useState<VideoSubmission[]>([]);
   const [videoCacheReady, setVideoCacheReady] = useState(false);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
@@ -76,32 +71,14 @@ export default function Home() {
   const [showAboutModal, setShowAboutModal] = useState(false);
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
 
-  // Set of countries that currently have at least one approved video
+  // Set of countries that currently have at least one text entry
   const countriesWithVideos = useMemo(() => {
     const set = new Set<string>();
-
-    // If "My submissions" is enabled, show ONLY user's submissions
-    if (mapSources.mine && profileData) {
-      for (const sub of profileData.submissions) {
-        if (sub.country_code) set.add(sub.country_code);
-      }
-      return set; // Return early, ignore other sources
+    for (const entry of countryEntries) {
+      if (entry.country_code) set.add(entry.country_code);
     }
-
-    // Otherwise combine "All videos" and "My favorites"
-    if (mapSources.all && videoCacheReady) {
-      for (const v of videoCache) {
-        if (v.country_code) set.add(v.country_code);
-      }
-    }
-    if (mapSources.favorites && profileData) {
-      for (const fav of profileData.favorites) {
-        if (fav.video?.country_code) set.add(fav.video.country_code);
-      }
-    }
-
     return set;
-  }, [mapSources, videoCache, videoCacheReady, profileData]);
+  }, [countryEntries]);
 
   // Detect mobile screen size
   useEffect(() => {
@@ -297,6 +274,23 @@ export default function Home() {
     return counts;
   }
 
+  async function refreshCountryEntries() {
+    try {
+      const { data, error } = await supabase
+        .from('country_entries')
+        .select('*')
+        .order('updated_at', { ascending: false });
+
+      if (error) throw error;
+
+      setCountryEntries((data || []) as CountryEntry[]);
+      setEntriesReady(true);
+    } catch (error) {
+      console.error('Error refreshing country entries:', error);
+      setEntriesReady(true);
+    }
+  }
+
   // Fetch and cache ALL approved videos
   async function refreshVideoCache() {
     try {
@@ -409,6 +403,29 @@ export default function Home() {
     refreshVideoCache();
   }, [user?.id]);
 
+  useEffect(() => {
+    refreshCountryEntries();
+
+    const subscription = supabase
+      .channel('country_entries_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'country_entries',
+        },
+        () => {
+          refreshCountryEntries();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
   function handleCountryClick(countryCode: string) {
     setCurrentVideo(null);
     setSelectedCountry(null);
@@ -442,17 +459,47 @@ export default function Home() {
     setActiveCountryModal(null);
   }
 
-  function getCountryRecentPosts(countryCode: string): string[] {
-    return videoCache
-      .filter((video) => video.country_code === countryCode)
-      .slice(0, 5)
-      .map((video) => {
-        const title = video.title?.trim();
-        if (title && title.length > 0) {
-          return title.length > 170 ? `${title.slice(0, 167)}...` : title;
-        }
-        return 'Untitled post';
-      });
+  function getCountryEntries(countryCode: string): CountryEntry[] {
+    return countryEntries.filter((entry) => entry.country_code === countryCode);
+  }
+
+  async function handleSaveCountryEntry(payload: {
+    countryCode: string;
+    content: string;
+    pros: string[];
+    cons: string[];
+    beenThere: boolean;
+  }): Promise<boolean> {
+    if (!user?.id) {
+      return false;
+    }
+
+    try {
+      const { error } = await supabase.from('country_entries').upsert(
+        {
+          user_id: user.id,
+          country_code: payload.countryCode,
+          content: payload.content,
+          pros: payload.pros,
+          cons: payload.cons,
+          been_there: payload.beenThere,
+        },
+        { onConflict: 'user_id,country_code' }
+      );
+
+      if (error) throw error;
+
+      await refreshCountryEntries();
+      return true;
+    } catch (error) {
+      console.error('Error saving country entry:', error);
+      return false;
+    }
+  }
+
+  function handleRequireAuthForEntry() {
+    setAuthMode('login');
+    setShowAuthModal(true);
   }
 
   function handleOpenSubmitFromPlayer(countryCode: string, category: VideoCategory) {
@@ -563,10 +610,6 @@ export default function Home() {
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
     }
-  }
-
-  function handleGlobalCategoryClick(category: VideoCategory) {
-    handleCategoryFilterToggle(category);
   }
 
   function handleSubmitClick() {
@@ -682,6 +725,27 @@ export default function Home() {
     : primaryIdentity;
 
   const hideSidebarOnMobileList = isMobile && viewMode === 'list';
+  const topCountries = useMemo(() => {
+    if (!entriesReady || countryEntries.length === 0) return [];
+
+    const counts = new Map<string, number>();
+    for (const entry of countryEntries) {
+      if (!entry.country_code) continue;
+      counts.set(entry.country_code, (counts.get(entry.country_code) || 0) + 1);
+    }
+
+    return Array.from(counts.entries())
+      .map(([code, count]) => ({
+        code,
+        count,
+        name: getCountryName(code),
+      }))
+      .sort((a, b) => {
+        if (b.count !== a.count) return b.count - a.count;
+        return a.name.localeCompare(b.name);
+      })
+      .slice(0, 5);
+  }, [countryEntries, entriesReady]);
 
   return (
     <div className="home-layout h-screen overflow-hidden">
@@ -1013,77 +1077,51 @@ export default function Home() {
 
             {/* Main Content */}
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '20px', paddingTop: isMobile ? '0px' : '48px' }}>
-              {!isMobile && (
-                <button
-                  onClick={() => setShowAboutModal(true)}
-                  style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left', cursor: 'pointer' }}
-                >
-                  <h1 style={{
-                    fontSize: '32px',
-                    fontWeight: 700,
-                    marginBottom: '6px',
-                    letterSpacing: '-0.02em',
-                    background: 'linear-gradient(120deg, #f97316, #fb923c)',
-                    WebkitBackgroundClip: 'text',
-                    color: 'transparent'
-                  }}>
-                    🌍 CULTURIA
-                  </h1>
-                  <p style={{ fontSize: '13px', color: '#6b7280' }}>Native-language content from every country</p>
-                </button>
-              )}
-
               <div style={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: isMobile ? '10px' : '12px',
-                alignItems: 'center',
-                padding: isMobile ? '0 16px' : 0,
+                gap: '10px',
+                alignItems: 'stretch',
+                padding: isMobile ? '0 12px' : 0,
                 width: '100%',
                 marginTop: isMobile ? '12px' : '20px'
               }}>
-                {VISIBLE_CATEGORIES.map((key) => {
-                  const icon = CATEGORY_ICON_MAP[key];
-                  const label = CATEGORY_LABELS[key];
-                  const isSelected = selectedCategoryFilter === key;
-                  return (
+                <h2 style={{ fontSize: isMobile ? '16px' : '20px', fontWeight: 700, color: '#0f172a', margin: 0, textAlign: 'center' }}>
+                  Top Entries
+                </h2>
+                {!entriesReady && (
+                  <div style={{ fontSize: '13px', color: '#64748b' }}>Loading...</div>
+                )}
+                {entriesReady && topCountries.length === 0 && (
+                  <div style={{ fontSize: '13px', color: '#64748b' }}>No entries yet.</div>
+                )}
+                {topCountries.map((country, idx) => (
                   <button
-                    key={key}
-                    onClick={() => handleGlobalCategoryClick(key)}
+                    key={country.code}
+                    onClick={() => handleCountryClick(country.code)}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '12px',
-                      padding: isMobile ? '6px 18px' : '14px 24px',
-                      borderRadius: '6px',
-                      border: isSelected ? '2px solid #f97316' : '2px solid transparent',
-                      background: isSelected
-                        ? 'linear-gradient(135deg, #f97316, #fb923c)'
-                        : '#f3f4f6',
+                      justifyContent: 'space-between',
+                      width: '100%',
+                      padding: isMobile ? '10px 12px' : '12px 14px',
+                      borderRadius: '10px',
+                      border: 'none',
+                      backgroundColor: '#f8fafc',
+                      color: '#0f172a',
                       cursor: 'pointer',
-                      textAlign: 'center',
-                      boxShadow: isSelected ? '0 4px 14px rgba(249, 115, 22, 0.25)' : 'none',
-                      transition: 'all 0.2s ease',
-                      width: isMobile ? '100%' : '200px'
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isSelected) {
-                        e.currentTarget.style.background = '#e5e7eb';
-                        e.currentTarget.style.borderColor = '#d1d5db';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isSelected) {
-                        e.currentTarget.style.background = '#f3f4f6';
-                        e.currentTarget.style.borderColor = 'transparent';
-                      }
+                      textAlign: 'left',
+                      marginTop: idx === 0 ? '8px' : 0
                     }}
                   >
-                    <span style={{ fontSize: '20px' }}>{icon}</span>
-                    <span style={{ fontSize: '14px', fontWeight: 600, color: isSelected ? '#ffffff' : '#0f172a' }}>{label}</span>
+                    <span style={{ fontSize: '14px', fontWeight: 600 }}>
+                      {idx + 1}. {country.name}
+                    </span>
+                    <span style={{ fontSize: '12px', color: '#64748b' }}>
+                      {country.count} {country.count === 1 ? 'post' : 'posts'}
+                    </span>
                   </button>
-                )})}
+                ))}
               </div>
             </div>
 
@@ -1251,8 +1289,11 @@ export default function Home() {
         <CountryImpressionModal
           key={activeCountryModal}
           countryCode={activeCountryModal}
-          recentPosts={getCountryRecentPosts(activeCountryModal)}
+          entries={getCountryEntries(activeCountryModal)}
+          currentUserId={user?.id ?? null}
           onClose={handleCloseCountryModal}
+          onRequireAuth={handleRequireAuthForEntry}
+          onSaveEntry={handleSaveCountryEntry}
         />
       )}
 

@@ -1,12 +1,22 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { getCountryFlag, getCountryName } from '@/lib/countries';
+import { type CountryEntry } from '@/types';
 
 interface CountryImpressionModalProps {
   countryCode: string;
-  recentPosts: string[];
+  entries: CountryEntry[];
+  currentUserId: string | null;
   onClose: () => void;
+  onRequireAuth: () => void;
+  onSaveEntry: (payload: {
+    countryCode: string;
+    content: string;
+    pros: string[];
+    cons: string[];
+    beenThere: boolean;
+  }) => Promise<boolean>;
 }
 
 function countWords(label: string): number {
@@ -28,18 +38,37 @@ function toLabelCase(label: string): string {
     .join(' ');
 }
 
-export default function CountryImpressionModal({ countryCode, recentPosts, onClose }: CountryImpressionModalProps) {
+export default function CountryImpressionModal({
+  countryCode,
+  entries,
+  currentUserId,
+  onClose,
+  onRequireAuth,
+  onSaveEntry,
+}: CountryImpressionModalProps) {
   const [isMobile, setIsMobile] = useState(false);
-  const [impression, setImpression] = useState('');
+  const [content, setContent] = useState('');
   const [isEntryMode, setIsEntryMode] = useState(false);
   const [pros, setPros] = useState<string[]>([]);
   const [cons, setCons] = useState<string[]>([]);
   const [prosInput, setProsInput] = useState('');
   const [consInput, setConsInput] = useState('');
   const [beenThere, setBeenThere] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const countryName = getCountryName(countryCode);
   const flag = getCountryFlag(countryCode);
+
+  const existingUserEntry = useMemo(
+    () => (currentUserId ? entries.find((entry) => entry.user_id === currentUserId) || null : null),
+    [entries, currentUserId]
+  );
+
+  const sortedEntries = useMemo(
+    () => [...entries].sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()),
+    [entries]
+  );
 
   useEffect(() => {
     const checkMobile = () => {
@@ -68,9 +97,7 @@ export default function CountryImpressionModal({ countryCode, recentPosts, onClo
   }, []);
 
   function addTokenizedLabels(raw: string, kind: 'pros' | 'cons') {
-    if (!raw.includes(',')) {
-      return;
-    }
+    if (!raw.includes(',')) return;
 
     const parts = raw.split(',');
     const pending = parts.pop() ?? '';
@@ -144,19 +171,68 @@ export default function CountryImpressionModal({ countryCode, recentPosts, onClo
     setConsInput('');
   }
 
-  function resetEntryFields() {
-    setImpression('');
-    setPros([]);
-    setCons([]);
+  function resetToExisting() {
+    if (existingUserEntry) {
+      setContent(existingUserEntry.content || '');
+      setPros(existingUserEntry.pros || []);
+      setCons(existingUserEntry.cons || []);
+      setBeenThere(!!existingUserEntry.been_there);
+    } else {
+      setContent('');
+      setPros([]);
+      setCons([]);
+      setBeenThere(false);
+    }
     setProsInput('');
     setConsInput('');
-    setBeenThere(false);
+    setFormError(null);
   }
 
-  function handleCancelEntry() {
-    resetEntryFields();
-    setIsEntryMode(false);
+  function handleToggleEntryMode() {
+    if (!currentUserId) {
+      onRequireAuth();
+      return;
+    }
+
+    setIsEntryMode((prev) => {
+      const next = !prev;
+      resetToExisting();
+      return next;
+    });
   }
+
+  async function handleSave() {
+    if (!currentUserId) {
+      onRequireAuth();
+      return;
+    }
+
+    const trimmed = content.trim();
+    if (!trimmed) {
+      setFormError('Entry cannot be empty.');
+      return;
+    }
+
+    setIsSaving(true);
+    setFormError(null);
+
+    const ok = await onSaveEntry({
+      countryCode,
+      content: trimmed,
+      pros,
+      cons,
+      beenThere,
+    });
+
+    setIsSaving(false);
+    if (ok) {
+      setIsEntryMode(false);
+    } else {
+      setFormError('Could not save entry. Please try again.');
+    }
+  }
+
+  const entryActionLabel = isEntryMode ? '(close entry)' : existingUserEntry ? '(edit entry)' : '(add entry)';
 
   return (
     <div
@@ -243,7 +319,7 @@ export default function CountryImpressionModal({ countryCode, recentPosts, onClo
               {countryName}
               <button
                 type="button"
-                onClick={() => setIsEntryMode((prev) => !prev)}
+                onClick={handleToggleEntryMode}
                 style={{
                   border: 'none',
                   background: 'transparent',
@@ -254,7 +330,7 @@ export default function CountryImpressionModal({ countryCode, recentPosts, onClo
                   cursor: 'pointer'
                 }}
               >
-                {isEntryMode ? '(close entry)' : '(add entry)'}
+                {entryActionLabel}
               </button>
             </div>
           </div>
@@ -262,10 +338,10 @@ export default function CountryImpressionModal({ countryCode, recentPosts, onClo
           {!isEntryMode && (
             <section style={{ marginBottom: '24px' }}>
               <div style={{ display: 'grid', gap: '10px' }}>
-                {recentPosts.length > 0 ? (
-                  recentPosts.map((post, idx) => (
+                {sortedEntries.length > 0 ? (
+                  sortedEntries.map((entry) => (
                     <div
-                      key={`${post.slice(0, 20)}-${idx}`}
+                      key={entry.id}
                       style={{
                         border: '1px solid #e2e8f0',
                         borderRadius: '10px',
@@ -273,14 +349,15 @@ export default function CountryImpressionModal({ countryCode, recentPosts, onClo
                         backgroundColor: '#f8fafc',
                         color: '#0f172a',
                         lineHeight: 1.4,
-                        fontSize: '14px'
+                        fontSize: '14px',
+                        whiteSpace: 'pre-wrap'
                       }}
                     >
-                      {post}
+                      {entry.content}
                     </div>
                   ))
                 ) : (
-                  <div style={{ color: '#94a3b8', fontSize: '14px' }}>No posts yet. Be the first to add one.</div>
+                  <div style={{ color: '#94a3b8', fontSize: '14px' }}>No entries yet. Be the first to add one.</div>
                 )}
               </div>
             </section>
@@ -290,8 +367,8 @@ export default function CountryImpressionModal({ countryCode, recentPosts, onClo
             {isEntryMode && (
               <div>
                 <textarea
-                  value={impression}
-                  onChange={(event) => setImpression(event.target.value.slice(0, 1000))}
+                  value={content}
+                  onChange={(event) => setContent(event.target.value.slice(0, 1000))}
                   placeholder="Write your impression..."
                   style={{
                     width: '100%',
@@ -306,7 +383,7 @@ export default function CountryImpressionModal({ countryCode, recentPosts, onClo
                     resize: 'vertical'
                   }}
                 />
-                <div style={{ marginTop: '8px', color: '#94a3b8', fontSize: '12px' }}>{impression.length}/1000</div>
+                <div style={{ marginTop: '8px', color: '#94a3b8', fontSize: '12px' }}>{content.length}/1000</div>
 
                 <div
                   style={{
@@ -439,10 +516,14 @@ export default function CountryImpressionModal({ countryCode, recentPosts, onClo
                   </label>
                 </section>
 
+                {formError && (
+                  <div style={{ marginTop: '10px', color: '#b91c1c', fontSize: '13px' }}>{formError}</div>
+                )}
+
                 <div style={{ marginTop: '18px', display: 'flex', justifyContent: 'flex-end' }}>
                   <button
                     type="button"
-                    onClick={handleCancelEntry}
+                    onClick={handleToggleEntryMode}
                     style={{
                       height: '40px',
                       borderRadius: '999px',
@@ -455,11 +536,13 @@ export default function CountryImpressionModal({ countryCode, recentPosts, onClo
                       cursor: 'pointer',
                       marginRight: '8px'
                     }}
+                    disabled={isSaving}
                   >
                     Cancel
                   </button>
                   <button
                     type="button"
+                    onClick={handleSave}
                     style={{
                       height: '40px',
                       borderRadius: '999px',
@@ -469,10 +552,12 @@ export default function CountryImpressionModal({ countryCode, recentPosts, onClo
                       padding: '0 16px',
                       fontSize: '14px',
                       fontWeight: 600,
-                      cursor: 'pointer'
+                      cursor: 'pointer',
+                      opacity: isSaving ? 0.65 : 1
                     }}
+                    disabled={isSaving}
                   >
-                    Save post
+                    {isSaving ? 'Saving...' : 'Save post'}
                   </button>
                 </div>
               </div>

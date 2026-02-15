@@ -54,6 +54,18 @@ export interface VideoComment {
 // Legacy type alias for backwards compatibility during migration
 export type CountryComment = VideoComment;
 
+export interface CountryEntry {
+  id: string;
+  user_id: string;
+  country_code: string;
+  content: string;
+  pros: string[];
+  cons: string[];
+  been_there: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export const CATEGORY_LABELS: Record<VideoCategory, string> = {
   inspiration: 'Inspiration',
   music: 'Music',
