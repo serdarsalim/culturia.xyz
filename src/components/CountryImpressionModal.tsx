@@ -164,7 +164,7 @@ export default function CountryImpressionModal({ countryCode, recentPosts, onClo
         position: 'fixed',
         inset: 0,
         zIndex: 120,
-        backgroundColor: 'rgba(15, 23, 42, 0.35)',
+        backgroundColor: '#334155',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -243,7 +243,7 @@ export default function CountryImpressionModal({ countryCode, recentPosts, onClo
               {countryName}
               <button
                 type="button"
-                onClick={() => setIsEntryMode(true)}
+                onClick={() => setIsEntryMode((prev) => !prev)}
                 style={{
                   border: 'none',
                   background: 'transparent',
@@ -254,7 +254,7 @@ export default function CountryImpressionModal({ countryCode, recentPosts, onClo
                   cursor: 'pointer'
                 }}
               >
-                (add entry)
+                {isEntryMode ? '(close entry)' : '(add entry)'}
               </button>
             </div>
           </div>

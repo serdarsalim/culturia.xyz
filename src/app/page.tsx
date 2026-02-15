@@ -686,13 +686,15 @@ export default function Home() {
   return (
     <div className="home-layout h-screen overflow-hidden">
       {/* Sidebar - bottom on mobile, left on desktop */}
-      {!hideSidebarOnMobileList && !activeCountryModal && (
+      {!hideSidebarOnMobileList && (
       <div className="home-sidebar" style={{
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+        boxShadow: activeCountryModal ? 'none' : '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
         flexShrink: 0,
         overflowY: 'auto',
-        backgroundColor: '#ffffff',
-        color: '#000000'
+        backgroundColor: activeCountryModal ? 'transparent' : '#ffffff',
+        color: '#000000',
+        visibility: activeCountryModal ? 'hidden' : 'visible',
+        pointerEvents: activeCountryModal ? 'none' : 'auto'
       }}>
         {selectedCountry && !showSubmissionForm ? (
           <CountrySidebar
@@ -1109,28 +1111,6 @@ export default function Home() {
                   </span>
                 </div>
               )}
-
-              {/* List View Toggle - Centered and above other links */}
-              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
-                <button
-                  onClick={() => setViewMode(viewMode === 'map' ? 'list' : 'map')}
-                  style={{
-                    color: '#6b7280',
-                    textDecoration: 'none',
-                    transition: 'color 0.2s',
-                    border: 'none',
-                    background: 'transparent',
-                    cursor: 'pointer',
-                    padding: 0,
-                    fontSize: '13px',
-                    fontWeight: 500
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = '#000000'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = '#6b7280'}
-                >
-                  {viewMode === 'map' ? '📋 List View' : '🗺️ Map View'}
-                </button>
-              </div>
 
               {/* Terms/Privacy/About - Centered */}
               <div style={{ display: 'flex', gap: '16px', fontSize: '12px', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }}>
