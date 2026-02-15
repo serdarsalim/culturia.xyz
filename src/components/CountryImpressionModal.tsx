@@ -350,14 +350,14 @@ export default function CountryImpressionModal({
             flex: 1,
             overflowY: 'auto',
             paddingTop: isMobile ? '64px' : '56px',
-            paddingLeft: isMobile ? '24px' : '56px',
-            paddingRight: isMobile ? '24px' : '56px',
+            paddingLeft: isMobile ? '24px' : '120px',
+            paddingRight: isMobile ? '24px' : '120px',
             paddingBottom: isMobile ? '16px' : '28px',
             color: '#0f172a',
             fontFamily: "'Manrope', 'Avenir Next', 'Segoe UI', sans-serif"
           }}
         >
-          <div style={{ marginBottom: '24px' }}>
+          <div style={{ marginBottom: '24px', maxWidth: '650px', width: '100%' }}>
             <div
               style={{
                 fontSize: isMobile ? '24px' : '30px',
@@ -390,8 +390,8 @@ export default function CountryImpressionModal({
           </div>
 
           {!isEntryMode && (
-            <section style={{ marginBottom: '24px' }}>
-              {(topPros.length > 0 || topCons.length > 0) && (
+            <section style={{ marginBottom: '24px', maxWidth: '650px', width: '100%' }}>
+              {sortedEntries.length >= 5 && (topPros.length > 0 || topCons.length > 0) && (
                 <div
                   style={{
                     marginBottom: '14px',
@@ -443,15 +443,17 @@ export default function CountryImpressionModal({
                         padding: 0,
                         color: '#0f172a',
                         lineHeight: 1.45,
-                        fontSize: '14px',
+                        fontSize: '16px',
                         whiteSpace: 'pre-wrap'
                       }}
                     >
                       <div style={{ width: '100%', maxWidth: '650px' }}>
                         <div
                           style={{
-                            maxHeight: expandedEntries.has(entry.id) ? 'none' : '240px',
-                            overflow: expandedEntries.has(entry.id) ? 'visible' : 'hidden'
+                            overflow: expandedEntries.has(entry.id) ? 'visible' : 'hidden',
+                            display: expandedEntries.has(entry.id) ? 'block' : '-webkit-box',
+                            WebkitLineClamp: expandedEntries.has(entry.id) ? 'unset' : 10,
+                            WebkitBoxOrient: expandedEntries.has(entry.id) ? 'unset' : 'vertical'
                           }}
                         >
                           {entry.content}
@@ -486,12 +488,12 @@ export default function CountryImpressionModal({
                             <div style={{ minHeight: '20px' }}>
                               {entry.pros?.length > 0 && (
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
-                                  <span style={{ fontSize: '12px', color: '#166534', fontWeight: 700 }}>Pros:</span>
+                                  <span style={{ fontSize: '12px', color: '#0f172a', fontWeight: 700 }}>Pros:</span>
                                   {entry.pros.map((label) => (
                                     <span
                                       key={`${entry.id}-pro-${label}`}
                                       style={{
-                                        color: '#166534',
+                                        color: '#0f172a',
                                         fontSize: '11px',
                                       }}
                                     >
@@ -504,12 +506,12 @@ export default function CountryImpressionModal({
                             <div style={{ minHeight: '20px' }}>
                               {entry.cons?.length > 0 && (
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
-                                  <span style={{ fontSize: '12px', color: '#991b1b', fontWeight: 700 }}>Cons:</span>
+                                  <span style={{ fontSize: '12px', color: '#0f172a', fontWeight: 700 }}>Cons:</span>
                                   {entry.cons.map((label) => (
                                     <span
                                       key={`${entry.id}-con-${label}`}
                                       style={{
-                                        color: '#991b1b',
+                                        color: '#0f172a',
                                         fontSize: '11px',
                                       }}
                                     >
