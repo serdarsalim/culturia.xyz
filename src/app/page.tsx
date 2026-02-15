@@ -36,6 +36,7 @@ export default function Home() {
     submissions: VideoSubmission[];
   } | null>(null);
   const [countryEntries, setCountryEntries] = useState<CountryEntry[]>([]);
+  const [entryAuthorNames, setEntryAuthorNames] = useState<Record<string, string>>({});
   const [entriesReady, setEntriesReady] = useState(false);
   const [videoCache, setVideoCache] = useState<VideoSubmission[]>([]);
   const [videoCacheReady, setVideoCacheReady] = useState(false);
@@ -283,7 +284,32 @@ export default function Home() {
 
       if (error) throw error;
 
-      setCountryEntries((data || []) as CountryEntry[]);
+      const entries = (data || []) as CountryEntry[];
+      setCountryEntries(entries);
+
+      const userIds = Array.from(new Set(entries.map((entry) => entry.user_id).filter(Boolean)));
+      if (userIds.length > 0) {
+        const { data: profiles, error: profileError } = await supabase
+          .from('user_profiles')
+          .select('id, username, display_name')
+          .in('id', userIds);
+
+        if (profileError) {
+          console.error('Error loading entry author names:', profileError);
+          setEntryAuthorNames({});
+        } else {
+          const names: Record<string, string> = {};
+          for (const profile of profiles || []) {
+            const username = profile.username?.replace(/^@/, '').trim();
+            const displayName = profile.display_name?.trim();
+            names[profile.id] = displayName || (username ? `@${username}` : '');
+          }
+          setEntryAuthorNames(names);
+        }
+      } else {
+        setEntryAuthorNames({});
+      }
+
       setEntriesReady(true);
     } catch (error) {
       console.error('Error refreshing country entries:', error);
@@ -1290,6 +1316,7 @@ export default function Home() {
           key={activeCountryModal}
           countryCode={activeCountryModal}
           entries={getCountryEntries(activeCountryModal)}
+          authorNames={entryAuthorNames}
           currentUserId={user?.id ?? null}
           onClose={handleCloseCountryModal}
           onRequireAuth={handleRequireAuthForEntry}

@@ -7,6 +7,7 @@ import { type CountryEntry } from '@/types';
 interface CountryImpressionModalProps {
   countryCode: string;
   entries: CountryEntry[];
+  authorNames: Record<string, string>;
   currentUserId: string | null;
   onClose: () => void;
   onRequireAuth: () => void;
@@ -41,6 +42,7 @@ function toLabelCase(label: string): string {
 export default function CountryImpressionModal({
   countryCode,
   entries,
+  authorNames,
   currentUserId,
   onClose,
   onRequireAuth,
@@ -56,6 +58,7 @@ export default function CountryImpressionModal({
   const [beenThere, setBeenThere] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [expandedEntries, setExpandedEntries] = useState<Set<string>>(new Set());
 
   const countryName = getCountryName(countryCode);
   const flag = getCountryFlag(countryCode);
@@ -69,6 +72,32 @@ export default function CountryImpressionModal({
     () => [...entries].sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()),
     [entries]
   );
+  const topPros = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const entry of entries) {
+      for (const label of entry.pros || []) {
+        const key = normalizeLabel(label);
+        if (!key) continue;
+        counts.set(key, (counts.get(key) || 0) + 1);
+      }
+    }
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .slice(0, 6);
+  }, [entries]);
+  const topCons = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const entry of entries) {
+      for (const label of entry.cons || []) {
+        const key = normalizeLabel(label);
+        if (!key) continue;
+        counts.set(key, (counts.get(key) || 0) + 1);
+      }
+    }
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .slice(0, 6);
+  }, [entries]);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -233,6 +262,30 @@ export default function CountryImpressionModal({
   }
 
   const entryActionLabel = isEntryMode ? '(close entry)' : existingUserEntry ? '(edit entry)' : '(add entry)';
+  function shouldTruncateEntry(text: string): boolean {
+    if (!text) return false;
+    const lines = text.split('\n').length;
+    return text.length > 520 || lines > 8;
+  }
+  function toggleExpandedEntry(id: string) {
+    setExpandedEntries((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+  function formatEntryDate(raw: string): string {
+    const date = new Date(raw);
+    if (Number.isNaN(date.getTime())) return '';
+    return date.toLocaleString([], {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
 
   return (
     <div
@@ -297,10 +350,11 @@ export default function CountryImpressionModal({
             flex: 1,
             overflowY: 'auto',
             paddingTop: isMobile ? '64px' : '56px',
-            paddingLeft: isMobile ? '16px' : '32px',
-            paddingRight: isMobile ? '16px' : '32px',
+            paddingLeft: isMobile ? '24px' : '56px',
+            paddingRight: isMobile ? '24px' : '56px',
             paddingBottom: isMobile ? '16px' : '28px',
-            color: '#0f172a'
+            color: '#0f172a',
+            fontFamily: "'Manrope', 'Avenir Next', 'Segoe UI', sans-serif"
           }}
         >
           <div style={{ marginBottom: '24px' }}>
@@ -337,23 +391,153 @@ export default function CountryImpressionModal({
 
           {!isEntryMode && (
             <section style={{ marginBottom: '24px' }}>
-              <div style={{ display: 'grid', gap: '10px' }}>
+              {(topPros.length > 0 || topCons.length > 0) && (
+                <div
+                  style={{
+                    marginBottom: '14px',
+                    display: 'grid',
+                    gap: '10px',
+                    gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr'
+                  }}
+                >
+                  {topPros.length > 0 && (
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: '13px', color: '#166534', fontWeight: 700 }}>Top Pros:</span>
+                      {topPros.map(([label, count]) => (
+                        <span
+                          key={`top-pro-${label}`}
+                          style={{
+                            color: '#166534',
+                            fontSize: '12px',
+                          }}
+                        >
+                          {label} ({count})
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {topCons.length > 0 && (
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: '13px', color: '#991b1b', fontWeight: 700 }}>Top Cons:</span>
+                      {topCons.map(([label, count]) => (
+                        <span
+                          key={`top-con-${label}`}
+                          style={{
+                            color: '#991b1b',
+                            fontSize: '12px',
+                          }}
+                        >
+                          {label} ({count})
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+              <div style={{ display: 'grid', gap: isMobile ? '24px' : '34px' }}>
                 {sortedEntries.length > 0 ? (
                   sortedEntries.map((entry) => (
                     <div
                       key={entry.id}
                       style={{
-                        border: '1px solid #e2e8f0',
-                        borderRadius: '10px',
-                        padding: '12px 14px',
-                        backgroundColor: '#f8fafc',
+                        padding: 0,
                         color: '#0f172a',
-                        lineHeight: 1.4,
+                        lineHeight: 1.45,
                         fontSize: '14px',
                         whiteSpace: 'pre-wrap'
                       }}
                     >
-                      {entry.content}
+                      <div style={{ width: '100%', maxWidth: '650px' }}>
+                        <div
+                          style={{
+                            maxHeight: expandedEntries.has(entry.id) ? 'none' : '240px',
+                            overflow: expandedEntries.has(entry.id) ? 'visible' : 'hidden'
+                          }}
+                        >
+                          {entry.content}
+                        </div>
+                        {shouldTruncateEntry(entry.content) && (
+                          <button
+                            type="button"
+                            onClick={() => toggleExpandedEntry(entry.id)}
+                            style={{
+                              marginTop: '8px',
+                              border: 'none',
+                              background: 'transparent',
+                              color: '#475569',
+                              fontSize: '12px',
+                              fontWeight: 600,
+                              padding: 0,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            {expandedEntries.has(entry.id) ? 'Show less' : 'Read more'}
+                          </button>
+                        )}
+                        {(entry.pros?.length > 0 || entry.cons?.length > 0) && (
+                          <div
+                            style={{
+                              marginTop: '12px',
+                              display: 'grid',
+                              gap: '8px',
+                              gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr'
+                            }}
+                          >
+                            <div style={{ minHeight: '20px' }}>
+                              {entry.pros?.length > 0 && (
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
+                                  <span style={{ fontSize: '12px', color: '#166534', fontWeight: 700 }}>Pros:</span>
+                                  {entry.pros.map((label) => (
+                                    <span
+                                      key={`${entry.id}-pro-${label}`}
+                                      style={{
+                                        color: '#166534',
+                                        fontSize: '11px',
+                                      }}
+                                    >
+                                      {label}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            <div style={{ minHeight: '20px' }}>
+                              {entry.cons?.length > 0 && (
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
+                                  <span style={{ fontSize: '12px', color: '#991b1b', fontWeight: 700 }}>Cons:</span>
+                                  {entry.cons.map((label) => (
+                                    <span
+                                      key={`${entry.id}-con-${label}`}
+                                      style={{
+                                        color: '#991b1b',
+                                        fontSize: '11px',
+                                      }}
+                                    >
+                                      {label}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        <div
+                          style={{
+                            marginTop: '14px',
+                            display: 'flex',
+                            justifyContent: 'flex-end',
+                            color: '#94a3b8',
+                            fontSize: '12px',
+                            whiteSpace: 'normal'
+                          }}
+                        >
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
+                            <span style={{ color: '#64748b' }}>{authorNames[entry.user_id] || `user-${entry.user_id.slice(0, 6)}`}</span>
+                            <span>{formatEntryDate(entry.updated_at || entry.created_at)}</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   ))
                 ) : (
