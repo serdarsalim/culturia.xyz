@@ -9,6 +9,7 @@ const geoUrl = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
 const PREVIEW_ALL_COUNTRIES_HIGHLIGHTED = false;
 const COUNTRY_HIGHLIGHT_COLOR = '#3B82F6';
 const COUNTRY_SELECTED_COLOR = '#1D4ED8';
+const NO_STROKE_GEO_NAMES = new Set(['Somalia', 'Somaliland']);
 
 // Map GeoJSON country names to our country codes
 const GEO_NAME_TO_CODE: Record<string, string> = {
@@ -29,6 +30,7 @@ const GEO_NAME_TO_CODE: Record<string, string> = {
   'Timor-Leste': 'TLS',
   'Bosnia and Herz.': 'BIH',
   'Bosnia and Herzegovina': 'BIH',
+  'Somaliland': 'SOM',
   'Swaziland': 'SWZ',
   'Eswatini': 'SWZ',
 };
@@ -168,6 +170,7 @@ export default function WorldMap({ onCountryClick, selectedCountry, onBackground
                 }
 
                 const isSelected = selectedCountry === country?.code;
+                const noStroke = NO_STROKE_GEO_NAMES.has(geoName);
                 const hasVideos = PREVIEW_ALL_COUNTRIES_HIGHLIGHTED
                   ? true
                   : country
@@ -216,8 +219,8 @@ export default function WorldMap({ onCountryClick, selectedCountry, onBackground
                     style={{
                       default: {
                         fill: isSelected ? COUNTRY_SELECTED_COLOR : countryColor,
-                        stroke: isSelected ? '#3730A3' : '#e2e8f0',
-                        strokeWidth: isSelected ? 2 : 0.9,
+                        stroke: noStroke ? 'transparent' : isSelected ? '#3730A3' : '#e2e8f0',
+                        strokeWidth: noStroke ? 0 : isSelected ? 2 : 0.9,
                         outline: 'none',
                         transition: 'all 0.2s ease',
                         opacity: hasVideos ? 1 : 0.72,
@@ -225,8 +228,8 @@ export default function WorldMap({ onCountryClick, selectedCountry, onBackground
                       },
                       hover: {
                         fill: isSelected ? COUNTRY_SELECTED_COLOR : countryColor,
-                        stroke: isSelected ? '#312E81' : '#cbd5e1',
-                        strokeWidth: isSelected ? 2.1 : 1.15,
+                        stroke: noStroke ? 'transparent' : isSelected ? '#312E81' : '#cbd5e1',
+                        strokeWidth: noStroke ? 0 : isSelected ? 2.1 : 1.15,
                         outline: 'none',
                         cursor: 'pointer',
                         filter: isSelected
@@ -235,8 +238,8 @@ export default function WorldMap({ onCountryClick, selectedCountry, onBackground
                       },
                       pressed: {
                         fill: isSelected ? '#4338CA' : countryColor,
-                        stroke: isSelected ? '#312E81' : '#94a3b8',
-                        strokeWidth: isSelected ? 2.2 : 1.2,
+                        stroke: noStroke ? 'transparent' : isSelected ? '#312E81' : '#94a3b8',
+                        strokeWidth: noStroke ? 0 : isSelected ? 2.2 : 1.2,
                         outline: 'none',
                         filter: isSelected
                           ? 'brightness(0.92)'
