@@ -1330,67 +1330,6 @@ export default function Home() {
             {/* Footer - Subtitle and Links */}
             <div style={{ marginTop: 'auto', paddingTop: '24px', paddingBottom: isMobile ? '32px' : '60px' }}>
               {user && (
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    marginBottom: '18px',
-                    fontSize: '14px',
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => setEntryPresenceFilters((prev) => ({ ...prev, been: !prev.been }))}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      padding: 0,
-                      color: '#cbd5e1',
-                      cursor: 'pointer',
-                      fontWeight: entryPresenceFilters.been ? 700 : 500,
-                      fontSize: '14px',
-                    }}
-                  >
-                    Been ({presenceFilterCounts.been})
-                  </button>
-                  <span style={{ color: '#334155' }}>|</span>
-                  <button
-                    type="button"
-                    onClick={() => setEntryPresenceFilters((prev) => ({ ...prev, lived: !prev.lived }))}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      padding: 0,
-                      color: '#cbd5e1',
-                      cursor: 'pointer',
-                      fontWeight: entryPresenceFilters.lived ? 700 : 500,
-                      fontSize: '14px',
-                    }}
-                  >
-                    Lived ({presenceFilterCounts.lived})
-                  </button>
-                  <span style={{ color: '#334155' }}>|</span>
-                  <button
-                    type="button"
-                    onClick={() => setEntryPresenceFilters({ been: false, lived: false })}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      padding: 0,
-                      color: '#cbd5e1',
-                      cursor: 'pointer',
-                      fontWeight: isAllPresenceFilter ? 700 : 500,
-                      fontSize: '14px',
-                    }}
-                  >
-                    All
-                  </button>
-                </div>
-              )}
-
-              {user && (
                 <div style={{
                   fontSize: '11px',
                   color: '#94a3b8',
@@ -1440,6 +1379,19 @@ export default function Home() {
                 >
                   Privacy
                 </a>
+                <span style={{ color: '#334155' }}>|</span>
+                <a
+                  href="/ai"
+                  style={{
+                    color: '#94a3b8',
+                    textDecoration: 'none',
+                    transition: 'color 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = '#f8fafc'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = '#94a3b8'}
+                >
+                  AI
+                </a>
               </div>
             </div>
           </div>
@@ -1452,6 +1404,77 @@ export default function Home() {
         className="home-map flex-1 relative overflow-hidden bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900"
         style={hideSidebarOnMobileList ? { height: '100%' } : undefined}
       >
+        {viewMode === 'map' && user && !activeCountryModal && (
+          <div
+            style={{
+              position: 'absolute',
+              top: isMobile ? 'max(env(safe-area-inset-top, 0px) + 12px, 12px)' : '18px',
+              right: isMobile ? '12px' : '18px',
+              zIndex: 25,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: 'rgba(15, 23, 42, 0.68)',
+              border: '1px solid rgba(255, 255, 255, 0.28)',
+              borderRadius: '9999px',
+              padding: '6px',
+              backdropFilter: 'blur(10px)',
+              boxShadow: '0 10px 24px rgba(2, 6, 23, 0.42)',
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => setEntryPresenceFilters((prev) => ({ ...prev, been: !prev.been }))}
+              style={{
+                background: entryPresenceFilters.been ? '#3b82f6' : 'transparent',
+                border: 'none',
+                borderRadius: '9999px',
+                padding: '6px 10px',
+                color: '#f8fafc',
+                cursor: 'pointer',
+                fontWeight: entryPresenceFilters.been ? 700 : 500,
+                fontSize: '14px',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              Been ({presenceFilterCounts.been})
+            </button>
+            <button
+              type="button"
+              onClick={() => setEntryPresenceFilters((prev) => ({ ...prev, lived: !prev.lived }))}
+              style={{
+                background: entryPresenceFilters.lived ? '#3b82f6' : 'transparent',
+                border: 'none',
+                borderRadius: '9999px',
+                padding: '6px 10px',
+                color: '#f8fafc',
+                cursor: 'pointer',
+                fontWeight: entryPresenceFilters.lived ? 700 : 500,
+                fontSize: '14px',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              Lived ({presenceFilterCounts.lived})
+            </button>
+            <button
+              type="button"
+              onClick={() => setEntryPresenceFilters({ been: false, lived: false })}
+              style={{
+                background: isAllPresenceFilter ? '#3b82f6' : 'transparent',
+                border: 'none',
+                borderRadius: '9999px',
+                padding: '6px 10px',
+                color: '#f8fafc',
+                cursor: 'pointer',
+                fontWeight: isAllPresenceFilter ? 700 : 500,
+                fontSize: '14px',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              All
+            </button>
+          </div>
+        )}
         {viewMode === 'map' ? (
           <WorldMap
             onCountryClick={handleCountryClick}

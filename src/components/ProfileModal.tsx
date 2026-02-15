@@ -67,6 +67,7 @@ export default function ProfileModal({
   const [profileDirty, setProfileDirty] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [userEmail, setUserEmail] = useState('');
+  const submissionCountryCount = new Set(entrySubmissions.map((entry) => entry.country_code)).size;
   const projectRef =
     process.env.NEXT_PUBLIC_SUPABASE_URL?.match(/https?:\/\/([^.]+)\.supabase\.co/)?.[1] || null;
 
@@ -637,7 +638,7 @@ export default function ProfileModal({
               flex: isMobile ? 1 : 'initial'
             }}
           >
-            {isMobile ? '📤' : '📤 My Submissions'}
+            {isMobile ? `📤 ${submissionCountryCount}` : `📤 My Submissions (${submissionCountryCount})`}
           </button>
           <button
             onClick={() => setActiveTab('settings')}
@@ -830,8 +831,8 @@ export default function ProfileModal({
                           </span>
                         )}
                       </div>
-                      <span style={{ color: '#6b7280', fontSize: '12px', fontWeight: 600 }}>
-                        {expandedSubmissionCountries.has(cc) ? 'Hide' : 'Show'} ({entries.length})
+                      <span style={{ color: '#6b7280', fontSize: '14px', fontWeight: 700 }}>
+                        {expandedSubmissionCountries.has(cc) ? '▾' : '▸'}
                       </span>
                     </button>
                     {!expandedSubmissionCountries.has(cc) && (

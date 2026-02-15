@@ -43,13 +43,13 @@ body {
 
   .home-sidebar {
     width: 100%;
-    height: 50%;
+    height: 42%;
     order: 2;
   }
 
   .home-map {
     order: 1;
-    height: 50%;
+    height: 58%;
   }
 }
 
