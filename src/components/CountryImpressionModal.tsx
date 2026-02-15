@@ -295,7 +295,13 @@ export default function CountryImpressionModal({
     if (!isEntryMode || !currentUserId) return true;
 
     const trimmed = content.trim();
-    if (!trimmed) return true;
+    const hasPersistableData =
+      Boolean(trimmed) ||
+      pros.length > 0 ||
+      cons.length > 0 ||
+      beenThere ||
+      livedThere;
+    if (!hasPersistableData) return true;
 
     const snapshot = JSON.stringify({
       content: trimmed,

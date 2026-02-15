@@ -899,9 +899,11 @@ export default function Home() {
   const hideSidebarOnMobileList = isMobile && viewMode === 'list';
   const topCountries = useMemo(() => {
     if (!entriesReady || presenceFilteredEntries.length === 0) return [];
+    const entriesWithContent = presenceFilteredEntries.filter((entry) => (entry.content || '').trim().length > 0);
+    if (entriesWithContent.length === 0) return [];
 
     const counts = new Map<string, number>();
-    for (const entry of presenceFilteredEntries) {
+    for (const entry of entriesWithContent) {
       if (!entry.country_code) continue;
       counts.set(entry.country_code, (counts.get(entry.country_code) || 0) + 1);
     }
