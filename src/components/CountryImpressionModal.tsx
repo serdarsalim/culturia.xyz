@@ -550,7 +550,7 @@ export default function CountryImpressionModal({
             fontFamily: "'Manrope', 'Avenir Next', 'Segoe UI', sans-serif"
           }}
         >
-          <div style={{ marginBottom: '24px', maxWidth: '650px', width: '100%' }}>
+          <div style={{ margin: '0 auto 24px', maxWidth: '650px', width: '100%' }}>
             <div
               style={{
                 fontSize: isMobile ? '24px' : '30px',
@@ -583,7 +583,7 @@ export default function CountryImpressionModal({
           </div>
 
           {!isEntryMode && (
-            <section style={{ marginBottom: '24px', maxWidth: '650px', width: '100%' }}>
+            <section style={{ margin: '0 auto 24px', maxWidth: '650px', width: '100%' }}>
               {sortedEntries.length >= 5 && (topPros.length > 0 || topCons.length > 0) && (
                 <div
                   style={{
@@ -759,7 +759,7 @@ export default function CountryImpressionModal({
             </section>
           )}
 
-          <section style={{ marginBottom: '24px' }}>
+          <section style={{ margin: '0 auto 24px', maxWidth: '650px', width: '100%' }}>
             {isEntryMode && (
               <div>
                 <textarea
