@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase/client';
 import WorldMap from '@/components/WorldMap';
 import CountrySidebar from '@/components/CountrySidebar';
 import VideoPlayer from '@/components/VideoPlayer';
+import CountryImpressionModal from '@/components/CountryImpressionModal';
 import AuthModal from '@/components/AuthModal';
 import AddVideoModal from '@/components/AddVideoModal';
 import ProfileModal from '@/components/ProfileModal';
@@ -24,6 +25,7 @@ export default function Home() {
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [submissionCountry, setSubmissionCountry] = useState<string | null>(null);
   const [currentVideo, setCurrentVideo] = useState<{ video: VideoSubmission; category: VideoCategory } | null>(null);
+  const [activeCountryModal, setActiveCountryModal] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [checkingAdmin, setCheckingAdmin] = useState(false);
@@ -408,81 +410,24 @@ export default function Home() {
   }, [user?.id]);
 
   function handleCountryClick(countryCode: string) {
-    console.log('handleCountryClick called with:', countryCode);
     setCurrentVideo(null);
-    // Always bypass picker and sidebar: play latest approved video for the country.
-    // If none, open submission form for that country.
-
-    // Close any picker state
+    setSelectedCountry(null);
+    setShowSubmissionForm(false);
     setShowCategoryPicker(false);
     setPickerCountry(null);
-
-    if (!videoCacheReady) {
-      setToastMessage({ title: 'Loading videos', description: 'Fetching latest content…' });
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 2000);
-      return;
-    }
-
-    // Get filtered videos based on current map source
-    let availableVideos = videoCache.filter(v => v.country_code === countryCode);
-
-    // Apply mapSources filter
-    if (mapSources.mine && user?.id) {
-      availableVideos = availableVideos.filter(v => v.user_id === user.id);
-    } else if (mapSources.favorites && profileData?.favorites) {
-      const favoriteVideoIds = new Set(profileData.favorites.map(fav => fav.video.id));
-      availableVideos = availableVideos.filter(v => favoriteVideoIds.has(v.id));
-    }
-
-    const categoriesToTry = selectedCategoryFilter
-      ? [selectedCategoryFilter, ...VISIBLE_CATEGORIES.filter(cat => cat !== selectedCategoryFilter)]
-      : VISIBLE_CATEGORIES;
-
-    for (const categoryOption of categoriesToTry) {
-      const matches = availableVideos.filter(v => v.category === categoryOption);
-
-      if (matches.length > 0) {
-        const randomVideo = matches[Math.floor(Math.random() * matches.length)];
-        setCurrentVideo({ video: randomVideo, category: categoryOption });
-        setSelectedCountry(null);
-        return;
-      }
-    }
-
-    const latest = availableVideos[0];
-    if (latest) {
-      setCurrentVideo({ video: latest, category: latest.category as VideoCategory });
-      setSelectedCountry(null);
-    } else {
-      // No videos for this country
-      if (user) {
-        setSelectedCountry(countryCode);
-        setSubmissionCountry(countryCode);
-        setShowSubmissionForm(true);
-      } else {
-        pendingSubmissionCountryRef.current = countryCode;
-        setAuthMode('signup');
-        setShowAuthModal(true);
-        setToastMessage({
-          title: 'Help add videos',
-          description: 'Sign up to add native-language content for this country.',
-        });
-        setShowToast(true);
-        setTimeout(() => setShowToast(false), 2600);
-      }
-    }
-    console.log('Country selected (auto-play if available):', countryCode);
+    setActiveCountryModal(countryCode);
   }
 
   function handleCloseSidebar() {
     setSelectedCountry(null);
     setCurrentVideo(null);
+    setActiveCountryModal(null);
   }
 
   function handleBackgroundClick() {
     setSelectedCountry(null);
     setCurrentVideo(null);
+    setActiveCountryModal(null);
   }
 
   function handleVideoSelect(video: VideoSubmission, category: VideoCategory) {
@@ -491,6 +436,23 @@ export default function Home() {
 
   function handleCloseVideo() {
     setCurrentVideo(null);
+  }
+
+  function handleCloseCountryModal() {
+    setActiveCountryModal(null);
+  }
+
+  function getCountryRecentPosts(countryCode: string): string[] {
+    return videoCache
+      .filter((video) => video.country_code === countryCode)
+      .slice(0, 5)
+      .map((video) => {
+        const title = video.title?.trim();
+        if (title && title.length > 0) {
+          return title.length > 170 ? `${title.slice(0, 167)}...` : title;
+        }
+        return 'Untitled post';
+      });
   }
 
   function handleOpenSubmitFromPlayer(countryCode: string, category: VideoCategory) {
@@ -1302,6 +1264,15 @@ export default function Home() {
           playlist={getCurrentPlaylist()}
           onSelectVideo={handleSelectVideoFromPlaylist}
           selectedCategoryFilter={selectedCategoryFilter}
+        />
+      )}
+
+      {activeCountryModal && (
+        <CountryImpressionModal
+          key={activeCountryModal}
+          countryCode={activeCountryModal}
+          recentPosts={getCountryRecentPosts(activeCountryModal)}
+          onClose={handleCloseCountryModal}
         />
       )}
 
