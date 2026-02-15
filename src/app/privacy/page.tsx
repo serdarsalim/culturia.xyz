@@ -41,15 +41,15 @@ export default function Privacy() {
 
             <h3 className="text-xl font-semibold text-gray-900 mb-3 mt-4">User-Generated Content</h3>
             <ul className="list-disc pl-6 text-gray-700 space-y-2">
-              <li>YouTube video links you submit</li>
-              <li>Video titles and descriptions</li>
-              <li>Category selections</li>
+              <li>Country posts you create</li>
+              <li>Pros and cons labels</li>
               <li>Country associations</li>
+              <li>Presence markers (for example: been there, lived there)</li>
             </ul>
 
             <h3 className="text-xl font-semibold text-gray-900 mb-3 mt-4">Usage Data</h3>
             <ul className="list-disc pl-6 text-gray-700 space-y-2">
-              <li>Videos you favorite</li>
+              <li>Posts you favorite</li>
               <li>Your submission history</li>
               <li>Authentication logs</li>
             </ul>
@@ -61,8 +61,8 @@ export default function Privacy() {
             <ul className="list-disc pl-6 text-gray-700 space-y-2">
               <li>Provide and maintain the Service</li>
               <li>Authenticate your account</li>
-              <li>Process and review video submissions</li>
-              <li>Display your submitted and favorited content to you</li>
+              <li>Store and display your country posts and favorites</li>
+              <li>Apply your account and post privacy settings</li>
               <li>Communicate with you about the Service</li>
               <li>Improve and optimize the Service</li>
               <li>Prevent spam and abuse</li>
@@ -82,12 +82,12 @@ export default function Privacy() {
             <h2 className="text-2xl font-bold text-gray-900 mb-4">5. Information Sharing</h2>
             <p className="text-gray-700 mb-4">We do not sell your personal information. We may share information in the following circumstances:</p>
             <ul className="list-disc pl-6 text-gray-700 space-y-2">
-              <li>With service providers (Supabase for database, Google for authentication)</li>
+              <li>With service providers (Supabase for database and authentication)</li>
               <li>When required by law or to protect our rights</li>
               <li>With your consent</li>
             </ul>
             <p className="text-gray-700 mt-4">
-              Note: Approved video submissions (YouTube links) are publicly visible to all users.
+              Note: Posts are public by default unless you make your account or individual posts private.
             </p>
           </section>
 
@@ -95,8 +95,6 @@ export default function Privacy() {
             <h2 className="text-2xl font-bold text-gray-900 mb-4">6. Third-Party Services</h2>
             <p className="text-gray-700 mb-4">We use the following third-party services:</p>
             <ul className="list-disc pl-6 text-gray-700 space-y-2">
-              <li><strong>Google OAuth:</strong> For authentication (subject to Google's Privacy Policy)</li>
-              <li><strong>YouTube:</strong> For video hosting (subject to YouTube's Privacy Policy)</li>
               <li><strong>Supabase:</strong> For data storage and authentication</li>
             </ul>
           </section>
@@ -124,9 +122,9 @@ export default function Privacy() {
           <section className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">9. Data Retention</h2>
             <p className="text-gray-700">
-              We retain your account information and submissions as long as your account is active. If you
-              delete your account, we will remove your personal information within 30 days, though approved
-              video links may remain visible without attribution to you.
+              We retain your account information and posts as long as your account is active. If you delete your
+              account, we will remove account-linked personal information within a reasonable period, subject to
+              legal obligations and backup retention cycles.
             </p>
           </section>
 

@@ -32,46 +32,41 @@ export default function Terms() {
           <section className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">2. User-Submitted Content</h2>
             <p className="text-gray-700 mb-4">
-              CULTURIA allows users to submit YouTube video links for cultural content. By submitting content,
-              you agree that:
+              Culturia lets users post written country impressions. You may include post content, pros, cons,
+              and optional presence markers such as "I was there" or "I lived there." By posting content, you agree that:
             </p>
             <ul className="list-disc pl-6 text-gray-700 space-y-2">
-              <li>You do not own the video content; you are only sharing publicly available YouTube links</li>
-              <li>All submitted content remains subject to YouTube's Terms of Service</li>
-              <li>Submissions must comply with our community guidelines and content policy</li>
-              <li>Submissions are subject to review and approval by our team</li>
-              <li>We reserve the right to reject or remove any submission at our sole discretion</li>
+              <li>You are responsible for what you post</li>
+              <li>Your post must be lawful and must not violate others' rights</li>
+              <li>Your post must not contain harassment, hate speech, threats, or explicit illegal content</li>
+              <li>We may remove, hide, or moderate content at our discretion</li>
             </ul>
           </section>
 
           <section className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">3. Content Guidelines</h2>
-            <p className="text-gray-700 mb-4">Submitted videos should:</p>
+            <p className="text-gray-700 mb-4">Posts should be:</p>
             <ul className="list-disc pl-6 text-gray-700 space-y-2">
-              <li>Have at least 1 million views (quality indicator)</li>
-              <li>Have English subtitles available</li>
-              <li>Be culturally authentic and appropriate</li>
-              <li>Not contain hate speech, violence, or inappropriate content</li>
-              <li>Be properly categorized</li>
+              <li>Based on personal impressions or clearly stated opinions</li>
+              <li>Respectful toward people, places, and cultures</li>
+              <li>Free from spam, scams, or misleading manipulation</li>
+              <li>Within the platform limits for post length and labels</li>
             </ul>
           </section>
 
           <section className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">4. Copyright and Intellectual Property</h2>
             <p className="text-gray-700">
-              All video content remains the property of its original creators and is hosted on YouTube. CULTURIA
-              does not claim ownership of any submitted video content. Users are responsible for ensuring they
-              have the right to share the links they submit. If you believe any content infringes your copyright,
-              please contact us immediately.
+              You retain ownership of your original text. By posting on Culturia, you grant us a non-exclusive
+              license to store, display, and process that content as needed to operate the service.
             </p>
           </section>
 
           <section className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">5. User Accounts</h2>
             <p className="text-gray-700">
-              To submit content, you must create an account and verify your email address. You are responsible
-              for maintaining the confidentiality of your account credentials and for all activities that occur
-              under your account.
+              To create or edit posts, you must sign in. You are responsible for your account credentials and
+              all activity under your account.
             </p>
           </section>
 
@@ -79,20 +74,19 @@ export default function Terms() {
             <h2 className="text-2xl font-bold text-gray-900 mb-4">6. Prohibited Activities</h2>
             <p className="text-gray-700 mb-4">You agree not to:</p>
             <ul className="list-disc pl-6 text-gray-700 space-y-2">
-              <li>Submit false, misleading, or inappropriate content</li>
-              <li>Spam or abuse the submission system</li>
-              <li>Impersonate others or provide false information</li>
-              <li>Attempt to circumvent our approval process</li>
-              <li>Use automated tools to submit content</li>
-              <li>Submit content that violates any laws or regulations</li>
+              <li>Impersonate another person or organization</li>
+              <li>Attempt unauthorized access or abuse the platform</li>
+              <li>Use automated abuse, spam, or malicious scraping</li>
+              <li>Post unlawful or harmful content</li>
             </ul>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">7. Reporting and Flagging</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">7. Visibility and Privacy</h2>
             <p className="text-gray-700">
-              Users can flag videos for issues such as broken links, inappropriate content, or miscategorization.
-              All flags are reviewed by our team. False or malicious flagging may result in account suspension.
+              Posts are public by default. You can mark individual posts private, and you can also set your profile
+              visibility to private in settings. Private content may still be visible to administrators for moderation
+              and safety purposes.
             </p>
           </section>
 
@@ -100,8 +94,7 @@ export default function Terms() {
             <h2 className="text-2xl font-bold text-gray-900 mb-4">8. Disclaimer of Warranties</h2>
             <p className="text-gray-700">
               The Service is provided "as is" without any warranties, expressed or implied. We do not guarantee
-              the accuracy, completeness, or usefulness of any content. Video availability is subject to YouTube's
-              policies and may change without notice.
+              the accuracy, completeness, or usefulness of user-generated content.
             </p>
           </section>
 

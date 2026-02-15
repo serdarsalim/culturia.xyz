@@ -45,6 +45,8 @@ function toLabelCase(label: string): string {
     .join(' ');
 }
 
+const LIST_SEPARATOR = ',\u00A0\u00A0';
+
 interface EntryDraft {
   content: string;
   pros: string[];
@@ -595,7 +597,7 @@ export default function CountryImpressionModal({
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                       <span style={{ fontSize: '13px', color: '#166534', fontWeight: 700 }}>Top Pros:</span>
                       <span style={{ color: '#166534', fontSize: '12px' }}>
-                        {topPros.map(([label, count]) => `${label} (${count})`).join(', ')}
+                        {topPros.map(([label, count]) => `${label} (${count})`).join(LIST_SEPARATOR)}
                       </span>
                     </div>
                   )}
@@ -603,7 +605,7 @@ export default function CountryImpressionModal({
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                       <span style={{ fontSize: '13px', color: '#991b1b', fontWeight: 700 }}>Top Cons:</span>
                       <span style={{ color: '#991b1b', fontSize: '12px' }}>
-                        {topCons.map(([label, count]) => `${label} (${count})`).join(', ')}
+                        {topCons.map(([label, count]) => `${label} (${count})`).join(LIST_SEPARATOR)}
                       </span>
                     </div>
                   )}
@@ -619,6 +621,7 @@ export default function CountryImpressionModal({
                         color: '#0f172a',
                         lineHeight: '24px',
                         fontSize: '16px',
+                        fontFamily: "'Source Sans Pro', 'Manrope', 'Avenir Next', 'Segoe UI', sans-serif",
                         whiteSpace: 'pre-wrap'
                       }}
                     >
@@ -643,6 +646,51 @@ export default function CountryImpressionModal({
                             {favoriteEntryIds.has(entry.id) ? '♥' : '♡'}
                           </button>
                         </div>
+                        {(entry.pros?.length > 0 || entry.cons?.length > 0) && (
+                          <div
+                            style={{
+                              marginBottom: '28px',
+                              display: 'grid',
+                              gap: '8px',
+                              gridTemplateColumns: '1fr'
+                            }}
+                          >
+                            <div style={{ minHeight: '20px' }}>
+                              {entry.pros?.length > 0 && (
+                                <div
+                                  style={{
+                                    color: '#0f172a',
+                                    fontSize: '16px',
+                                    display: 'grid',
+                                    gridTemplateColumns: 'max-content 1fr',
+                                    columnGap: '6px',
+                                    alignItems: 'start'
+                                  }}
+                                >
+                                  <span style={{ color: '#15803d', fontWeight: 700 }}>+ Pros:</span>
+                                  <span>{entry.pros.join(LIST_SEPARATOR)}</span>
+                                </div>
+                              )}
+                            </div>
+                            <div style={{ minHeight: '20px' }}>
+                              {entry.cons?.length > 0 && (
+                                <div
+                                  style={{
+                                    color: '#0f172a',
+                                    fontSize: '16px',
+                                    display: 'grid',
+                                    gridTemplateColumns: 'max-content 1fr',
+                                    columnGap: '6px',
+                                    alignItems: 'start'
+                                  }}
+                                >
+                                  <span style={{ color: '#b91c1c', fontWeight: 700 }}>- Cons:</span>
+                                  <span>{entry.cons.join(LIST_SEPARATOR)}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
                         <div
                           ref={(el) => {
                             contentRefs.current[entry.id] = el;
@@ -671,33 +719,6 @@ export default function CountryImpressionModal({
                           >
                             {expandedEntries.has(entry.id) ? 'Show less' : 'Read more...'}
                           </button>
-                        )}
-                        {(entry.pros?.length > 0 || entry.cons?.length > 0) && (
-                          <div
-                            style={{
-                              marginTop: '12px',
-                              display: 'grid',
-                              gap: '8px',
-                              gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr'
-                            }}
-                          >
-                            <div style={{ minHeight: '20px' }}>
-                              {entry.pros?.length > 0 && (
-                                <div style={{ display: 'flex', gap: '6px', alignItems: 'baseline', flexWrap: 'wrap' }}>
-                                  <span style={{ fontSize: '13px', color: '#0f172a', fontWeight: 700 }}>Pros:</span>
-                                  <span style={{ color: '#0f172a', fontSize: '12px' }}>{entry.pros.join(', ')}</span>
-                                </div>
-                              )}
-                            </div>
-                            <div style={{ minHeight: '20px' }}>
-                              {entry.cons?.length > 0 && (
-                                <div style={{ display: 'flex', gap: '6px', alignItems: 'baseline', flexWrap: 'wrap' }}>
-                                  <span style={{ fontSize: '13px', color: '#0f172a', fontWeight: 700 }}>Cons:</span>
-                                  <span style={{ color: '#0f172a', fontSize: '12px' }}>{entry.cons.join(', ')}</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
                         )}
 
                         <div

@@ -966,15 +966,27 @@ export default function Home() {
                     }}
                   >
                     <h1 style={{
-                      fontSize: '20px',
+                      fontSize: '24px',
                       fontWeight: 700,
                       letterSpacing: '-0.02em',
                       margin: 0,
                       color: '#f8fafc'
                     }}>
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                        <img src="/culturia.png" alt="Culturia logo" style={{ width: '22px', height: '22px', borderRadius: '5px' }} />
-                        <span>CULTURIA</span>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
+                        <span
+                          style={{
+                            width: '36px',
+                            height: '36px',
+                            borderRadius: '10px',
+                            backgroundColor: 'rgba(248, 250, 252, 0.12)',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          <img src="/culturia.png" alt="Culturia logo" style={{ width: '28px', height: '28px', borderRadius: '6px' }} />
+                        </span>
+                        <span style={{ fontFamily: "'Bree Sans', 'Manrope', 'Avenir Next', 'Segoe UI', sans-serif" }}>Culturia</span>
                       </span>
                     </h1>
                   </button>
@@ -1127,15 +1139,27 @@ export default function Home() {
                     }}
                   >
                     <h1 style={{
-                      fontSize: '20px',
+                      fontSize: '28px',
                       fontWeight: 700,
                       letterSpacing: '-0.02em',
                       margin: 0,
                       color: '#f8fafc'
                     }}>
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                        <img src="/culturia.png" alt="Culturia logo" style={{ width: '22px', height: '22px', borderRadius: '5px' }} />
-                        <span>CULTURIA</span>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '12px' }}>
+                        <span
+                          style={{
+                            width: '44px',
+                            height: '44px',
+                            borderRadius: '12px',
+                            backgroundColor: 'rgba(248, 250, 252, 0.12)',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          <img src="/culturia.png" alt="Culturia logo" style={{ width: '34px', height: '34px', borderRadius: '8px' }} />
+                        </span>
+                        <span style={{ fontFamily: "'Bree Sans', 'Manrope', 'Avenir Next', 'Segoe UI', sans-serif" }}>Culturia</span>
                       </span>
                     </h1>
                   </button>
@@ -1337,64 +1361,66 @@ export default function Home() {
 
             {/* Footer - Subtitle and Links */}
             <div style={{ marginTop: 'auto', paddingTop: '24px', paddingBottom: isMobile ? '32px' : '60px' }}>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  marginBottom: user ? '18px' : '14px',
-                  fontSize: '14px',
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={() => setEntryPresenceFilters((prev) => ({ ...prev, been: !prev.been }))}
+              {user && (
+                <div
                   style={{
-                    background: 'none',
-                    border: 'none',
-                    padding: 0,
-                    color: '#cbd5e1',
-                    cursor: 'pointer',
-                    fontWeight: entryPresenceFilters.been ? 700 : 500,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    marginBottom: '18px',
                     fontSize: '14px',
                   }}
                 >
-                  Been ({presenceFilterCounts.been})
-                </button>
-                <span style={{ color: '#334155' }}>|</span>
-                <button
-                  type="button"
-                  onClick={() => setEntryPresenceFilters((prev) => ({ ...prev, lived: !prev.lived }))}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    padding: 0,
-                    color: '#cbd5e1',
-                    cursor: 'pointer',
-                    fontWeight: entryPresenceFilters.lived ? 700 : 500,
-                    fontSize: '14px',
-                  }}
-                >
-                  Lived ({presenceFilterCounts.lived})
-                </button>
-                <span style={{ color: '#334155' }}>|</span>
-                <button
-                  type="button"
-                  onClick={() => setEntryPresenceFilters({ been: false, lived: false })}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    padding: 0,
-                    color: '#cbd5e1',
-                    cursor: 'pointer',
-                    fontWeight: isAllPresenceFilter ? 700 : 500,
-                    fontSize: '14px',
-                  }}
-                >
-                  All
-                </button>
-              </div>
+                  <button
+                    type="button"
+                    onClick={() => setEntryPresenceFilters((prev) => ({ ...prev, been: !prev.been }))}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      padding: 0,
+                      color: '#cbd5e1',
+                      cursor: 'pointer',
+                      fontWeight: entryPresenceFilters.been ? 700 : 500,
+                      fontSize: '14px',
+                    }}
+                  >
+                    Been ({presenceFilterCounts.been})
+                  </button>
+                  <span style={{ color: '#334155' }}>|</span>
+                  <button
+                    type="button"
+                    onClick={() => setEntryPresenceFilters((prev) => ({ ...prev, lived: !prev.lived }))}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      padding: 0,
+                      color: '#cbd5e1',
+                      cursor: 'pointer',
+                      fontWeight: entryPresenceFilters.lived ? 700 : 500,
+                      fontSize: '14px',
+                    }}
+                  >
+                    Lived ({presenceFilterCounts.lived})
+                  </button>
+                  <span style={{ color: '#334155' }}>|</span>
+                  <button
+                    type="button"
+                    onClick={() => setEntryPresenceFilters({ been: false, lived: false })}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      padding: 0,
+                      color: '#cbd5e1',
+                      cursor: 'pointer',
+                      fontWeight: isAllPresenceFilter ? 700 : 500,
+                      fontSize: '14px',
+                    }}
+                  >
+                    All
+                  </button>
+                </div>
+              )}
 
               {user && (
                 <div style={{
@@ -1445,19 +1471,6 @@ export default function Home() {
                   onMouseLeave={(e) => e.currentTarget.style.color = '#94a3b8'}
                 >
                   Privacy
-                </a>
-                <span style={{ color: '#334155' }}>|</span>
-                <a
-                  href="#"
-                  style={{
-                    color: '#94a3b8',
-                    textDecoration: 'none',
-                    transition: 'color 0.2s'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = '#f8fafc'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = '#94a3b8'}
-                >
-                  About
                 </a>
               </div>
             </div>
@@ -1645,8 +1658,7 @@ export default function Home() {
             position: 'fixed',
             inset: 0,
             zIndex: 220,
-            backgroundColor: 'rgba(3,7,18,0.8)',
-            backdropFilter: 'blur(6px)',
+            backgroundColor: '#334155',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -1658,12 +1670,12 @@ export default function Home() {
             style={{
               maxWidth: '900px',
               width: '100%',
-              background: 'radial-gradient(circle at top, #0f172a 0%, #020617 80%)',
-              color: '#f8fafc',
+              background: '#ffffff',
+              color: '#0f172a',
               borderRadius: '24px',
               padding: '32px',
-              boxShadow: '0 30px 80px rgba(15, 23, 42, 0.6)',
-              border: '1px solid rgba(248, 250, 252, 0.08)',
+              boxShadow: '0 30px 80px rgba(15, 23, 42, 0.25)',
+              border: '1px solid #e2e8f0',
               position: 'relative',
               overflowY: 'auto',
               maxHeight: '90vh'
@@ -1680,45 +1692,53 @@ export default function Home() {
                 width: '36px',
                 height: '36px',
                 borderRadius: '999px',
-                border: '1px solid rgba(248, 250, 252, 0.2)',
-                background: 'rgba(2,6,23,0.6)',
-                color: '#f8fafc',
+                border: '1px solid #cbd5e1',
+                background: '#f8fafc',
+                color: '#0f172a',
                 cursor: 'pointer'
               }}
             >
               ✕
             </button>
             <div style={{ marginBottom: '16px' }}>
-              <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 700 }}>Discover The World Cultures</h2>
+              <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 700 }}>Share Your Country Impressions</h2>
             </div>
-            <p style={{ lineHeight: 1.6, color: '#e2e8f0' }}>
-              It is incredibly difficult to find good content for every country around the world. Culturia is here to help you learn the world without excessive YouTube searches. We show you what it is actually like in every part of the world. We also want you to hear every language from every country through videos created by locals, in their native language, speaking authentically.
+            <p style={{ lineHeight: 1.6, color: '#334155' }}>
+              Culturia is a place where people add their opinions on countries and share them with the world. You can also track how many countries you have been to or lived in.
             </p>
 
             <div style={{ marginTop: '24px' }}>
-              <h3 style={{ fontSize: '16px', letterSpacing: '0.2em', color: '#f97316', marginBottom: '12px' }}>WHY THESE 4 CATEGORIES?</h3>
+              <h3 style={{ fontSize: '16px', letterSpacing: '0.2em', color: '#f97316', marginBottom: '12px' }}>HOW IT WORKS</h3>
               <div style={{ display: 'grid', gap: '16px' }}>
                 {[
-                  { icon: '🎤', title: 'Talks', body: 'Listen to people talking in their native language—discussing ideas, sharing stories, giving speeches, and having conversations.' },
-                  { icon: '🎵', title: 'Music', body: 'Every culture expresses itself through music. From traditional folk songs to modern hits, experience the sounds that define a place.' },
-                  { icon: '😄', title: 'Comedy', body: 'Humor reveals what a culture finds funny, clever, or absurd. It is cultural insight wrapped in entertainment.' },
-                  { icon: '📹', title: 'Daily Life', body: 'Experience authentic everyday moments—food, market scenes, local customs, daily routines, cultural practices, and nature.' },
+                  { icon: '✍️', title: 'Post Your Impression', body: 'Write what you think about any country in your own words.' },
+                  { icon: '⚖️', title: 'Pros and Cons', body: 'Add quick labels for what you liked and disliked.' },
+                  { icon: '📍', title: 'Track Presence', body: 'Mark whether you have been there or lived there.' },
+                  { icon: '🌍', title: 'Share Publicly', body: 'By default posts are public so others can learn from your perspective.' },
                 ].map(({ icon, title, body }) => (
                   <div key={title} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
                     <span style={{ fontSize: '24px' }}>{icon}</span>
                     <div>
                       <strong style={{ fontSize: '15px' }}>{title}</strong>
-                      <p style={{ margin: '4px 0 0', lineHeight: 1.5, color: '#cbd5f5' }}>{body}</p>
+                      <p style={{ margin: '4px 0 0', lineHeight: 1.5, color: '#475569' }}>{body}</p>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div style={{ marginTop: '24px', padding: '20px', borderRadius: '18px', background: 'rgba(249, 115, 22, 0.08)', border: '1px solid rgba(249, 115, 22, 0.2)' }}>
-              <h3 style={{ margin: 0, color: '#fb923c', fontSize: '14px', letterSpacing: '0.15em' }}>OUR MISSION</h3>
-              <p style={{ marginTop: '8px', lineHeight: 1.6, color: '#f8fafc' }}>
-                Discover the world through curated Content and immerse yourself in world cultures and languages.
+            <div style={{ marginTop: '24px', padding: '20px', borderRadius: '18px', background: '#fff7ed', border: '1px solid #fed7aa' }}>
+              <p style={{ margin: 0, lineHeight: 1.6, color: '#334155' }}>
+                Created by{' '}
+                <a
+                  href="https://serdarsalim.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: '#ea580c', fontWeight: 700, textDecoration: 'underline' }}
+                >
+                  SerdarSalim
+                </a>
+                .
               </p>
             </div>
           </div>
