@@ -62,6 +62,7 @@ export interface CountryEntry {
   pros: string[];
   cons: string[];
   been_there: boolean;
+  lived_there: boolean;
   created_at: string;
   updated_at: string;
 }

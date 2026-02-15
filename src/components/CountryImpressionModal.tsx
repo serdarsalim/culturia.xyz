@@ -18,6 +18,7 @@ interface CountryImpressionModalProps {
     pros: string[];
     cons: string[];
     beenThere: boolean;
+    livedThere: boolean;
   }) => Promise<boolean>;
   onDeleteEntry: (entryId: string) => Promise<boolean>;
   onToggleFavorite: (entryId: string) => Promise<boolean>;
@@ -62,6 +63,7 @@ export default function CountryImpressionModal({
   const [prosInput, setProsInput] = useState('');
   const [consInput, setConsInput] = useState('');
   const [beenThere, setBeenThere] = useState(false);
+  const [livedThere, setLivedThere] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [favoriteBusyId, setFavoriteBusyId] = useState<string | null>(null);
@@ -216,11 +218,13 @@ export default function CountryImpressionModal({
       setPros(existingUserEntry.pros || []);
       setCons(existingUserEntry.cons || []);
       setBeenThere(!!existingUserEntry.been_there);
+      setLivedThere(!!existingUserEntry.lived_there);
     } else {
       setContent('');
       setPros([]);
       setCons([]);
       setBeenThere(false);
+      setLivedThere(false);
     }
     setProsInput('');
     setConsInput('');
@@ -261,6 +265,7 @@ export default function CountryImpressionModal({
       pros,
       cons,
       beenThere,
+      livedThere,
     });
 
     setIsSaving(false);
@@ -722,15 +727,26 @@ export default function CountryImpressionModal({
                 </div>
 
                 <section style={{ marginTop: '16px' }}>
-                  <label style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-                    <input
-                      type="checkbox"
-                      checked={beenThere}
-                      onChange={(event) => setBeenThere(event.target.checked)}
-                      style={{ width: '16px', height: '16px' }}
-                    />
-                    <span style={{ fontSize: '14px' }}>I was here</span>
-                  </label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px 20px' }}>
+                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={beenThere}
+                        onChange={(event) => setBeenThere(event.target.checked)}
+                        style={{ width: '16px', height: '16px' }}
+                      />
+                      <span style={{ fontSize: '14px' }}>I was there</span>
+                    </label>
+                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={livedThere}
+                        onChange={(event) => setLivedThere(event.target.checked)}
+                        style={{ width: '16px', height: '16px' }}
+                      />
+                      <span style={{ fontSize: '14px' }}>I lived there</span>
+                    </label>
+                  </div>
                 </section>
 
                 {formError && (

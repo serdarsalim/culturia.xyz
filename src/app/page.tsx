@@ -548,6 +548,7 @@ export default function Home() {
     pros: string[];
     cons: string[];
     beenThere: boolean;
+    livedThere: boolean;
   }): Promise<boolean> {
     if (!user?.id) {
       return false;
@@ -562,6 +563,7 @@ export default function Home() {
           pros: payload.pros,
           cons: payload.cons,
           been_there: payload.beenThere,
+          lived_there: payload.livedThere,
         },
         { onConflict: 'user_id,country_code' }
       );
