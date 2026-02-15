@@ -694,7 +694,14 @@ export default function CountryImpressionModal({
                           }}
                         >
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
-                            <span style={{ color: '#64748b' }}>{authorNames[entry.user_id] || `user-${entry.user_id.slice(0, 6)}`}</span>
+                            <span style={{ color: '#334155' }}>
+                              {authorNames[entry.user_id] || `user-${entry.user_id.slice(0, 6)}`}
+                              {entry.lived_there
+                                ? ` | Lived in ${countryName}`
+                                : entry.been_there
+                                  ? ` | Visited ${countryName}`
+                                  : ''}
+                            </span>
                             <span>{formatEntryDate(entry.updated_at || entry.created_at)}</span>
                           </div>
                         </div>
