@@ -944,7 +944,7 @@ export default function Home() {
             {/* Header - Logo and Auth Links */}
             {isMobile ? (
               <>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '22px' }}>
                   <button
                     onClick={() => setShowAboutModal(true)}
                     style={{
@@ -960,13 +960,13 @@ export default function Home() {
                       fontWeight: 700,
                       letterSpacing: '-0.02em',
                       margin: 0,
-                      background: 'linear-gradient(120deg, #f97316, #fb923c)',
-                      WebkitBackgroundClip: 'text',
-                      color: 'transparent'
+                      color: '#0f172a'
                     }}>
-                      🌍 CULTURIA
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                        <img src="/culturia.png" alt="Culturia logo" style={{ width: '22px', height: '22px', borderRadius: '5px' }} />
+                        <span>CULTURIA</span>
+                      </span>
                     </h1>
-                    <p style={{ fontSize: '11px', color: '#6b7280', marginTop: '2px' }}>Native-language videos worldwide</p>
                   </button>
                   <div style={{ display: 'flex', gap: '14px', fontSize: '13px', alignItems: 'center' }}>
                     {!user ? (
@@ -1105,6 +1105,31 @@ export default function Home() {
               </>
             ) : (
               <>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '22px' }}>
+                  <button
+                    onClick={() => setShowAboutModal(true)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      padding: 0,
+                      textAlign: 'center',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <h1 style={{
+                      fontSize: '20px',
+                      fontWeight: 700,
+                      letterSpacing: '-0.02em',
+                      margin: 0,
+                      color: '#0f172a'
+                    }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                        <img src="/culturia.png" alt="Culturia logo" style={{ width: '22px', height: '22px', borderRadius: '5px' }} />
+                        <span>CULTURIA</span>
+                      </span>
+                    </h1>
+                  </button>
+                </div>
                 {/* Auth Links at top left for desktop */}
                 <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', fontSize: '14px', alignItems: 'center', justifyContent: 'center' }}>
                   {!user ? (

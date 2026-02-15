@@ -6,6 +6,11 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "CULTURIA - Discover Authentic Cultural Content",
   description: "Explore authentic cultural content from around the world. Watch inspirational speeches, music, comedy, cooking, and street interviews from every country.",
+  icons: {
+    icon: "/culturia.png",
+    shortcut: "/culturia.png",
+    apple: "/culturia.png",
+  },
 };
 
 export default function RootLayout({
