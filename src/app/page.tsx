@@ -1417,23 +1417,27 @@ export default function Home() {
               background: 'rgba(15, 23, 42, 0.68)',
               border: '1px solid rgba(255, 255, 255, 0.28)',
               borderRadius: '9999px',
-              padding: '6px',
+              padding: isMobile ? '4px' : '6px',
               backdropFilter: 'blur(10px)',
-              boxShadow: '0 10px 24px rgba(2, 6, 23, 0.42)',
             }}
           >
             <button
               type="button"
-              onClick={() => setEntryPresenceFilters((prev) => ({ ...prev, been: !prev.been }))}
+              onClick={() =>
+                setEntryPresenceFilters((prev) => ({
+                  been: !prev.been,
+                  lived: false,
+                }))
+              }
               style={{
                 background: entryPresenceFilters.been ? '#3b82f6' : 'transparent',
                 border: 'none',
                 borderRadius: '9999px',
-                padding: '6px 10px',
+                padding: isMobile ? '4px 8px' : '6px 10px',
                 color: '#f8fafc',
                 cursor: 'pointer',
                 fontWeight: entryPresenceFilters.been ? 700 : 500,
-                fontSize: '14px',
+                fontSize: isMobile ? '12px' : '14px',
                 transition: 'all 0.15s ease',
               }}
             >
@@ -1441,16 +1445,21 @@ export default function Home() {
             </button>
             <button
               type="button"
-              onClick={() => setEntryPresenceFilters((prev) => ({ ...prev, lived: !prev.lived }))}
+              onClick={() =>
+                setEntryPresenceFilters((prev) => ({
+                  been: false,
+                  lived: !prev.lived,
+                }))
+              }
               style={{
                 background: entryPresenceFilters.lived ? '#3b82f6' : 'transparent',
                 border: 'none',
                 borderRadius: '9999px',
-                padding: '6px 10px',
+                padding: isMobile ? '4px 8px' : '6px 10px',
                 color: '#f8fafc',
                 cursor: 'pointer',
                 fontWeight: entryPresenceFilters.lived ? 700 : 500,
-                fontSize: '14px',
+                fontSize: isMobile ? '12px' : '14px',
                 transition: 'all 0.15s ease',
               }}
             >
@@ -1463,11 +1472,11 @@ export default function Home() {
                 background: isAllPresenceFilter ? '#3b82f6' : 'transparent',
                 border: 'none',
                 borderRadius: '9999px',
-                padding: '6px 10px',
+                padding: isMobile ? '4px 8px' : '6px 10px',
                 color: '#f8fafc',
                 cursor: 'pointer',
                 fontWeight: isAllPresenceFilter ? 700 : 500,
-                fontSize: '14px',
+                fontSize: isMobile ? '12px' : '14px',
                 transition: 'all 0.15s ease',
               }}
             >
