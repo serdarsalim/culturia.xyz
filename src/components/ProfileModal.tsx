@@ -66,6 +66,7 @@ export default function ProfileModal({
   const [profileSaveState, setProfileSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [profileDirty, setProfileDirty] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
   const projectRef =
     process.env.NEXT_PUBLIC_SUPABASE_URL?.match(/https?:\/\/([^.]+)\.supabase\.co/)?.[1] || null;
 
@@ -88,6 +89,17 @@ export default function ProfileModal({
       setProfileLoaded(true);
     }
   }, [initialProfile]);
+
+  useEffect(() => {
+    let mounted = true;
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!mounted) return;
+      setUserEmail(user?.email || '');
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (initialProfile) {
@@ -262,6 +274,7 @@ export default function ProfileModal({
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+      setUserEmail(user.email || '');
 
       const { data, error } = await supabase
         .from('user_profiles')
@@ -309,6 +322,14 @@ export default function ProfileModal({
       setProfileSaveState('idle');
     }
   }, [username, displayName, isPrivate, profileLoaded]);
+
+  useEffect(() => {
+    if (activeTab !== 'settings' || !profileLoaded || !profileDirty) return;
+    const timer = setTimeout(() => {
+      handleSaveProfile();
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [activeTab, profileLoaded, profileDirty, username, displayName, isPrivate]);
 
   async function handleSaveProfile() {
     if (!profileLoaded || profileSaving || !hasProfileChanges()) {
@@ -394,10 +415,10 @@ export default function ProfileModal({
   }
 
   function renderProfileStatus() {
-    if (profileSaveState === 'saving') return 'Saving…';
-    if (profileSaveState === 'saved') return 'Saved';
-    if (profileSaveState === 'error') return 'Save failed';
-    if (profileDirty) return 'Unsaved changes';
+    if (profileSaveState === 'saving') return 'Saving...';
+    if (profileSaveState === 'saved') return 'Saved just now';
+    if (profileSaveState === 'error') return 'Could not save';
+    if (profileDirty) return 'Saving soon...';
     return null;
   }
 
@@ -840,212 +861,160 @@ export default function ProfileModal({
             )
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '12px' : '20px' }}>
-              {/* Profile Settings */}
-              <div>
-                <div style={{
-                  marginBottom: isMobile ? '8px' : '12px'
-                }}>
-                  <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#111827' }}>Profile Information</h3>
-                </div>
+              <div style={{ borderTop: '1px solid #f3f4f6', paddingTop: isMobile ? '12px' : '16px' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#111827', marginBottom: '12px' }}>Profile Information</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '170px minmax(0, 1fr)', rowGap: '12px', columnGap: '18px', alignItems: 'center' }}>
+                  <label style={{ fontSize: '14px', color: '#6b7280', fontWeight: 600 }}>Display Name</label>
+                  <input
+                    type="text"
+                    value={displayName}
+                    onChange={(e) => handleDisplayNameChange(e.target.value)}
+                    placeholder="Your name"
+                    maxLength={100}
+                    style={{
+                      width: '100%',
+                      maxWidth: '230px',
+                      padding: '11px 14px',
+                      fontSize: '14px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '10px',
+                      backgroundColor: '#ffffff',
+                      color: '#111827',
+                      outline: 'none'
+                    }}
+                  />
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '12px' : '18px', maxWidth: '100%' }}>
-                  {/* Display Name, Username, and Save - 3 column grid */}
-                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: isMobile ? '8px' : '12px', alignItems: 'start' }}>
-                    {/* Display Name */}
-                    <div>
-                      <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
-                        Display Name
-                      </label>
-                      <input
-                        type="text"
-                        value={displayName}
-                        onChange={(e) => handleDisplayNameChange(e.target.value)}
-                        placeholder="Your full name"
-                        maxLength={100}
-                        style={{
-                          width: '100%',
-                          padding: '10px 14px',
-                          fontSize: '14px',
-                          border: '1px solid #d1d5db',
-                          borderRadius: '8px',
-                          backgroundColor: '#ffffff',
-                          color: '#000000',
-                          outline: 'none'
-                        }}
-                      />
-                    </div>
-
-                    {/* Username */}
-                    <div>
-                      <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
-                        Username
-                      </label>
-                      <input
-                        type="text"
-                        value={username}
-                        onChange={(e) => handleUsernameChange(e.target.value)}
-                        placeholder="your_username"
-                        maxLength={30}
-                        style={{
-                          width: '100%',
-                          padding: '10px 14px',
-                          fontSize: '14px',
-                          border: `1px solid ${usernameError ? '#ef4444' : '#d1d5db'}`,
-                          borderRadius: '8px',
-                          backgroundColor: '#ffffff',
-                          color: '#000000',
-                          outline: 'none'
-                        }}
-                      />
-                      {usernameError && (
-                        <p style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px' }}>
-                          {usernameError}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Save Button */}
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      paddingTop: isMobile ? '0' : '27px',
-                      paddingLeft: isMobile ? '0' : '20px',
-                      paddingRight: isMobile ? '0' : '20px',
-                      marginBottom: isMobile ? '12px' : '0'
-                    }}>
-                      <div style={{ width: '100%' }}>
-                        <button
-                          type="button"
-                          onClick={handleSaveProfile}
-                          disabled={!profileDirty || profileSaving}
-                          style={{
-                            width: '100%',
-                            padding: '10px 14px',
-                            borderRadius: '8px',
-                            border: 'none',
-                            backgroundColor: (!profileDirty || profileSaving) ? '#e5e7eb' : '#0f172a',
-                            color: (!profileDirty || profileSaving) ? '#94a3b8' : '#ffffff',
-                            fontSize: '14px',
-                            fontWeight: 600,
-                            cursor: (!profileDirty || profileSaving) ? 'default' : 'pointer',
-                            transition: 'background-color 0.2s',
-                            height: '42px'
-                          }}
-                        >
-                          {profileSaving ? 'Saving…' : 'Save Profile'}
-                        </button>
-                        {renderProfileStatus() && (
-                          <p style={{
-                            fontSize: '12px',
-                            color: profileSaveState === 'error'
-                              ? '#b91c1c'
-                              : profileSaveState === 'saved'
-                                ? '#15803d'
-                                : '#6b7280',
-                            marginTop: '4px',
-                            textAlign: 'center'
-                          }}>
-                            {renderProfileStatus()}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
+                  <label style={{ fontSize: '14px', color: '#6b7280', fontWeight: 600 }}>Username</label>
+                  <div>
+                    <input
+                      type="text"
+                      value={username}
+                      onChange={(e) => handleUsernameChange(e.target.value)}
+                      placeholder="your_username"
+                      maxLength={30}
+                      style={{
+                        width: '100%',
+                        maxWidth: '230px',
+                        padding: '11px 14px',
+                        fontSize: '14px',
+                        border: `1px solid ${usernameError ? '#ef4444' : '#d1d5db'}`,
+                        borderRadius: '10px',
+                        backgroundColor: '#ffffff',
+                        color: '#111827',
+                        outline: 'none'
+                      }}
+                    />
+                    {usernameError && (
+                      <p style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px' }}>
+                        {usernameError}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
 
-              {/* Map Visibility */}
-              <div>
-                <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#111827', marginBottom: isMobile ? '2px' : '4px' }}>Map Visibility</h3>
-                <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: isMobile ? '6px' : '8px' }}>Choose what the map highlights.</p>
-                <div style={{
-                  display: isMobile ? 'flex' : 'grid',
-                  flexDirection: isMobile ? 'column' : undefined,
-                  gridTemplateColumns: isMobile ? undefined : 'repeat(3, 1fr)',
-                  gap: isMobile ? '6px' : '8px'
-                }}>
-                  {([
-                    { key: 'all', label: 'All public posts', desc: 'Public, approved content' },
-                    { key: 'favorites', label: 'My favorites', desc: 'Places you starred', requiresAuth: true },
-                    { key: 'mine', label: 'My submissions', desc: 'Countries you contributed to', requiresAuth: true },
-                  ] as Array<{ key: 'all' | 'favorites' | 'mine'; label: string; desc: string; requiresAuth?: boolean }>).map(opt => {
-                    const checked = mapSources[opt.key];
-                    return (
-                      <label key={opt.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', backgroundColor: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '12px' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                          <span style={{ fontSize: '14px', color: '#111827', fontWeight: 600 }}>{opt.label}</span>
-                          <span style={{ fontSize: '12px', color: '#6b7280' }}>{opt.desc}</span>
-                        </div>
-                        <button
-                          type="button"
-                          role="switch"
-                          aria-checked={checked}
-                          onClick={() => onToggleMapSource(opt.key, !checked)}
-                          style={{
-                            width: '48px',
-                            height: '28px',
-                            borderRadius: '9999px',
-                            border: '1px solid ' + (checked ? '#34d399' : '#d1d5db'),
-                            backgroundColor: checked ? '#34d399' : '#e5e7eb',
-                            position: 'relative',
-                            cursor: 'pointer',
-                            transition: 'all 0.15s ease'
-                          }}
-                          aria-label={`Toggle ${opt.label}`}
-                        >
-                          <span style={{
-                            position: 'absolute',
-                            top: '50%',
-                            transform: 'translateY(-50%)',
-                            left: checked ? '22px' : '2px',
-                            width: '22px',
-                            height: '22px',
-                            borderRadius: '9999px',
-                            backgroundColor: '#ffffff',
-                            boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
-                            transition: 'left 0.15s ease'
-                          }} />
-                        </button>
-                      </label>
-                    );
-                  })}
+              <div style={{ borderTop: '1px solid #f3f4f6', paddingTop: isMobile ? '12px' : '16px' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#111827', marginBottom: '12px' }}>Profile Visibility</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '170px minmax(0, 1fr)', rowGap: '12px', columnGap: '18px', alignItems: 'start' }}>
+                  <label style={{ fontSize: '14px', color: '#6b7280', fontWeight: 600, paddingTop: '8px' }}>Visibility</label>
+                  <div>
+                    <div style={{ display: 'inline-flex', border: '1px solid #d1d5db', borderRadius: '10px', overflow: 'hidden' }}>
+                      <button
+                        type="button"
+                        onClick={() => setIsPrivate(false)}
+                        style={{
+                          border: 'none',
+                          padding: '10px 14px',
+                          fontSize: '14px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          backgroundColor: isPrivate ? '#ffffff' : '#111827',
+                          color: isPrivate ? '#111827' : '#ffffff'
+                        }}
+                      >
+                        Public
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsPrivate(true)}
+                        style={{
+                          border: 'none',
+                          borderLeft: '1px solid #d1d5db',
+                          padding: '10px 14px',
+                          fontSize: '14px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          backgroundColor: isPrivate ? '#111827' : '#ffffff',
+                          color: isPrivate ? '#ffffff' : '#111827'
+                        }}
+                      >
+                        Private
+                      </button>
+                    </div>
+                    <p style={{ marginTop: '8px', fontSize: '12px', color: '#6b7280' }}>
+                      {isPrivate
+                        ? 'Only you can see your posts.'
+                        : 'Anyone can see your posts on the map and in lists.'}
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              {/* Account Actions */}
-              <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: isMobile ? '12px' : '16px' }}>
-                <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#111827', marginBottom: isMobile ? '6px' : '8px' }}>Account</h3>
-                <button
-                  onClick={handleLogout}
-                  disabled={loggingOut}
-                  style={{
-                    padding: '10px 20px',
-                    fontSize: '14px',
-                    fontWeight: 600,
-                    color: '#ef4444',
-                    backgroundColor: loggingOut ? '#fef2f2' : '#ffffff',
-                    border: '1px solid #fecaca',
-                    borderRadius: '8px',
-                    cursor: loggingOut ? 'not-allowed' : 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!loggingOut) {
-                      e.currentTarget.style.backgroundColor = '#fef2f2';
-                      e.currentTarget.style.borderColor = '#ef4444';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!loggingOut) {
-                      e.currentTarget.style.backgroundColor = '#ffffff';
-                      e.currentTarget.style.borderColor = '#fecaca';
-                    }
-                  }}
-                >
-                  {loggingOut ? 'Logging out...' : 'Log Out'}
-                </button>
+              <div style={{ borderTop: '1px solid #f3f4f6', paddingTop: isMobile ? '12px' : '16px' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#111827', marginBottom: '12px' }}>Account</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '170px minmax(0, 1fr)', rowGap: '12px', columnGap: '18px', alignItems: 'center' }}>
+                  <label style={{ fontSize: '14px', color: '#6b7280', fontWeight: 600 }}>Logged in as</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '14px', color: '#111827', fontWeight: 600 }}>
+                      {userEmail || 'Unknown'}
+                    </span>
+                    <button
+                      onClick={handleLogout}
+                      disabled={loggingOut}
+                      style={{
+                        padding: '7px 12px',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        color: '#ef4444',
+                        backgroundColor: loggingOut ? '#fef2f2' : '#ffffff',
+                        border: '1px solid #fecaca',
+                        borderRadius: '8px',
+                        cursor: loggingOut ? 'not-allowed' : 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!loggingOut) {
+                          e.currentTarget.style.backgroundColor = '#fef2f2';
+                          e.currentTarget.style.borderColor = '#ef4444';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!loggingOut) {
+                          e.currentTarget.style.backgroundColor = '#ffffff';
+                          e.currentTarget.style.borderColor = '#fecaca';
+                        }
+                      }}
+                    >
+                      {loggingOut ? 'Logging out...' : 'Log Out'}
+                    </button>
+                  </div>
+                </div>
               </div>
+
+              {renderProfileStatus() && (
+                <p style={{
+                  fontSize: '12px',
+                  color: profileSaveState === 'error'
+                    ? '#b91c1c'
+                    : profileSaveState === 'saved'
+                      ? '#15803d'
+                      : '#6b7280',
+                  textAlign: 'right',
+                  margin: 0
+                }}>
+                  {renderProfileStatus()}
+                </p>
+              )}
             </div>
           )}
         </div>
