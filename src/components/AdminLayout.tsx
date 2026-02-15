@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, ReactNode } from 'react';
+import { useState, useEffect, ReactNode, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import AdminNav from './AdminNav';
@@ -13,6 +13,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [adminUser, setAdminUser] = useState<any>(null);
+  const mainScrollRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     async function checkAuth() {
@@ -39,6 +40,20 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
     checkAuth();
   }, [router]);
+
+  useEffect(() => {
+    const el = mainScrollRef.current;
+    if (!el) return;
+
+    // Wheel fallback to guarantee mouse scrolling on the admin content pane.
+    const onWheel = (event: WheelEvent) => {
+      if (event.defaultPrevented) return;
+      el.scrollTop += event.deltaY;
+    };
+
+    el.addEventListener('wheel', onWheel, { passive: true });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, []);
 
   if (loading || !adminUser) {
     return (
@@ -80,19 +95,45 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     <div
       style={{
         display: 'flex',
-        minHeight: '100vh',
+        height: '100vh',
         background: '#09090b',
+        overflow: 'hidden',
       }}
     >
       <AdminNav adminEmail={adminUser.email} />
       <main
+        ref={mainScrollRef}
+        className="admin-main-scroll"
         style={{
           flex: 1,
-          overflow: 'auto',
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          WebkitOverflowScrolling: 'touch',
+          scrollbarGutter: 'stable',
         }}
       >
         {children}
       </main>
+      <style jsx>{`
+        .admin-main-scroll {
+          scrollbar-width: thin;
+          scrollbar-color: #475569 #0f172a;
+        }
+        .admin-main-scroll::-webkit-scrollbar {
+          width: 10px;
+        }
+        .admin-main-scroll::-webkit-scrollbar-track {
+          background: #0f172a;
+        }
+        .admin-main-scroll::-webkit-scrollbar-thumb {
+          background: #475569;
+          border-radius: 9999px;
+          border: 2px solid #0f172a;
+        }
+        .admin-main-scroll::-webkit-scrollbar-thumb:hover {
+          background: #64748b;
+        }
+      `}</style>
     </div>
   );
 }

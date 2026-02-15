@@ -1346,22 +1346,6 @@ export default function Home() {
               >
                 <button
                   type="button"
-                  onClick={() => setEntryPresenceFilters({ been: false, lived: false })}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    padding: 0,
-                    color: '#cbd5e1',
-                    cursor: 'pointer',
-                    fontWeight: isAllPresenceFilter ? 700 : 500,
-                    fontSize: '14px',
-                  }}
-                >
-                  All ({presenceFilterCounts.all})
-                </button>
-                <span style={{ color: '#334155' }}>|</span>
-                <button
-                  type="button"
                   onClick={() => setEntryPresenceFilters((prev) => ({ ...prev, been: !prev.been }))}
                   style={{
                     background: 'none',
@@ -1390,6 +1374,22 @@ export default function Home() {
                   }}
                 >
                   Lived ({presenceFilterCounts.lived})
+                </button>
+                <span style={{ color: '#334155' }}>|</span>
+                <button
+                  type="button"
+                  onClick={() => setEntryPresenceFilters({ been: false, lived: false })}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                    color: '#cbd5e1',
+                    cursor: 'pointer',
+                    fontWeight: isAllPresenceFilter ? 700 : 500,
+                    fontSize: '14px',
+                  }}
+                >
+                  All
                 </button>
               </div>
 

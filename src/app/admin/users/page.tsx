@@ -14,6 +14,7 @@ interface User {
   submission_count?: number;
   rejected_count?: number;
   is_admin?: boolean;
+  is_private?: boolean;
 }
 
 export default function UsersPage() {
@@ -603,43 +604,56 @@ export default function UsersPage() {
                   {new Date(user.created_at).toLocaleDateString()}
                 </div>
                 <div>
-                  {getUserStatus(user) && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                     <span style={{
                       padding: '4px 12px',
                       fontSize: '12px',
                       fontWeight: '600',
                       borderRadius: '8px',
-                      background: user.email === 'slmxyz@gmail.com'
-                        ? 'rgba(168, 85, 247, 0.2)'
-                        : user.is_admin
-                        ? 'rgba(245, 158, 11, 0.2)'
-                        : user.banned_until
-                        ? 'rgba(239, 68, 68, 0.2)'
-                        : (user.rejected_count === user.submission_count)
-                        ? 'rgba(239, 68, 68, 0.2)'
-                        : 'rgba(34, 197, 94, 0.2)',
-                      border: user.email === 'slmxyz@gmail.com'
-                        ? '1px solid #a855f7'
-                        : user.is_admin
-                        ? '1px solid #f59e0b'
-                        : user.banned_until
-                        ? '1px solid #ef4444'
-                        : (user.rejected_count === user.submission_count)
-                        ? '1px solid #ef4444'
-                        : '1px solid #22c55e',
-                      color: user.email === 'slmxyz@gmail.com'
-                        ? '#a855f7'
-                        : user.is_admin
-                        ? '#f59e0b'
-                        : user.banned_until
-                        ? '#ef4444'
-                        : (user.rejected_count === user.submission_count)
-                        ? '#ef4444'
-                        : '#22c55e',
+                      background: user.is_private ? 'rgba(239, 68, 68, 0.2)' : 'rgba(34, 197, 94, 0.2)',
+                      border: user.is_private ? '1px solid #ef4444' : '1px solid #22c55e',
+                      color: user.is_private ? '#ef4444' : '#22c55e',
                     }}>
-                      {getUserStatus(user)}
+                      {user.is_private ? 'Private account' : 'Public account'}
                     </span>
-                  )}
+                    {getUserStatus(user) && (
+                      <span style={{
+                        padding: '4px 12px',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        borderRadius: '8px',
+                        background: user.email === 'slmxyz@gmail.com'
+                          ? 'rgba(168, 85, 247, 0.2)'
+                          : user.is_admin
+                          ? 'rgba(245, 158, 11, 0.2)'
+                          : user.banned_until
+                          ? 'rgba(239, 68, 68, 0.2)'
+                          : (user.rejected_count === user.submission_count)
+                          ? 'rgba(239, 68, 68, 0.2)'
+                          : 'rgba(34, 197, 94, 0.2)',
+                        border: user.email === 'slmxyz@gmail.com'
+                          ? '1px solid #a855f7'
+                          : user.is_admin
+                          ? '1px solid #f59e0b'
+                          : user.banned_until
+                          ? '1px solid #ef4444'
+                          : (user.rejected_count === user.submission_count)
+                          ? '1px solid #ef4444'
+                          : '1px solid #22c55e',
+                        color: user.email === 'slmxyz@gmail.com'
+                          ? '#a855f7'
+                          : user.is_admin
+                          ? '#f59e0b'
+                          : user.banned_until
+                          ? '#ef4444'
+                          : (user.rejected_count === user.submission_count)
+                          ? '#ef4444'
+                          : '#22c55e',
+                      }}>
+                        {getUserStatus(user)}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

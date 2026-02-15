@@ -10,6 +10,7 @@ export default function AllPostsPage() {
   const [loading, setLoading] = useState(true);
   const [entries, setEntries] = useState<CountryEntry[]>([]);
   const [authorNames, setAuthorNames] = useState<Record<string, string>>({});
+  const [privateAuthorIds, setPrivateAuthorIds] = useState<Set<string>>(new Set());
   const [countryFilter, setCountryFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedPostIds, setExpandedPostIds] = useState<Set<string>>(new Set());
@@ -47,17 +48,22 @@ export default function AllPostsPage() {
       if (userIds.length > 0) {
         const { data: profiles, error: profileError } = await supabase
           .from('user_profiles')
-          .select('id, username, display_name')
+          .select('id, username, display_name, is_private')
           .in('id', userIds);
 
         if (!profileError && profiles) {
           const names: Record<string, string> = {};
+          const privateIds = new Set<string>();
           for (const profile of profiles) {
             const display = profile.display_name?.trim();
             const username = profile.username?.replace(/^@/, '').trim();
             names[profile.id] = display || (username ? `@${username}` : `user-${profile.id.slice(0, 6)}`);
+            if (profile.is_private) {
+              privateIds.add(profile.id);
+            }
           }
           setAuthorNames(names);
+          setPrivateAuthorIds(privateIds);
         }
       }
     } catch (error) {
@@ -216,6 +222,11 @@ export default function AllPostsPage() {
                       </span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                      {privateAuthorIds.has(entry.user_id) && (
+                        <span style={{ fontSize: '11px', color: '#fca5a5', border: '1px solid #7f1d1d', borderRadius: '999px', padding: '3px 8px' }}>
+                          Private account
+                        </span>
+                      )}
                       {entry.forced_private && (
                         <span style={{ fontSize: '11px', color: '#fca5a5', border: '1px solid #7f1d1d', borderRadius: '999px', padding: '3px 8px' }}>Suspended</span>
                       )}

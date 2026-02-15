@@ -69,6 +69,22 @@ export async function GET(request: Request) {
 
     const adminUserIds = new Set(adminUsers?.map(a => a.id) || []);
 
+    // Fetch account privacy settings
+    const userIds = authUsers.users.map((u) => u.id);
+    const { data: profiles, error: profilesError } = await supabaseAdmin
+      .from('user_profiles')
+      .select('id, is_private')
+      .in('id', userIds);
+
+    if (profilesError) {
+      throw profilesError;
+    }
+
+    const privacyMap = new Map<string, boolean>();
+    for (const profile of profiles || []) {
+      privacyMap.set(profile.id, !!profile.is_private);
+    }
+
     // Count total and rejected submissions per user
     const submissionCounts: Record<string, number> = {};
     const rejectedCounts: Record<string, number> = {};
@@ -91,6 +107,7 @@ export async function GET(request: Request) {
       submission_count: submissionCounts[u.id] || 0,
       rejected_count: rejectedCounts[u.id] || 0,
       is_admin: adminUserIds.has(u.id),
+      is_private: privacyMap.get(u.id) || false,
     }));
 
     return NextResponse.json({ users: usersWithCounts });
