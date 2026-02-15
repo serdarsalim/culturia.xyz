@@ -555,7 +555,7 @@ export default function Home() {
   }
 
   function getCountryEntries(countryCode: string): CountryEntry[] {
-    return countryEntries.filter((entry) => entry.country_code === countryCode);
+    return visibleEntries.filter((entry) => entry.country_code === countryCode);
   }
 
   async function handleSaveCountryEntry(payload: {
