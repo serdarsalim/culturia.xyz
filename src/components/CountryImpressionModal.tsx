@@ -649,46 +649,43 @@ export default function CountryImpressionModal({
                         {(entry.pros?.length > 0 || entry.cons?.length > 0) && (
                           <div
                             style={{
-                              marginBottom: '28px',
+                              marginBottom: isMobile ? '18px' : '28px',
                               display: 'grid',
-                              gap: '8px',
-                              gridTemplateColumns: '1fr'
+                              gap: isMobile ? '4px' : '8px',
+                              gridTemplateColumns: '1fr',
+                              whiteSpace: 'normal'
                             }}
                           >
-                            <div style={{ minHeight: '20px' }}>
-                              {entry.pros?.length > 0 && (
-                                <div
-                                  style={{
-                                    color: '#0f172a',
-                                    fontSize: '16px',
-                                    display: 'grid',
-                                    gridTemplateColumns: 'max-content 1fr',
-                                    columnGap: '6px',
-                                    alignItems: 'start'
-                                  }}
-                                >
-                                  <span style={{ color: '#15803d', fontWeight: 700 }}>+ Pros:</span>
-                                  <span>{entry.pros.join(LIST_SEPARATOR)}</span>
-                                </div>
-                              )}
-                            </div>
-                            <div style={{ minHeight: '20px' }}>
-                              {entry.cons?.length > 0 && (
-                                <div
-                                  style={{
-                                    color: '#0f172a',
-                                    fontSize: '16px',
-                                    display: 'grid',
-                                    gridTemplateColumns: 'max-content 1fr',
-                                    columnGap: '6px',
-                                    alignItems: 'start'
-                                  }}
-                                >
-                                  <span style={{ color: '#b91c1c', fontWeight: 700 }}>- Cons:</span>
-                                  <span>{entry.cons.join(LIST_SEPARATOR)}</span>
-                                </div>
-                              )}
-                            </div>
+                            {entry.pros?.length > 0 && (
+                              <div
+                                style={{
+                                  color: '#0f172a',
+                                  fontSize: '16px',
+                                  display: 'grid',
+                                  gridTemplateColumns: 'max-content 1fr',
+                                  columnGap: '6px',
+                                  alignItems: 'start'
+                                }}
+                              >
+                                <span style={{ color: '#15803d', fontWeight: 700 }}>+ Pros:</span>
+                                <span>{entry.pros.join(LIST_SEPARATOR)}</span>
+                              </div>
+                            )}
+                            {entry.cons?.length > 0 && (
+                              <div
+                                style={{
+                                  color: '#0f172a',
+                                  fontSize: '16px',
+                                  display: 'grid',
+                                  gridTemplateColumns: 'max-content 1fr',
+                                  columnGap: '6px',
+                                  alignItems: 'start'
+                                }}
+                              >
+                                <span style={{ color: '#b91c1c', fontWeight: 700 }}>- Cons:</span>
+                                <span>{entry.cons.join(LIST_SEPARATOR)}</span>
+                              </div>
+                            )}
                           </div>
                         )}
                         <div

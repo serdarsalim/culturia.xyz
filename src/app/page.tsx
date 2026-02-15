@@ -1318,6 +1318,15 @@ export default function Home() {
                         color: '#f8fafc',
                         cursor: 'pointer',
                         textAlign: 'left',
+                        transition: 'background-color 0.16s ease, transform 0.16s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#3B82F6';
+                        e.currentTarget.style.transform = 'translateY(-1px)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#334155';
+                        e.currentTarget.style.transform = 'none';
                       }}
                     >
                       <span style={{ fontSize: '14px', fontWeight: 600 }}>

@@ -22,11 +22,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: "Culturia | Review Countries",
   description:
-    "Read and share honest impressions about countries around the world. Compare pros and cons, and track where people have been or lived.",
+    "Read and share honest impressions about countries around the world. A country review platform and travel tracker for visited and lived places.",
   openGraph: {
     title: "Culturia | Review Countries",
     description:
-      "A global map of country impressions, pros and cons, and lived/visited experiences shared by real people.",
+      "A global country review platform and travel tracker with pros, cons, and lived/visited experiences shared by real people.",
     type: "website",
     siteName: "Culturia",
   },
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Culturia | Review Countries",
     description:
-      "Read and share country impressions, pros and cons, and lived/visited experiences.",
+      "Country reviews and travel tracking with lived and visited experiences.",
   },
   icons: {
     icon: "/culturia.png",
@@ -54,7 +54,7 @@ export default function RootLayout({
     name: "Culturia",
     url: baseUrl,
     description:
-      "Read and share honest impressions about countries around the world. Compare pros and cons, and track where people have been or lived.",
+      "Read and share honest impressions about countries around the world. A country review platform and travel tracker for visited and lived places.",
     publisher: {
       "@type": "Person",
       name: "SerdarSalim",

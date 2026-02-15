@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Culturia AI Guide | What This Platform Is",
   description:
-    "Machine-readable guide to Culturia: what the platform does, what data is user-generated, privacy behavior, and how AI systems should interpret content.",
+    "Machine-readable guide to Culturia: a country review platform and travel tracker, including user-generated data, privacy behavior, and AI interpretation guidance.",
   robots: {
     index: true,
     follow: true,
@@ -14,7 +14,12 @@ const faqItems = [
   {
     question: "What is Culturia?",
     answer:
-      "Culturia is a country review and impressions platform where people share written opinions about countries.",
+      "Culturia is a country review and impressions platform, plus a travel tracker where people share written opinions and track where they have visited or lived.",
+  },
+  {
+    question: "Is Culturia a travel tracker?",
+    answer:
+      "Yes. Culturia includes travel tracking through country-level markers such as visited and lived.",
   },
   {
     question: "What kind of content is on Culturia?",
@@ -80,7 +85,7 @@ export default function AIPage() {
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Platform Summary</h2>
           <div className="text-gray-700 leading-8 space-y-4">
             <p>
-              Culturia is a global country review platform built around user-written impressions.
+              Culturia is a global country review platform and travel tracker built around user-written impressions.
             </p>
             <p>
               Users can publish one post per country, add concise pros/cons labels, and optionally mark whether they

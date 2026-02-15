@@ -79,7 +79,7 @@ export default function WorldMap({ onCountryClick, selectedCountry, onBackground
   return (
     <div
       className="relative w-full h-full"
-      style={{ backgroundColor: '#cbd5e1' }} // Professional neutral sea
+      style={{ backgroundColor: '#dbe4ef' }} // Increased contrast sea tone
       onClick={onBackgroundClick}
     >
       {/* Tooltip */}
@@ -176,7 +176,7 @@ export default function WorldMap({ onCountryClick, selectedCountry, onBackground
                   : country
                     ? countriesWithVideos?.has(country.code) === true
                     : false;
-                const countryColor = hasVideos ? COUNTRY_HIGHLIGHT_COLOR : '#94a3b8'; // slate-400 for no posts
+                const countryColor = hasVideos ? COUNTRY_HIGHLIGHT_COLOR : '#8898ad'; // balanced slate for no posts
 
                 return (
                   <Geography
@@ -257,7 +257,7 @@ export default function WorldMap({ onCountryClick, selectedCountry, onBackground
             if (!country) return null;
             const hasVideos = PREVIEW_ALL_COUNTRIES_HIGHLIGHTED || countriesWithVideos?.has(marker.code) === true;
             const isSelected = selectedCountry === marker.code;
-            const fillColor = isSelected ? COUNTRY_SELECTED_COLOR : hasVideos ? COUNTRY_HIGHLIGHT_COLOR : '#94a3b8';
+            const fillColor = isSelected ? COUNTRY_SELECTED_COLOR : hasVideos ? COUNTRY_HIGHLIGHT_COLOR : '#8898ad';
 
             return (
               <Marker
