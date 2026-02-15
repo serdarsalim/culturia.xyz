@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { getCountryFlag, getCountryName } from '@/lib/countries';
 import { type CountryEntry } from '@/types';
 
@@ -19,6 +19,7 @@ interface CountryImpressionModalProps {
     cons: string[];
     beenThere: boolean;
   }) => Promise<boolean>;
+  onDeleteEntry: (entryId: string) => Promise<boolean>;
   onToggleFavorite: (entryId: string) => Promise<boolean>;
 }
 
@@ -50,6 +51,7 @@ export default function CountryImpressionModal({
   onClose,
   onRequireAuth,
   onSaveEntry,
+  onDeleteEntry,
   onToggleFavorite,
 }: CountryImpressionModalProps) {
   const [isMobile, setIsMobile] = useState(false);
@@ -61,9 +63,12 @@ export default function CountryImpressionModal({
   const [consInput, setConsInput] = useState('');
   const [beenThere, setBeenThere] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [favoriteBusyId, setFavoriteBusyId] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [expandedEntries, setExpandedEntries] = useState<Set<string>>(new Set());
+  const [entryOverflowMap, setEntryOverflowMap] = useState<Record<string, boolean>>({});
+  const contentRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const countryName = getCountryName(countryCode);
   const flag = getCountryFlag(countryCode);
@@ -266,6 +271,21 @@ export default function CountryImpressionModal({
     }
   }
 
+  async function handleDelete() {
+    if (!existingUserEntry) return;
+    setIsDeleting(true);
+    setFormError(null);
+
+    const ok = await onDeleteEntry(existingUserEntry.id);
+    setIsDeleting(false);
+
+    if (ok) {
+      setIsEntryMode(false);
+    } else {
+      setFormError('Could not delete entry. Please try again.');
+    }
+  }
+
   async function handleToggleFavorite(entryId: string) {
     setFavoriteBusyId(entryId);
     await onToggleFavorite(entryId);
@@ -273,11 +293,6 @@ export default function CountryImpressionModal({
   }
 
   const entryActionLabel = isEntryMode ? '(close entry)' : existingUserEntry ? '(edit entry)' : '(add entry)';
-  function shouldTruncateEntry(text: string): boolean {
-    if (!text) return false;
-    const lines = text.split('\n').length;
-    return text.length > 520 || lines > 8;
-  }
   function toggleExpandedEntry(id: string) {
     setExpandedEntries((prev) => {
       const next = new Set(prev);
@@ -297,6 +312,26 @@ export default function CountryImpressionModal({
       minute: '2-digit',
     });
   }
+
+  useEffect(() => {
+    setEntryOverflowMap((prev) => {
+      const next = { ...prev };
+      let changed = false;
+
+      for (const entry of sortedEntries) {
+        if (expandedEntries.has(entry.id)) continue;
+        const el = contentRefs.current[entry.id];
+        if (!el) continue;
+        const isOverflowing = el.scrollHeight > 240 + 1;
+        if (next[entry.id] !== isOverflowing) {
+          next[entry.id] = isOverflowing;
+          changed = true;
+        }
+      }
+
+      return changed ? next : prev;
+    });
+  }, [sortedEntries, expandedEntries]);
 
   return (
     <div
@@ -437,7 +472,7 @@ export default function CountryImpressionModal({
                       style={{
                         padding: 0,
                         color: '#0f172a',
-                        lineHeight: 1.45,
+                        lineHeight: '24px',
                         fontSize: '16px',
                         whiteSpace: 'pre-wrap'
                       }}
@@ -464,16 +499,17 @@ export default function CountryImpressionModal({
                           </button>
                         </div>
                         <div
+                          ref={(el) => {
+                            contentRefs.current[entry.id] = el;
+                          }}
                           style={{
                             overflow: expandedEntries.has(entry.id) ? 'visible' : 'hidden',
-                            display: expandedEntries.has(entry.id) ? 'block' : '-webkit-box',
-                            WebkitLineClamp: expandedEntries.has(entry.id) ? 'unset' : 10,
-                            WebkitBoxOrient: expandedEntries.has(entry.id) ? 'unset' : 'vertical'
+                            maxHeight: expandedEntries.has(entry.id) ? 'none' : '240px'
                           }}
                         >
                           {entry.content}
                         </div>
-                        {shouldTruncateEntry(entry.content) && (
+                        {(entryOverflowMap[entry.id] || expandedEntries.has(entry.id)) && (
                           <button
                             type="button"
                             onClick={() => toggleExpandedEntry(entry.id)}
@@ -482,13 +518,13 @@ export default function CountryImpressionModal({
                               border: 'none',
                               background: 'transparent',
                               color: '#475569',
-                              fontSize: '12px',
+                              fontSize: '13px',
                               fontWeight: 600,
                               padding: 0,
                               cursor: 'pointer'
                             }}
                           >
-                            {expandedEntries.has(entry.id) ? 'Show less' : 'Read more'}
+                            {expandedEntries.has(entry.id) ? 'Show less' : 'Read more...'}
                           </button>
                         )}
                         {(entry.pros?.length > 0 || entry.cons?.length > 0) && (
@@ -503,16 +539,16 @@ export default function CountryImpressionModal({
                             <div style={{ minHeight: '20px' }}>
                               {entry.pros?.length > 0 && (
                                 <div style={{ display: 'flex', gap: '6px', alignItems: 'baseline', flexWrap: 'wrap' }}>
-                                  <span style={{ fontSize: '12px', color: '#0f172a', fontWeight: 700 }}>Pros:</span>
-                                  <span style={{ color: '#0f172a', fontSize: '11px' }}>{entry.pros.join(', ')}</span>
+                                  <span style={{ fontSize: '13px', color: '#0f172a', fontWeight: 700 }}>Pros:</span>
+                                  <span style={{ color: '#0f172a', fontSize: '12px' }}>{entry.pros.join(', ')}</span>
                                 </div>
                               )}
                             </div>
                             <div style={{ minHeight: '20px' }}>
                               {entry.cons?.length > 0 && (
                                 <div style={{ display: 'flex', gap: '6px', alignItems: 'baseline', flexWrap: 'wrap' }}>
-                                  <span style={{ fontSize: '12px', color: '#0f172a', fontWeight: 700 }}>Cons:</span>
-                                  <span style={{ color: '#0f172a', fontSize: '11px' }}>{entry.cons.join(', ')}</span>
+                                  <span style={{ fontSize: '13px', color: '#0f172a', fontWeight: 700 }}>Cons:</span>
+                                  <span style={{ color: '#0f172a', fontSize: '12px' }}>{entry.cons.join(', ')}</span>
                                 </div>
                               )}
                             </div>
@@ -702,6 +738,28 @@ export default function CountryImpressionModal({
                 )}
 
                 <div style={{ marginTop: '18px', display: 'flex', justifyContent: 'flex-end' }}>
+                  {existingUserEntry && (
+                    <button
+                      type="button"
+                      onClick={handleDelete}
+                      style={{
+                        height: '40px',
+                        borderRadius: '999px',
+                        border: '1px solid #fecaca',
+                        backgroundColor: '#ffffff',
+                        color: '#b91c1c',
+                        padding: '0 16px',
+                        fontSize: '14px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        marginRight: '8px',
+                        opacity: isDeleting ? 0.6 : 1
+                      }}
+                      disabled={isSaving || isDeleting}
+                    >
+                      {isDeleting ? 'Deleting...' : 'Delete'}
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={handleToggleEntryMode}
@@ -717,7 +775,7 @@ export default function CountryImpressionModal({
                       cursor: 'pointer',
                       marginRight: '8px'
                     }}
-                    disabled={isSaving}
+                    disabled={isSaving || isDeleting}
                   >
                     Cancel
                   </button>
@@ -736,7 +794,7 @@ export default function CountryImpressionModal({
                       cursor: 'pointer',
                       opacity: isSaving ? 0.65 : 1
                     }}
-                    disabled={isSaving}
+                    disabled={isSaving || isDeleting}
                   >
                     {isSaving ? 'Saving...' : 'Save post'}
                   </button>

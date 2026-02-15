@@ -38,6 +38,7 @@ export default function Home() {
   const [countryEntries, setCountryEntries] = useState<CountryEntry[]>([]);
   const [entryAuthorNames, setEntryAuthorNames] = useState<Record<string, string>>({});
   const [favoriteEntryIds, setFavoriteEntryIds] = useState<Set<string>>(new Set());
+  const [privateEntryOwnerIds, setPrivateEntryOwnerIds] = useState<Set<string>>(new Set());
   const [entriesReady, setEntriesReady] = useState(false);
   const [videoCache, setVideoCache] = useState<VideoSubmission[]>([]);
   const [videoCacheReady, setVideoCacheReady] = useState(false);
@@ -73,14 +74,30 @@ export default function Home() {
   const [showAboutModal, setShowAboutModal] = useState(false);
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
 
-  // Set of countries that currently have at least one text entry
+  const visibleEntries = useMemo(() => {
+    return countryEntries.filter((entry) =>
+      !privateEntryOwnerIds.has(entry.user_id) || entry.user_id === user?.id
+    );
+  }, [countryEntries, privateEntryOwnerIds, user?.id]);
+
+  const filteredEntries = useMemo(() => {
+    if (mapSources.mine && user?.id) {
+      return visibleEntries.filter((entry) => entry.user_id === user.id);
+    }
+    if (mapSources.favorites) {
+      return visibleEntries.filter((entry) => favoriteEntryIds.has(entry.id));
+    }
+    return visibleEntries;
+  }, [mapSources, user?.id, favoriteEntryIds, visibleEntries]);
+
+  // Set of countries highlighted on map based on post source filter
   const countriesWithVideos = useMemo(() => {
     const set = new Set<string>();
-    for (const entry of countryEntries) {
+    for (const entry of filteredEntries) {
       if (entry.country_code) set.add(entry.country_code);
     }
     return set;
-  }, [countryEntries]);
+  }, [filteredEntries]);
 
   // Detect mobile screen size
   useEffect(() => {
@@ -293,23 +310,28 @@ export default function Home() {
       if (userIds.length > 0) {
         const { data: profiles, error: profileError } = await supabase
           .from('user_profiles')
-          .select('id, username, display_name')
+          .select('id, username, display_name, is_private')
           .in('id', userIds);
 
         if (profileError) {
           console.error('Error loading entry author names:', profileError);
           setEntryAuthorNames({});
+          setPrivateEntryOwnerIds(new Set());
         } else {
           const names: Record<string, string> = {};
+          const privateIds = new Set<string>();
           for (const profile of profiles || []) {
             const username = profile.username?.replace(/^@/, '').trim();
             const displayName = profile.display_name?.trim();
             names[profile.id] = displayName || (username ? `@${username}` : '');
+            if (profile.is_private) privateIds.add(profile.id);
           }
           setEntryAuthorNames(names);
+          setPrivateEntryOwnerIds(privateIds);
         }
       } else {
         setEntryAuthorNames({});
+        setPrivateEntryOwnerIds(new Set());
       }
 
       setEntriesReady(true);
@@ -554,6 +576,27 @@ export default function Home() {
     }
   }
 
+  async function handleDeleteCountryEntry(entryId: string): Promise<boolean> {
+    if (!user?.id) return false;
+
+    try {
+      const { error } = await supabase
+        .from('country_entries')
+        .delete()
+        .eq('id', entryId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      await refreshCountryEntries();
+      await refreshEntryFavorites();
+      return true;
+    } catch (error) {
+      console.error('Error deleting country entry:', error);
+      return false;
+    }
+  }
+
   function handleRequireAuthForEntry() {
     setAuthMode('login');
     setShowAuthModal(true);
@@ -791,8 +834,8 @@ export default function Home() {
         setTimeout(() => setShowToast(false), 2000);
       } else if (key === 'all' && value) {
         setToastMessage({
-          title: 'All Videos',
-          description: 'Now showing all approved videos on the map'
+          title: 'All Public Posts',
+          description: 'Now showing all public posts on the map'
         });
         setShowToast(true);
         setTimeout(() => setShowToast(false), 2000);
@@ -815,10 +858,10 @@ export default function Home() {
 
   const hideSidebarOnMobileList = isMobile && viewMode === 'list';
   const topCountries = useMemo(() => {
-    if (!entriesReady || countryEntries.length === 0) return [];
+    if (!entriesReady || filteredEntries.length === 0) return [];
 
     const counts = new Map<string, number>();
-    for (const entry of countryEntries) {
+    for (const entry of filteredEntries) {
       if (!entry.country_code) continue;
       counts.set(entry.country_code, (counts.get(entry.country_code) || 0) + 1);
     }
@@ -834,7 +877,7 @@ export default function Home() {
         return a.name.localeCompare(b.name);
       })
       .slice(0, 5);
-  }, [countryEntries, entriesReady]);
+  }, [filteredEntries, entriesReady]);
 
   return (
     <div className="home-layout h-screen overflow-hidden">
@@ -1385,6 +1428,7 @@ export default function Home() {
           onClose={handleCloseCountryModal}
           onRequireAuth={handleRequireAuthForEntry}
           onSaveEntry={handleSaveCountryEntry}
+          onDeleteEntry={handleDeleteCountryEntry}
           onToggleFavorite={handleToggleEntryFavorite}
         />
       )}

@@ -966,7 +966,7 @@ export default function ProfileModal({
                   gap: isMobile ? '6px' : '8px'
                 }}>
                   {([
-                    { key: 'all', label: 'All approved videos', desc: 'Public, approved content' },
+                    { key: 'all', label: 'All public posts', desc: 'Public, approved content' },
                     { key: 'favorites', label: 'My favorites', desc: 'Places you starred', requiresAuth: true },
                     { key: 'mine', label: 'My submissions', desc: 'Countries you contributed to', requiresAuth: true },
                   ] as Array<{ key: 'all' | 'favorites' | 'mine'; label: string; desc: string; requiresAuth?: boolean }>).map(opt => {
