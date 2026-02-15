@@ -133,6 +133,11 @@ export default function Home() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Avoid cross-account filter leakage when switching users/sessions.
+  useEffect(() => {
+    setEntryPresenceFilters({ been: false, lived: false });
+  }, [user?.id]);
+
   // Check authentication and preload profile data
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {

@@ -291,56 +291,67 @@ export default function CountryImpressionModal({
     resetToExisting();
   }
 
-  async function handleRequestClose() {
-    if (isEntryMode && currentUserId) {
-      const trimmed = content.trim();
-      if (trimmed) {
-        const snapshot = JSON.stringify({
-          content: trimmed,
-          pros,
-          cons,
-          beenThere,
-          livedThere,
-        });
-        if (snapshot !== lastSavedSnapshotRef.current) {
-          setIsSaving(true);
-          setFormError(null);
-          const ok = await onSaveEntry({
-            countryCode,
-            content: trimmed,
-            pros,
-            cons,
-            beenThere,
-            livedThere,
-          });
-          setIsSaving(false);
-          if (ok) {
-            lastSavedSnapshotRef.current = snapshot;
-            if (typeof window !== 'undefined') {
-              window.localStorage.removeItem(draftStorageKey);
-            }
-          } else {
-            setFormError('Could not save post. Please try again.');
-          }
-        }
+  async function persistEntryIfNeeded(): Promise<boolean> {
+    if (!isEntryMode || !currentUserId) return true;
+
+    const trimmed = content.trim();
+    if (!trimmed) return true;
+
+    const snapshot = JSON.stringify({
+      content: trimmed,
+      pros,
+      cons,
+      beenThere,
+      livedThere,
+    });
+
+    if (snapshot === lastSavedSnapshotRef.current) return true;
+
+    setIsSaving(true);
+    setFormError(null);
+    const ok = await onSaveEntry({
+      countryCode,
+      content: trimmed,
+      pros,
+      cons,
+      beenThere,
+      livedThere,
+    });
+    setIsSaving(false);
+
+    if (ok) {
+      lastSavedSnapshotRef.current = snapshot;
+      if (typeof window !== 'undefined') {
+        window.localStorage.removeItem(draftStorageKey);
       }
+      return true;
     }
+
+    setFormError('Could not save post. Please try again.');
+    return false;
+  }
+
+  async function handleRequestClose() {
+    const ok = await persistEntryIfNeeded();
+    if (!ok) return;
     onClose();
   }
 
-  function handleToggleEntryMode() {
+  async function handleToggleEntryMode() {
     if (!isEntryMode && !currentUserId) {
       onRequireAuth();
       return;
     }
 
-    setIsEntryMode((prev) => {
-      const next = !prev;
-      if (next) {
-        hydrateEntryForm();
-      }
-      return next;
-    });
+    if (isEntryMode) {
+      const ok = await persistEntryIfNeeded();
+      if (!ok) return;
+      setIsEntryMode(false);
+      return;
+    }
+
+    hydrateEntryForm();
+    setIsEntryMode(true);
   }
 
   async function handleDelete() {
