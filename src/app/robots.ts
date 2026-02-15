@@ -1,16 +1,16 @@
 import type { MetadataRoute } from "next";
 
 function getBaseUrl(): string {
-  const explicit = process.env.NEXT_PUBLIC_SITE_URL;
-  if (explicit) return explicit;
+  const explicit = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (explicit) return explicit.replace(/\/+$/, "");
 
   const production = process.env.VERCEL_PROJECT_PRODUCTION_URL;
-  if (production) return `https://${production}`;
+  if (production) return `https://${production}`.replace(/\/+$/, "");
 
-  const vercelUrl = process.env.VERCEL_URL;
-  if (vercelUrl) return `https://${vercelUrl}`;
+  const vercelUrl = process.env.VERCEL_URL?.trim();
+  if (vercelUrl) return `https://${vercelUrl}`.replace(/\/+$/, "");
 
-  return "http://localhost:3000";
+  return "https://culturia.xyz";
 }
 
 export default function robots(): MetadataRoute.Robots {
@@ -20,6 +20,7 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
     },
+    host: baseUrl,
     sitemap: `${baseUrl}/sitemap.xml`,
   };
 }

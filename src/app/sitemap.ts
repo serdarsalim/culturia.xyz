@@ -2,18 +2,20 @@ import type { MetadataRoute } from "next";
 import { createClient } from "@supabase/supabase-js";
 
 export const revalidate = 604800;
+export const runtime = "nodejs";
 
 function getBaseUrl(): string {
-  const explicit = process.env.NEXT_PUBLIC_SITE_URL;
-  if (explicit) return explicit;
+  const explicit = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (explicit) return explicit.replace(/\/+$/, "");
 
   const production = process.env.VERCEL_PROJECT_PRODUCTION_URL;
-  if (production) return `https://${production}`;
+  if (production) return `https://${production}`.replace(/\/+$/, "");
 
-  const vercelUrl = process.env.VERCEL_URL;
-  if (vercelUrl) return `https://${vercelUrl}`;
+  const vercelUrl = process.env.VERCEL_URL?.trim();
+  if (vercelUrl) return `https://${vercelUrl}`.replace(/\/+$/, "");
 
-  return "http://localhost:3000";
+  // Canonical production fallback (prevents localhost/preview URLs in sitemap).
+  return "https://culturia.xyz";
 }
 
 function getSupabaseClient() {
@@ -39,7 +41,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (!supabase) return staticPages;
 
   try {
-    const [entriesResult, privateProfilesResult] = await Promise.all([
+    // Keep sitemap response fast and predictable for crawlers.
+    const timeoutMs = 4000;
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("Sitemap DB query timeout")), timeoutMs)
+    );
+    const queryPromise = Promise.all([
       supabase
         .from("country_entries")
         .select("country_code, updated_at, created_at, user_id")
@@ -50,6 +57,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         .select("id")
         .eq("is_private", true),
     ]);
+    const [entriesResult, privateProfilesResult] = await Promise.race([queryPromise, timeoutPromise]);
 
     if (entriesResult.error) throw entriesResult.error;
     if (privateProfilesResult.error) throw privateProfilesResult.error;
