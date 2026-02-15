@@ -1256,13 +1256,13 @@ export default function Home() {
                 marginTop: isMobile ? '12px' : '20px'
               }}>
                 <h2 style={{ fontSize: isMobile ? '16px' : '20px', fontWeight: 700, color: '#0f172a', margin: 0, textAlign: 'center' }}>
-                  Top Entries
+                  Top Posts
                 </h2>
                 {!entriesReady && (
                   <div style={{ fontSize: '13px', color: '#64748b' }}>Loading...</div>
                 )}
                 {entriesReady && topCountries.length === 0 && (
-                  <div style={{ fontSize: '13px', color: '#64748b' }}>No entries yet.</div>
+                  <div style={{ fontSize: '13px', color: '#64748b' }}>No posts yet.</div>
                 )}
                 <div
                   style={{

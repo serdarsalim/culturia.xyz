@@ -252,7 +252,7 @@ export default function CountryImpressionModal({
 
     const trimmed = content.trim();
     if (!trimmed) {
-      setFormError('Entry cannot be empty.');
+      setFormError('Post cannot be empty.');
       return;
     }
 
@@ -272,7 +272,7 @@ export default function CountryImpressionModal({
     if (ok) {
       setIsEntryMode(false);
     } else {
-      setFormError('Could not save entry. Please try again.');
+      setFormError('Could not save post. Please try again.');
     }
   }
 
@@ -287,7 +287,7 @@ export default function CountryImpressionModal({
     if (ok) {
       setIsEntryMode(false);
     } else {
-      setFormError('Could not delete entry. Please try again.');
+      setFormError('Could not delete post. Please try again.');
     }
   }
 
@@ -297,7 +297,7 @@ export default function CountryImpressionModal({
     setFavoriteBusyId(null);
   }
 
-  const entryActionLabel = isEntryMode ? '(close entry)' : existingUserEntry ? '(edit entry)' : '(add entry)';
+  const entryActionLabel = isEntryMode ? '(close post)' : existingUserEntry ? '(edit post)' : '(add post)';
   function toggleExpandedEntry(id: string) {
     setExpandedEntries((prev) => {
       const next = new Set(prev);
@@ -579,7 +579,7 @@ export default function CountryImpressionModal({
                     </div>
                   ))
                 ) : (
-                  <div style={{ color: '#94a3b8', fontSize: '14px' }}>No entries yet. Be the first to add one.</div>
+                  <div style={{ color: '#94a3b8', fontSize: '14px' }}>No posts yet. Be the first to add one.</div>
                 )}
               </div>
             </section>
@@ -621,6 +621,7 @@ export default function CountryImpressionModal({
                       Separate labels with commas. Up to 5 labels, max 3 words each.
                     </div>
                     <input
+                      className="entry-label-input"
                       value={prosInput}
                       onChange={(event) => {
                         const value = event.target.value;
@@ -676,6 +677,7 @@ export default function CountryImpressionModal({
                       Separate labels with commas. Up to 5 labels, max 3 words each.
                     </div>
                     <input
+                      className="entry-label-input"
                       value={consInput}
                       onChange={(event) => {
                         const value = event.target.value;
@@ -819,6 +821,11 @@ export default function CountryImpressionModal({
             )}
           </section>
         </div>
+        <style jsx>{`
+          .entry-label-input::placeholder {
+            color: #94a3b8;
+          }
+        `}</style>
       </div>
     </div>
   );
