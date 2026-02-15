@@ -27,6 +27,8 @@ const GEO_NAME_TO_CODE: Record<string, string> = {
   'Côte d\'Ivoire': 'CIV',
   'East Timor': 'TLS',
   'Timor-Leste': 'TLS',
+  'Bosnia and Herz.': 'BIH',
+  'Bosnia and Herzegovina': 'BIH',
   'Swaziland': 'SWZ',
   'Eswatini': 'SWZ',
 };
