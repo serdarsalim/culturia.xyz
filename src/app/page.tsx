@@ -81,6 +81,7 @@ export default function Home() {
   const visibleEntries = useMemo(() => {
     return countryEntries.filter((entry) =>
       (!privateEntryOwnerIds.has(entry.user_id) || entry.user_id === user?.id) &&
+      (!entry.private_by_owner || entry.user_id === user?.id) &&
       (!entry.forced_private || entry.user_id === user?.id)
     );
   }, [countryEntries, privateEntryOwnerIds, user?.id]);
@@ -576,6 +577,7 @@ export default function Home() {
     cons: string[];
     beenThere: boolean;
     livedThere: boolean;
+    privateByOwner: boolean;
   }): Promise<boolean> {
     if (!user?.id) {
       return false;
@@ -591,6 +593,7 @@ export default function Home() {
           cons: payload.cons,
           been_there: payload.beenThere,
           lived_there: payload.livedThere,
+          private_by_owner: payload.privateByOwner,
         },
         { onConflict: 'user_id,country_code' }
       );
@@ -1559,6 +1562,7 @@ export default function Home() {
           authorNames={entryAuthorNames}
           favoriteEntryIds={favoriteEntryIds}
           currentUserId={user?.id ?? null}
+          isAccountPrivate={!!userProfile?.is_private}
           onClose={handleCloseCountryModal}
           onRequireAuth={handleRequireAuthForEntry}
           onSaveEntry={handleSaveCountryEntry}

@@ -230,6 +230,11 @@ export default function AllPostsPage() {
                       {entry.forced_private && (
                         <span style={{ fontSize: '11px', color: '#fca5a5', border: '1px solid #7f1d1d', borderRadius: '999px', padding: '3px 8px' }}>Suspended</span>
                       )}
+                      {entry.private_by_owner && (
+                        <span style={{ fontSize: '11px', color: '#93c5fd', border: '1px solid #1e3a8a', borderRadius: '999px', padding: '3px 8px' }}>
+                          Post private
+                        </span>
+                      )}
                       <button
                         onClick={() => toggleExpanded(entry.id)}
                         style={{

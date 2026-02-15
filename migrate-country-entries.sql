@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS country_entries (
   cons TEXT[] NOT NULL DEFAULT '{}'::TEXT[] CHECK (array_length(cons, 1) IS NULL OR array_length(cons, 1) <= 5),
   been_there BOOLEAN NOT NULL DEFAULT FALSE,
   lived_there BOOLEAN NOT NULL DEFAULT FALSE,
+  private_by_owner BOOLEAN NOT NULL DEFAULT FALSE,
   forced_private BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),

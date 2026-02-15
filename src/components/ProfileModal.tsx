@@ -815,6 +815,20 @@ export default function ProfileModal({
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <span style={{ fontSize: '22px' }}>{getCountryFlag(cc)}</span>
                         <span style={{ fontWeight: 700, color: '#111827' }}>{getCountryName(cc)}</span>
+                        {entries.some((entry) => entry.private_by_owner) && (
+                          <span
+                            style={{
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              color: '#1e293b',
+                              backgroundColor: '#e2e8f0',
+                              borderRadius: '999px',
+                              padding: '2px 8px'
+                            }}
+                          >
+                            🔒 Private post
+                          </span>
+                        )}
                       </div>
                       <span style={{ color: '#6b7280', fontSize: '12px', fontWeight: 600 }}>
                         {expandedSubmissionCountries.has(cc) ? 'Hide' : 'Show'} ({entries.length})
@@ -830,6 +844,11 @@ export default function ProfileModal({
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
                         {entries.map((entry) => (
                           <div key={entry.id} style={{ padding: '12px 16px', borderTop: '1px solid #f3f4f6' }}>
+                            {entry.private_by_owner && (
+                              <div style={{ fontSize: '12px', color: '#334155', fontWeight: 600, marginBottom: '6px' }}>
+                                🔒 Private post
+                              </div>
+                            )}
                             <div style={{ marginTop: '4px', fontSize: '14px', color: '#111827', whiteSpace: 'pre-wrap' }}>
                               {entry.content}
                             </div>

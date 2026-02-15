@@ -10,6 +10,7 @@ interface CountryImpressionModalProps {
   authorNames: Record<string, string>;
   favoriteEntryIds: Set<string>;
   currentUserId: string | null;
+  isAccountPrivate: boolean;
   onClose: () => void;
   onRequireAuth: () => void;
   onSaveEntry: (payload: {
@@ -19,6 +20,7 @@ interface CountryImpressionModalProps {
     cons: string[];
     beenThere: boolean;
     livedThere: boolean;
+    privateByOwner: boolean;
   }) => Promise<boolean>;
   onDeleteEntry: (entryId: string) => Promise<boolean>;
   onToggleFavorite: (entryId: string) => Promise<boolean>;
@@ -51,6 +53,7 @@ interface EntryDraft {
   consInput: string;
   beenThere: boolean;
   livedThere: boolean;
+  privateByOwner: boolean;
 }
 
 export default function CountryImpressionModal({
@@ -59,6 +62,7 @@ export default function CountryImpressionModal({
   authorNames,
   favoriteEntryIds,
   currentUserId,
+  isAccountPrivate,
   onClose,
   onRequireAuth,
   onSaveEntry,
@@ -74,6 +78,7 @@ export default function CountryImpressionModal({
   const [consInput, setConsInput] = useState('');
   const [beenThere, setBeenThere] = useState(false);
   const [livedThere, setLivedThere] = useState(false);
+  const [privateByOwner, setPrivateByOwner] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [favoriteBusyId, setFavoriteBusyId] = useState<string | null>(null);
@@ -95,6 +100,7 @@ export default function CountryImpressionModal({
     () => [...entries].sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()),
     [entries]
   );
+  const effectivePrivateByOwner = isAccountPrivate ? true : privateByOwner;
   const draftStorageKey = useMemo(
     () => `country-entry-draft:${currentUserId ?? 'guest'}:${countryCode}`,
     [currentUserId, countryCode]
@@ -234,12 +240,14 @@ export default function CountryImpressionModal({
       setCons(existingUserEntry.cons || []);
       setBeenThere(!!existingUserEntry.been_there);
       setLivedThere(!!existingUserEntry.lived_there);
+      setPrivateByOwner(isAccountPrivate ? true : !!existingUserEntry.private_by_owner);
     } else {
       setContent('');
       setPros([]);
       setCons([]);
       setBeenThere(false);
       setLivedThere(false);
+      setPrivateByOwner(isAccountPrivate ? true : false);
     }
     setProsInput('');
     setConsInput('');
@@ -254,6 +262,7 @@ export default function CountryImpressionModal({
     setConsInput(draft.consInput || '');
     setBeenThere(!!draft.beenThere);
     setLivedThere(!!draft.livedThere);
+    setPrivateByOwner(isAccountPrivate ? true : !!draft.privateByOwner);
     setFormError(null);
   }
 
@@ -278,7 +287,8 @@ export default function CountryImpressionModal({
       (draft.pros && draft.pros.length > 0) ||
       (draft.cons && draft.cons.length > 0) ||
       draft.beenThere ||
-      draft.livedThere
+      draft.livedThere ||
+      draft.privateByOwner
     );
   }
 
@@ -295,12 +305,15 @@ export default function CountryImpressionModal({
     if (!isEntryMode || !currentUserId) return true;
 
     const trimmed = content.trim();
+    const existingPrivateByOwner = !!existingUserEntry?.private_by_owner;
+    const privateFlagChangedOnExistingEntry = !!existingUserEntry && effectivePrivateByOwner !== existingPrivateByOwner;
     const hasPersistableData =
       Boolean(trimmed) ||
       pros.length > 0 ||
       cons.length > 0 ||
       beenThere ||
-      livedThere;
+      livedThere ||
+      privateFlagChangedOnExistingEntry;
     if (!hasPersistableData) return true;
 
     const snapshot = JSON.stringify({
@@ -309,6 +322,7 @@ export default function CountryImpressionModal({
       cons,
       beenThere,
       livedThere,
+      privateByOwner: effectivePrivateByOwner,
     });
 
     if (snapshot === lastSavedSnapshotRef.current) return true;
@@ -322,6 +336,7 @@ export default function CountryImpressionModal({
       cons,
       beenThere,
       livedThere,
+      privateByOwner: effectivePrivateByOwner,
     });
     setIsSaving(false);
 
@@ -432,9 +447,10 @@ export default function CountryImpressionModal({
       cons: existingUserEntry?.cons || [],
       beenThere: !!existingUserEntry?.been_there,
       livedThere: !!existingUserEntry?.lived_there,
+      privateByOwner: isAccountPrivate ? true : !!existingUserEntry?.private_by_owner,
     });
     lastSavedSnapshotRef.current = savedSnapshot;
-  }, [existingUserEntry?.id, existingUserEntry?.updated_at, existingUserEntry?.content, existingUserEntry?.been_there, existingUserEntry?.lived_there, existingUserEntry?.pros, existingUserEntry?.cons]);
+  }, [existingUserEntry?.id, existingUserEntry?.updated_at, existingUserEntry?.content, existingUserEntry?.been_there, existingUserEntry?.lived_there, existingUserEntry?.private_by_owner, existingUserEntry?.pros, existingUserEntry?.cons, isAccountPrivate]);
 
   useEffect(() => {
     if (!isEntryMode) return;
@@ -451,13 +467,14 @@ export default function CountryImpressionModal({
       consInput,
       beenThere,
       livedThere,
+      privateByOwner: effectivePrivateByOwner,
     };
     try {
       window.localStorage.setItem(draftStorageKey, JSON.stringify(draft));
     } catch {
       // Ignore localStorage write errors (quota/private mode).
     }
-  }, [draftStorageKey, content, pros, cons, prosInput, consInput, beenThere, livedThere]);
+  }, [draftStorageKey, content, pros, cons, prosInput, consInput, beenThere, livedThere, effectivePrivateByOwner]);
 
   return (
     <div
@@ -694,13 +711,19 @@ export default function CountryImpressionModal({
                           }}
                         >
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
-                            <span style={{ color: '#334155' }}>
+                            <span
+                              style={{
+                                color: '#334155',
+                                fontWeight: entry.user_id === currentUserId ? 700 : 500
+                              }}
+                            >
                               {authorNames[entry.user_id] || `user-${entry.user_id.slice(0, 6)}`}
                               {entry.lived_there
                                 ? ` | Lived in ${countryName}`
                                 : entry.been_there
                                   ? ` | Visited ${countryName}`
                                   : ''}
+                              {entry.private_by_owner ? ' | 🔒 Private post' : ''}
                             </span>
                             <span>{formatEntryDate(entry.updated_at || entry.created_at)}</span>
                           </div>
@@ -877,6 +900,22 @@ export default function CountryImpressionModal({
                         style={{ width: '16px', height: '16px' }}
                       />
                       <span style={{ fontSize: '14px' }}>I lived there</span>
+                    </label>
+                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={effectivePrivateByOwner}
+                        onChange={(event) => {
+                          if (isAccountPrivate) {
+                            setFormError('Your account is private. Go to Settings and make your profile public first.');
+                            return;
+                          }
+                          setFormError(null);
+                          setPrivateByOwner(event.target.checked);
+                        }}
+                        style={{ width: '16px', height: '16px' }}
+                      />
+                      <span style={{ fontSize: '14px' }}>Private post</span>
                     </label>
                   </div>
                 </section>
