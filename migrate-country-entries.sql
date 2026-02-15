@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS country_entries (
   cons TEXT[] NOT NULL DEFAULT '{}'::TEXT[] CHECK (array_length(cons, 1) IS NULL OR array_length(cons, 1) <= 5),
   been_there BOOLEAN NOT NULL DEFAULT FALSE,
   lived_there BOOLEAN NOT NULL DEFAULT FALSE,
+  forced_private BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE(user_id, country_code)
@@ -60,8 +61,21 @@ TO authenticated
 USING (auth.uid() = user_id)
 WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Admins can update any country entry" ON country_entries;
+CREATE POLICY "Admins can update any country entry"
+ON country_entries FOR UPDATE
+TO authenticated
+USING (EXISTS (SELECT 1 FROM admin_users WHERE admin_users.id = auth.uid()))
+WITH CHECK (EXISTS (SELECT 1 FROM admin_users WHERE admin_users.id = auth.uid()));
+
 DROP POLICY IF EXISTS "Users can delete own country entries" ON country_entries;
 CREATE POLICY "Users can delete own country entries"
 ON country_entries FOR DELETE
 TO authenticated
 USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Admins can delete any country entry" ON country_entries;
+CREATE POLICY "Admins can delete any country entry"
+ON country_entries FOR DELETE
+TO authenticated
+USING (EXISTS (SELECT 1 FROM admin_users WHERE admin_users.id = auth.uid()));

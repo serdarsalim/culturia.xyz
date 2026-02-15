@@ -63,6 +63,7 @@ export interface CountryEntry {
   cons: string[];
   been_there: boolean;
   lived_there: boolean;
+  forced_private: boolean;
   created_at: string;
   updated_at: string;
 }

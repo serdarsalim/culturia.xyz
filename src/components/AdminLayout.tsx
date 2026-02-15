@@ -13,22 +13,19 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [adminUser, setAdminUser] = useState<any>(null);
-  const [pendingCount, setPendingCount] = useState(0);
 
   useEffect(() => {
     async function checkAuth() {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
       if (!session) {
         router.push('/admin');
         return;
       }
 
-      const { data: admin } = await supabase
-        .from('admin_users')
-        .select('*')
-        .eq('id', session.user.id)
-        .single();
+      const { data: admin } = await supabase.from('admin_users').select('*').eq('id', session.user.id).single();
 
       if (!admin) {
         await supabase.auth.signOut();
@@ -37,14 +34,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       }
 
       setAdminUser(admin);
-
-      // Fetch pending count for badge
-      const { count } = await supabase
-        .from('video_submissions')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending');
-
-      setPendingCount(count || 0);
       setLoading(false);
     }
 
@@ -53,28 +42,34 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   if (loading || !adminUser) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: '#18181b',
-      }}>
+      <div
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#18181b',
+        }}
+      >
         <div style={{ textAlign: 'center' }}>
-          <div style={{
-            width: '48px',
-            height: '48px',
-            border: '2px solid #f59e0b',
-            borderTopColor: 'transparent',
-            borderRadius: '50%',
-            margin: '0 auto',
-            animation: 'spin 1s linear infinite',
-          }}></div>
+          <div
+            style={{
+              width: '48px',
+              height: '48px',
+              border: '2px solid #f59e0b',
+              borderTopColor: 'transparent',
+              borderRadius: '50%',
+              margin: '0 auto',
+              animation: 'spin 1s linear infinite',
+            }}
+          ></div>
           <p style={{ marginTop: '16px', color: '#a1a1aa' }}>Loading admin panel...</p>
         </div>
         <style jsx>{`
           @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+              transform: rotate(360deg);
+            }
           }
         `}</style>
       </div>
@@ -82,16 +77,20 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   }
 
   return (
-    <div style={{
-      display: 'flex',
-      minHeight: '100vh',
-      background: '#09090b',
-    }}>
-      <AdminNav pendingCount={pendingCount} adminEmail={adminUser.email} />
-      <main style={{
-        flex: 1,
-        overflow: 'auto',
-      }}>
+    <div
+      style={{
+        display: 'flex',
+        minHeight: '100vh',
+        background: '#09090b',
+      }}
+    >
+      <AdminNav adminEmail={adminUser.email} />
+      <main
+        style={{
+          flex: 1,
+          overflow: 'auto',
+        }}
+      >
         {children}
       </main>
     </div>

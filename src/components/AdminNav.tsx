@@ -4,11 +4,10 @@ import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 
 interface AdminNavProps {
-  pendingCount?: number;
   adminEmail: string;
 }
 
-export default function AdminNav({ pendingCount = 0, adminEmail }: AdminNavProps) {
+export default function AdminNav({ adminEmail }: AdminNavProps) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -18,42 +17,46 @@ export default function AdminNav({ pendingCount = 0, adminEmail }: AdminNavProps
   }
 
   const navItems = [
-    { href: '/admin/dashboard', label: 'Dashboard', icon: '📊', showDot: false },
-    { href: '/admin/pending', label: 'Pending', icon: '⏳', showDot: pendingCount > 0 },
-    { href: '/admin/all', label: 'All Submissions', icon: '📹', showDot: false },
-    { href: '/admin/rejected', label: 'Rejected', icon: '❌', showDot: false },
-    { href: '/admin/users', label: 'Users', icon: '👥', showDot: false },
-    { href: '/admin/youtube', label: 'YouTube Sync', icon: '📺', showDot: false },
+    { href: '/admin/dashboard', label: 'Dashboard', icon: '📊' },
+    { href: '/admin/all', label: 'Posts', icon: '📝' },
+    { href: '/admin/users', label: 'Users', icon: '👥' },
   ];
 
   return (
-    <div style={{
-      width: '256px',
-      background: '#18181b',
-      minHeight: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-    }}>
-      {/* Header */}
-      <div style={{
-        padding: '24px',
-        borderBottom: '1px solid #27272a',
-      }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          marginBottom: '16px',
-        }}>
-          <div style={{
-            width: '40px',
-            height: '40px',
-            background: 'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)',
-            borderRadius: '50%',
+    <div
+      style={{
+        width: '256px',
+        background: '#18181b',
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      <div
+        style={{
+          padding: '24px',
+          borderBottom: '1px solid #27272a',
+        }}
+      >
+        <div
+          style={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-          }}>
+            gap: '12px',
+            marginBottom: '16px',
+          }}
+        >
+          <div
+            style={{
+              width: '40px',
+              height: '40px',
+              background: 'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
             <span style={{ color: 'white', fontSize: '20px', fontWeight: 'bold' }}>C</span>
           </div>
           <div>
@@ -61,25 +64,28 @@ export default function AdminNav({ pendingCount = 0, adminEmail }: AdminNavProps
             <p style={{ fontSize: '12px', color: '#a1a1aa' }}>Admin Panel</p>
           </div>
         </div>
-        <p style={{
-          fontSize: '12px',
-          color: '#71717a',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-        }}>
+        <p
+          style={{
+            fontSize: '12px',
+            color: '#71717a',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
           {adminEmail}
         </p>
       </div>
 
-      {/* Navigation */}
-      <nav style={{
-        flex: 1,
-        padding: '16px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '8px',
-      }}>
+      <nav
+        style={{
+          flex: 1,
+          padding: '16px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+        }}
+      >
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           return (
@@ -99,36 +105,30 @@ export default function AdminNav({ pendingCount = 0, adminEmail }: AdminNavProps
                 boxShadow: isActive ? '0 10px 15px -3px rgba(0, 0, 0, 0.3)' : 'none',
               }}
             >
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-              }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                }}
+              >
                 <span style={{ fontSize: '20px' }}>{item.icon}</span>
                 <span style={{ fontWeight: '500' }}>{item.label}</span>
               </div>
-              {item.showDot && (
-                <div style={{
-                  width: '8px',
-                  height: '8px',
-                  borderRadius: '50%',
-                  background: isActive ? 'white' : '#f59e0b',
-                  boxShadow: isActive ? 'none' : '0 0 8px rgba(245, 158, 11, 0.6)',
-                }} />
-              )}
             </a>
           );
         })}
       </nav>
 
-      {/* Footer */}
-      <div style={{
-        padding: '16px',
-        borderTop: '1px solid #27272a',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '8px',
-      }}>
+      <div
+        style={{
+          padding: '16px',
+          borderTop: '1px solid #27272a',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+        }}
+      >
         <a
           href="/"
           target="_blank"

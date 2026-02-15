@@ -80,7 +80,8 @@ export default function Home() {
 
   const visibleEntries = useMemo(() => {
     return countryEntries.filter((entry) =>
-      !privateEntryOwnerIds.has(entry.user_id) || entry.user_id === user?.id
+      (!privateEntryOwnerIds.has(entry.user_id) || entry.user_id === user?.id) &&
+      (!entry.forced_private || entry.user_id === user?.id)
     );
   }, [countryEntries, privateEntryOwnerIds, user?.id]);
 
