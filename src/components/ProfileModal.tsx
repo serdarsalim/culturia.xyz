@@ -750,7 +750,7 @@ export default function ProfileModal({
                     {expandedEntryCountries.has(cc) && (
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
                         {entries.map((entry) => (
-                          <div key={entry.id} style={{ padding: '12px 16px', borderTop: '1px solid #f3f4f6' }}>
+                          <div key={entry.id} style={{ padding: '12px 16px', borderTop: '1px solid #f3f4f6', fontFamily: "'Source Sans Pro', 'Manrope', 'Avenir Next', 'Segoe UI', sans-serif" }}>
                             <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: 600 }}>Post</span>
                             <div style={{ marginTop: '4px', fontSize: '14px', color: '#111827', whiteSpace: 'pre-wrap' }}>
                               {entry.content}
@@ -843,7 +843,7 @@ export default function ProfileModal({
                     {expandedSubmissionCountries.has(cc) && (
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
                         {entries.map((entry) => (
-                          <div key={entry.id} style={{ padding: '12px 16px', borderTop: '1px solid #f3f4f6' }}>
+                          <div key={entry.id} style={{ padding: '12px 16px', borderTop: '1px solid #f3f4f6', fontFamily: "'Source Sans Pro', 'Manrope', 'Avenir Next', 'Segoe UI', sans-serif" }}>
                             {entry.private_by_owner && (
                               <div style={{ fontSize: '12px', color: '#334155', fontWeight: 600, marginBottom: '6px' }}>
                                 🔒 Private post

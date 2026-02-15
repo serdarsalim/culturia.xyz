@@ -6,25 +6,9 @@ import countries from '@/lib/countries';
 
 const geoUrl = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
 
-// Professional, high-contrast map palette for country fills
-const COUNTRY_COLORS = [
-  '#ef4444', // red-500
-  '#f59e0b', // amber-500
-  '#22c55e', // green-500
-  '#3b82f6', // blue-500
-  '#a855f7', // purple-500
-  '#0ea5e9', // sky-500
-  '#14b8a6', // teal-500
-  '#f97316', // orange-500
-  '#e11d48', // rose-600
-  '#10b981', // emerald-500
-];
-
-// Generate consistent color for a country based on its name
-function getCountryColor(geoName: string): string {
-  const hash = geoName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return COUNTRY_COLORS[hash % COUNTRY_COLORS.length];
-}
+const PREVIEW_ALL_COUNTRIES_HIGHLIGHTED = false;
+const COUNTRY_HIGHLIGHT_COLOR = '#3B82F6';
+const COUNTRY_SELECTED_COLOR = '#1D4ED8';
 
 // Map GeoJSON country names to our country codes
 const GEO_NAME_TO_CODE: Record<string, string> = {
@@ -182,8 +166,12 @@ export default function WorldMap({ onCountryClick, selectedCountry, onBackground
                 }
 
                 const isSelected = selectedCountry === country?.code;
-                const hasVideos = country ? countriesWithVideos?.has(country.code) === true : false;
-                const countryColor = hasVideos ? getCountryColor(geoName) : '#94a3b8'; // slate-400 for no posts
+                const hasVideos = PREVIEW_ALL_COUNTRIES_HIGHLIGHTED
+                  ? true
+                  : country
+                    ? countriesWithVideos?.has(country.code) === true
+                    : false;
+                const countryColor = hasVideos ? COUNTRY_HIGHLIGHT_COLOR : '#94a3b8'; // slate-400 for no posts
 
                 return (
                   <Geography
@@ -225,8 +213,8 @@ export default function WorldMap({ onCountryClick, selectedCountry, onBackground
                     }}
                     style={{
                       default: {
-                        fill: isSelected ? '#f59e0b' : countryColor,
-                        stroke: isSelected ? '#92400e' : '#e2e8f0',
+                        fill: isSelected ? COUNTRY_SELECTED_COLOR : countryColor,
+                        stroke: isSelected ? '#3730A3' : '#e2e8f0',
                         strokeWidth: isSelected ? 2 : 0.9,
                         outline: 'none',
                         transition: 'all 0.2s ease',
@@ -234,8 +222,8 @@ export default function WorldMap({ onCountryClick, selectedCountry, onBackground
                         filter: 'none',
                       },
                       hover: {
-                        fill: isSelected ? '#f59e0b' : countryColor,
-                        stroke: isSelected ? '#78350f' : '#cbd5e1',
+                        fill: isSelected ? COUNTRY_SELECTED_COLOR : countryColor,
+                        stroke: isSelected ? '#312E81' : '#cbd5e1',
                         strokeWidth: isSelected ? 2.1 : 1.15,
                         outline: 'none',
                         cursor: 'pointer',
@@ -244,8 +232,8 @@ export default function WorldMap({ onCountryClick, selectedCountry, onBackground
                           : hasVideos ? 'brightness(0.96)' : 'brightness(0.985)',
                       },
                       pressed: {
-                        fill: isSelected ? '#d97706' : countryColor,
-                        stroke: isSelected ? '#78350f' : '#94a3b8',
+                        fill: isSelected ? '#4338CA' : countryColor,
+                        stroke: isSelected ? '#312E81' : '#94a3b8',
                         strokeWidth: isSelected ? 2.2 : 1.2,
                         outline: 'none',
                         filter: isSelected
@@ -262,9 +250,9 @@ export default function WorldMap({ onCountryClick, selectedCountry, onBackground
           {SPECIAL_MARKERS.map((marker) => {
             const country = countries.find((c) => c.code === marker.code);
             if (!country) return null;
-            const hasVideos = countriesWithVideos?.has(marker.code) === true;
+            const hasVideos = PREVIEW_ALL_COUNTRIES_HIGHLIGHTED || countriesWithVideos?.has(marker.code) === true;
             const isSelected = selectedCountry === marker.code;
-            const fillColor = isSelected ? '#f59e0b' : hasVideos ? '#f97316' : '#94a3b8';
+            const fillColor = isSelected ? COUNTRY_SELECTED_COLOR : hasVideos ? COUNTRY_HIGHLIGHT_COLOR : '#94a3b8';
 
             return (
               <Marker
@@ -274,7 +262,7 @@ export default function WorldMap({ onCountryClick, selectedCountry, onBackground
                 <circle
                   r={isSelected ? 4 : 3}
                   fill={fillColor}
-                  stroke={isSelected ? '#d97706' : '#fff'}
+                  stroke={isSelected ? '#3730A3' : '#fff'}
                   strokeWidth={isSelected ? 1.5 : 1}
                   style={{ cursor: 'pointer' }}
                   onMouseEnter={(evt) => {

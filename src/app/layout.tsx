@@ -20,11 +20,11 @@ const baseUrl = getBaseUrl();
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
-  title: "Culturia | Share your opinion on countries",
+  title: "Culturia | Review Countries",
   description:
     "Read and share honest impressions about countries around the world. Compare pros and cons, and track where people have been or lived.",
   openGraph: {
-    title: "Culturia | Share your opinion on countries",
+    title: "Culturia | Review Countries",
     description:
       "A global map of country impressions, pros and cons, and lived/visited experiences shared by real people.",
     type: "website",
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Culturia | Share your opinion on countries",
+    title: "Culturia | Review Countries",
     description:
       "Read and share country impressions, pros and cons, and lived/visited experiences.",
   },

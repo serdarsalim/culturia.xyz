@@ -465,41 +465,9 @@ export default function Home() {
     }
   }
 
-  // Initial cache load + real-time updates + periodic refresh
+  // Load video cache once on app start.
   useEffect(() => {
-    // Initial load
     refreshVideoCache();
-
-    // Set up real-time subscription for instant updates
-    const subscription = supabase
-      .channel('video_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*', // Listen to INSERT, UPDATE, DELETE
-          schema: 'public',
-          table: 'video_submissions',
-          filter: 'status=eq.approved'
-        },
-        (payload) => {
-          console.log('🔔 Real-time update detected:', payload.eventType);
-          // Refresh cache when approved videos change
-          refreshVideoCache();
-        }
-      )
-      .subscribe();
-
-    // Periodic refresh every 30 seconds as backup
-    const intervalId = setInterval(() => {
-      console.log('⏰ Periodic cache refresh (30s)');
-      refreshVideoCache();
-    }, 30000);
-
-    // Cleanup
-    return () => {
-      subscription.unsubscribe();
-      clearInterval(intervalId);
-    };
   }, []);
 
   useEffect(() => {
@@ -932,8 +900,8 @@ export default function Home() {
         boxShadow: activeCountryModal ? 'none' : '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
         flexShrink: 0,
         overflowY: 'auto',
-        backgroundColor: activeCountryModal ? 'transparent' : '#1e293b',
-        color: '#cbd5e1',
+        backgroundColor: activeCountryModal ? 'transparent' : '#475569',
+        color: '#e2e8f0',
         visibility: activeCountryModal ? 'hidden' : 'visible',
         pointerEvents: activeCountryModal ? 'none' : 'auto'
       }}>
@@ -1350,7 +1318,7 @@ export default function Home() {
                       <span style={{ fontSize: '14px', fontWeight: 600 }}>
                         {country.name}
                       </span>
-                      <span style={{ fontSize: '12px', color: '#94a3b8' }}>
+                      <span style={{ fontSize: '12px', color: '#cbd5e1', fontWeight: 400 }}>
                         {country.count} {country.count === 1 ? 'post' : 'posts'}
                       </span>
                     </button>
