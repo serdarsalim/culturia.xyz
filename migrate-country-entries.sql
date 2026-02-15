@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS country_entries (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   country_code VARCHAR(3) NOT NULL,
-  content TEXT NOT NULL CHECK (char_length(content) <= 1000),
+  content TEXT NOT NULL CHECK (char_length(content) <= 2000),
   pros TEXT[] NOT NULL DEFAULT '{}'::TEXT[] CHECK (array_length(pros, 1) IS NULL OR array_length(pros, 1) <= 5),
   cons TEXT[] NOT NULL DEFAULT '{}'::TEXT[] CHECK (array_length(cons, 1) IS NULL OR array_length(cons, 1) <= 5),
   been_there BOOLEAN NOT NULL DEFAULT FALSE,

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { getCountryName, getCountryFlag } from '@/lib/countries';
-import { CATEGORY_LABELS, type VideoCategory, type VideoSubmission } from '@/types';
+import { CATEGORY_LABELS, type VideoCategory, type VideoSubmission, type CountryEntry } from '@/types';
 import EditSubmissionModal from './EditSubmissionModal';
 
 interface ProfileModalProps {
@@ -36,6 +36,10 @@ export default function ProfileModal({
 }: ProfileModalProps) {
   const [activeTab, setActiveTab] = useState<'favorites' | 'submissions' | 'settings'>(initialTab);
   const [favorites, setFavorites] = useState<Array<{ video: VideoSubmission; category: VideoCategory }>>(initialData?.favorites || []);
+  const [entryFavorites, setEntryFavorites] = useState<CountryEntry[]>([]);
+  const [entrySubmissions, setEntrySubmissions] = useState<CountryEntry[]>([]);
+  const [expandedEntryCountries, setExpandedEntryCountries] = useState<Set<string>>(new Set());
+  const [expandedSubmissionCountries, setExpandedSubmissionCountries] = useState<Set<string>>(new Set());
   const [submissions, setSubmissions] = useState<VideoSubmission[]>(initialData?.submissions || []);
   const [loading, setLoading] = useState(!initialData);
   const [showToast, setShowToast] = useState(false);
@@ -98,10 +102,10 @@ export default function ProfileModal({
 
   // Refetch when tab changes
   useEffect(() => {
-    if (activeTab === 'favorites' && favorites.length === 0) {
+    if (activeTab === 'favorites') {
       fetchFavorites();
-    } else if (activeTab === 'submissions' && submissions.length === 0) {
-      fetchSubmissions();
+    } else if (activeTab === 'submissions' && entrySubmissions.length === 0) {
+      fetchEntrySubmissions();
     } else if (activeTab === 'settings') {
       if (favorites.length === 0) fetchFavorites();
       if (submissions.length === 0) fetchSubmissions();
@@ -160,22 +164,54 @@ export default function ProfileModal({
         .from('user_favorites')
         .select(`
           submission_id,
-          video_submissions (*)
+          country_entry_id,
+          video_submissions (*),
+          country_entries (*)
         `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      const favoritesData = data?.map((fav: any) => ({
+      const favoritesData = (data || [])
+        .filter((fav: any) => !!fav.submission_id && !!fav.video_submissions)
+        .map((fav: any) => ({
         video: fav.video_submissions,
         category: fav.video_submissions.category as VideoCategory
       })) || [];
+      const entryFavoritesData = (data || [])
+        .filter((fav: any) => !!fav.country_entry_id && !!fav.country_entries)
+        .map((fav: any) => fav.country_entries as CountryEntry);
 
       setFavorites(favoritesData);
+      setEntryFavorites(entryFavoritesData);
     } catch (error) {
       console.error('Error fetching favorites:', error);
     }
+  }
+
+  function toggleEntryCountry(countryCode: string) {
+    setExpandedEntryCountries((prev) => {
+      const next = new Set(prev);
+      if (next.has(countryCode)) {
+        next.delete(countryCode);
+      } else {
+        next.add(countryCode);
+      }
+      return next;
+    });
+  }
+
+  function toggleSubmissionCountry(countryCode: string) {
+    setExpandedSubmissionCountries((prev) => {
+      const next = new Set(prev);
+      if (next.has(countryCode)) {
+        next.delete(countryCode);
+      } else {
+        next.add(countryCode);
+      }
+      return next;
+    });
   }
 
   async function fetchSubmissions() {
@@ -193,6 +229,24 @@ export default function ProfileModal({
       setSubmissions(data || []);
     } catch (error) {
       console.error('Error fetching submissions:', error);
+    }
+  }
+
+  async function fetchEntrySubmissions() {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('country_entries')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('updated_at', { ascending: false });
+
+      if (error) throw error;
+      setEntrySubmissions((data || []) as CountryEntry[]);
+    } catch (error) {
+      console.error('Error fetching entry submissions:', error);
     }
   }
 
@@ -590,11 +644,11 @@ export default function ProfileModal({
               Loading...
             </div>
           ) : activeTab === 'favorites' ? (
-            favorites.length === 0 ? (
+            favorites.length === 0 && entryFavorites.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '48px', color: '#6b7280' }}>
                 <p style={{ fontSize: '48px', marginBottom: '16px' }}>🤍</p>
                 <p style={{ fontSize: '16px', fontWeight: '600', marginBottom: '8px' }}>No favorites yet</p>
-                <p style={{ fontSize: '14px' }}>Start exploring and save videos you love!</p>
+                <p style={{ fontSize: '14px' }}>Start exploring and save posts or videos you love!</p>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -634,131 +688,152 @@ export default function ProfileModal({
                     </div>
                   </div>
                 ))}
+
+                {Object.entries(
+                  entryFavorites.reduce((acc, entry) => {
+                    const cc = entry.country_code;
+                    (acc[cc] ||= []).push(entry);
+                    return acc;
+                  }, {} as Record<string, CountryEntry[]>)
+                ).map(([cc, entries]) => (
+                  <div key={`entry-${cc}`} style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '12px' }}>
+                    <button
+                      onClick={() => toggleEntryCountry(cc)}
+                      style={{
+                        width: '100%',
+                        padding: '12px 16px',
+                        borderBottom: '1px solid #e5e7eb',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '10px',
+                        border: 'none',
+                        background: 'transparent',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontSize: '22px' }}>{getCountryFlag(cc)}</span>
+                        <span style={{ fontWeight: 700, color: '#111827' }}>{getCountryName(cc)}</span>
+                      </div>
+                      <span style={{ color: '#6b7280', fontSize: '12px', fontWeight: 600 }}>
+                        {expandedEntryCountries.has(cc) ? 'Hide' : 'Show'} ({entries.length})
+                      </span>
+                    </button>
+                    {!expandedEntryCountries.has(cc) && (
+                      <div style={{ padding: '10px 16px', color: '#4b5563', fontSize: '13px' }}>
+                        {(entries[0]?.content || '').slice(0, 140)}
+                        {(entries[0]?.content || '').length > 140 ? '...' : ''}
+                      </div>
+                    )}
+                    {expandedEntryCountries.has(cc) && (
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        {entries.map((entry) => (
+                          <div key={entry.id} style={{ padding: '12px 16px', borderTop: '1px solid #f3f4f6' }}>
+                            <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: 600 }}>Post</span>
+                            <div style={{ marginTop: '4px', fontSize: '14px', color: '#111827', whiteSpace: 'pre-wrap' }}>
+                              {entry.content}
+                            </div>
+                            {(entry.pros?.length > 0 || entry.cons?.length > 0) && (
+                              <div style={{ marginTop: '8px', display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '8px' }}>
+                                <div style={{ fontSize: '12px', color: '#111827' }}>
+                                  {entry.pros?.length > 0 ? (
+                                    <>
+                                      <strong>Pros:</strong> {entry.pros.join(', ')}
+                                    </>
+                                  ) : null}
+                                </div>
+                                <div style={{ fontSize: '12px', color: '#111827' }}>
+                                  {entry.cons?.length > 0 ? (
+                                    <>
+                                      <strong>Cons:</strong> {entry.cons.join(', ')}
+                                    </>
+                                  ) : null}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             )
           ) : activeTab === 'submissions' ? (
-            submissions.length === 0 ? (
+            entrySubmissions.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '48px', color: '#6b7280' }}>
                 <p style={{ fontSize: '48px', marginBottom: '16px' }}>📤</p>
                 <p style={{ fontSize: '16px', fontWeight: '600', marginBottom: '8px' }}>No submissions yet</p>
-                <p style={{ fontSize: '14px' }}>Share cultural content from your country!</p>
+                <p style={{ fontSize: '14px' }}>Share your country entries.</p>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {Object.entries(
-                  submissions.reduce((acc, v) => {
-                    (acc[v.country_code] ||= []).push(v);
+                  entrySubmissions.reduce((acc, entry) => {
+                    (acc[entry.country_code] ||= []).push(entry);
                     return acc;
-                  }, {} as Record<string, VideoSubmission[]>)
-                ).map(([cc, vids]) => (
+                  }, {} as Record<string, CountryEntry[]>)
+                ).map(([cc, entries]) => (
                   <div key={cc} style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '12px' }}>
-                    {/* Country header */}
-                    <div style={{ padding: '12px 16px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <span style={{ fontSize: '22px' }}>{getCountryFlag(cc)}</span>
-                      <span style={{ fontWeight: 700, color: '#111827' }}>{getCountryName(cc)}</span>
-                    </div>
-                    {/* Submissions list for country */}
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      {vids.map((video) => (
-                        <div key={video.id} style={{
-                          display: 'flex',
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          gap: isMobile ? '8px' : '12px',
-                          padding: isMobile ? '8px 12px' : '12px 16px'
-                        }}>
-                          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: isMobile ? '2px' : '10px', flex: 1, paddingRight: isMobile ? '8px' : '0', minWidth: 0 }}>
-                            <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: 600, flexShrink: 0 }}>
-                              {CATEGORY_LABELS[video.category as VideoCategory]}
-                            </span>
-                            <button
-                              onClick={() => onPlayVideo(video, video.category as VideoCategory)}
-                              style={{
-                                background: 'transparent',
-                                border: 'none',
-                                color: '#111827',
-                                fontSize: '14px',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                padding: 0,
-                                textAlign: 'left',
-                                wordBreak: 'break-word',
-                                whiteSpace: 'normal',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis'
-                              }}
-                            >
-                              {video.title || 'Untitled'}
-                            </button>
+                    <button
+                      onClick={() => toggleSubmissionCountry(cc)}
+                      style={{
+                        width: '100%',
+                        padding: '12px 16px',
+                        borderBottom: '1px solid #e5e7eb',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '10px',
+                        border: 'none',
+                        background: 'transparent',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontSize: '22px' }}>{getCountryFlag(cc)}</span>
+                        <span style={{ fontWeight: 700, color: '#111827' }}>{getCountryName(cc)}</span>
+                      </div>
+                      <span style={{ color: '#6b7280', fontSize: '12px', fontWeight: 600 }}>
+                        {expandedSubmissionCountries.has(cc) ? 'Hide' : 'Show'} ({entries.length})
+                      </span>
+                    </button>
+                    {!expandedSubmissionCountries.has(cc) && (
+                      <div style={{ padding: '10px 16px', color: '#4b5563', fontSize: '13px' }}>
+                        {(entries[0]?.content || '').slice(0, 140)}
+                        {(entries[0]?.content || '').length > 140 ? '...' : ''}
+                      </div>
+                    )}
+                    {expandedSubmissionCountries.has(cc) && (
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        {entries.map((entry) => (
+                          <div key={entry.id} style={{ padding: '12px 16px', borderTop: '1px solid #f3f4f6' }}>
+                            <div style={{ marginTop: '4px', fontSize: '14px', color: '#111827', whiteSpace: 'pre-wrap' }}>
+                              {entry.content}
+                            </div>
+                            {(entry.pros?.length > 0 || entry.cons?.length > 0) && (
+                              <div style={{ marginTop: '8px', display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '8px' }}>
+                                <div style={{ fontSize: '12px', color: '#111827' }}>
+                                  {entry.pros?.length > 0 ? (
+                                    <>
+                                      <strong>Pros:</strong> {entry.pros.join(', ')}
+                                    </>
+                                  ) : null}
+                                </div>
+                                <div style={{ fontSize: '12px', color: '#111827' }}>
+                                  {entry.cons?.length > 0 ? (
+                                    <>
+                                      <strong>Cons:</strong> {entry.cons.join(', ')}
+                                    </>
+                                  ) : null}
+                                </div>
+                              </div>
+                            )}
                           </div>
-                          <div style={{ display: 'flex', gap: isMobile ? '4px' : '8px', alignItems: 'center', flexShrink: 0 }}>
-                            {/* Private/Public Toggle - works for all statuses */}
-                            <button
-                              onClick={() => handleToggleVisibility(video)}
-                              disabled={updatingSubmissionId === video.id}
-                              aria-busy={updatingSubmissionId === video.id}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                                padding: isMobile ? '4px 6px' : '4px 8px',
-                                borderRadius: '12px',
-                                backgroundColor: video.status === 'private' ? '#f3f4f6' : video.status === 'approved' ? '#d1fae5' : '#dbeafe',
-                                border: 'none',
-                                cursor: updatingSubmissionId === video.id ? 'default' : 'pointer',
-                                fontSize: isMobile ? '10px' : '11px',
-                                fontWeight: '600',
-                                transition: 'all 0.2s',
-                                opacity: updatingSubmissionId === video.id ? 0.6 : 1
-                              }}
-                              title={video.status === 'private'
-                                ? 'Click to make public (admins publish immediately)'
-                                : 'Click to make private'}
-                            >
-                              <span style={{ fontSize: isMobile ? '10px' : '12px' }}>
-                                {video.status === 'private'
-                                  ? '🔒'
-                                  : video.status === 'approved'
-                                    ? '🌐'
-                                    : '⏳'}
-                              </span>
-                              {!isMobile && (
-                                <span style={{ color: video.status === 'private' ? '#4b5563' : video.status === 'approved' ? '#065f46' : '#1e40af' }}>
-                                  {updatingSubmissionId === video.id
-                                    ? 'Updating…'
-                                    : video.status === 'private'
-                                      ? 'Private'
-                                      : video.status === 'approved'
-                                        ? 'Public'
-                                        : 'Pending'}
-                                </span>
-                              )}
-                            </button>
-                            <button
-                              onClick={() => setEditingSubmission(video)}
-                              style={{
-                                padding: isMobile ? '4px 6px' : '6px 12px',
-                                borderRadius: '4px',
-                                backgroundColor: '#ffffff',
-                                border: '1px solid #d1d5db',
-                                color: '#374151',
-                                fontSize: isMobile ? '10px' : '12px',
-                                fontWeight: '600',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s',
-                                lineHeight: '1'
-                              }}
-                              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-                              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ffffff'}
-                              title="Edit"
-                            >
-                              {isMobile ? '✏️' : 'Edit'}
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

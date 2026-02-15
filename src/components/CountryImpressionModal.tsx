@@ -8,6 +8,7 @@ interface CountryImpressionModalProps {
   countryCode: string;
   entries: CountryEntry[];
   authorNames: Record<string, string>;
+  favoriteEntryIds: Set<string>;
   currentUserId: string | null;
   onClose: () => void;
   onRequireAuth: () => void;
@@ -18,6 +19,7 @@ interface CountryImpressionModalProps {
     cons: string[];
     beenThere: boolean;
   }) => Promise<boolean>;
+  onToggleFavorite: (entryId: string) => Promise<boolean>;
 }
 
 function countWords(label: string): number {
@@ -43,10 +45,12 @@ export default function CountryImpressionModal({
   countryCode,
   entries,
   authorNames,
+  favoriteEntryIds,
   currentUserId,
   onClose,
   onRequireAuth,
   onSaveEntry,
+  onToggleFavorite,
 }: CountryImpressionModalProps) {
   const [isMobile, setIsMobile] = useState(false);
   const [content, setContent] = useState('');
@@ -57,6 +61,7 @@ export default function CountryImpressionModal({
   const [consInput, setConsInput] = useState('');
   const [beenThere, setBeenThere] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [favoriteBusyId, setFavoriteBusyId] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [expandedEntries, setExpandedEntries] = useState<Set<string>>(new Set());
 
@@ -261,6 +266,12 @@ export default function CountryImpressionModal({
     }
   }
 
+  async function handleToggleFavorite(entryId: string) {
+    setFavoriteBusyId(entryId);
+    await onToggleFavorite(entryId);
+    setFavoriteBusyId(null);
+  }
+
   const entryActionLabel = isEntryMode ? '(close entry)' : existingUserEntry ? '(edit entry)' : '(add entry)';
   function shouldTruncateEntry(text: string): boolean {
     if (!text) return false;
@@ -403,33 +414,17 @@ export default function CountryImpressionModal({
                   {topPros.length > 0 && (
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                       <span style={{ fontSize: '13px', color: '#166534', fontWeight: 700 }}>Top Pros:</span>
-                      {topPros.map(([label, count]) => (
-                        <span
-                          key={`top-pro-${label}`}
-                          style={{
-                            color: '#166534',
-                            fontSize: '12px',
-                          }}
-                        >
-                          {label} ({count})
-                        </span>
-                      ))}
+                      <span style={{ color: '#166534', fontSize: '12px' }}>
+                        {topPros.map(([label, count]) => `${label} (${count})`).join(', ')}
+                      </span>
                     </div>
                   )}
                   {topCons.length > 0 && (
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                       <span style={{ fontSize: '13px', color: '#991b1b', fontWeight: 700 }}>Top Cons:</span>
-                      {topCons.map(([label, count]) => (
-                        <span
-                          key={`top-con-${label}`}
-                          style={{
-                            color: '#991b1b',
-                            fontSize: '12px',
-                          }}
-                        >
-                          {label} ({count})
-                        </span>
-                      ))}
+                      <span style={{ color: '#991b1b', fontSize: '12px' }}>
+                        {topCons.map(([label, count]) => `${label} (${count})`).join(', ')}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -448,6 +443,26 @@ export default function CountryImpressionModal({
                       }}
                     >
                       <div style={{ width: '100%', maxWidth: '650px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
+                          <button
+                            type="button"
+                            onClick={() => handleToggleFavorite(entry.id)}
+                            disabled={favoriteBusyId === entry.id}
+                            title={favoriteEntryIds.has(entry.id) ? 'Remove from favorites' : 'Add to favorites'}
+                            style={{
+                              border: 'none',
+                              background: 'transparent',
+                              color: favoriteEntryIds.has(entry.id) ? '#e11d48' : '#64748b',
+                              fontSize: '18px',
+                              lineHeight: 1,
+                              cursor: 'pointer',
+                              padding: 0,
+                              opacity: favoriteBusyId === entry.id ? 0.6 : 1
+                            }}
+                          >
+                            {favoriteEntryIds.has(entry.id) ? '♥' : '♡'}
+                          </button>
+                        </div>
                         <div
                           style={{
                             overflow: expandedEntries.has(entry.id) ? 'visible' : 'hidden',
@@ -487,37 +502,17 @@ export default function CountryImpressionModal({
                           >
                             <div style={{ minHeight: '20px' }}>
                               {entry.pros?.length > 0 && (
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', gap: '6px', alignItems: 'baseline', flexWrap: 'wrap' }}>
                                   <span style={{ fontSize: '12px', color: '#0f172a', fontWeight: 700 }}>Pros:</span>
-                                  {entry.pros.map((label) => (
-                                    <span
-                                      key={`${entry.id}-pro-${label}`}
-                                      style={{
-                                        color: '#0f172a',
-                                        fontSize: '11px',
-                                      }}
-                                    >
-                                      {label}
-                                    </span>
-                                  ))}
+                                  <span style={{ color: '#0f172a', fontSize: '11px' }}>{entry.pros.join(', ')}</span>
                                 </div>
                               )}
                             </div>
                             <div style={{ minHeight: '20px' }}>
                               {entry.cons?.length > 0 && (
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', gap: '6px', alignItems: 'baseline', flexWrap: 'wrap' }}>
                                   <span style={{ fontSize: '12px', color: '#0f172a', fontWeight: 700 }}>Cons:</span>
-                                  {entry.cons.map((label) => (
-                                    <span
-                                      key={`${entry.id}-con-${label}`}
-                                      style={{
-                                        color: '#0f172a',
-                                        fontSize: '11px',
-                                      }}
-                                    >
-                                      {label}
-                                    </span>
-                                  ))}
+                                  <span style={{ color: '#0f172a', fontSize: '11px' }}>{entry.cons.join(', ')}</span>
                                 </div>
                               )}
                             </div>
@@ -554,7 +549,7 @@ export default function CountryImpressionModal({
               <div>
                 <textarea
                   value={content}
-                  onChange={(event) => setContent(event.target.value.slice(0, 1000))}
+                  onChange={(event) => setContent(event.target.value.slice(0, 2000))}
                   placeholder="Write your impression..."
                   style={{
                     width: '100%',
@@ -569,7 +564,7 @@ export default function CountryImpressionModal({
                     resize: 'vertical'
                   }}
                 />
-                <div style={{ marginTop: '8px', color: '#94a3b8', fontSize: '12px' }}>{content.length}/1000</div>
+                <div style={{ marginTop: '8px', color: '#94a3b8', fontSize: '12px' }}>{content.length}/2000</div>
 
                 <div
                   style={{

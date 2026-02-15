@@ -37,6 +37,7 @@ export default function Home() {
   } | null>(null);
   const [countryEntries, setCountryEntries] = useState<CountryEntry[]>([]);
   const [entryAuthorNames, setEntryAuthorNames] = useState<Record<string, string>>({});
+  const [favoriteEntryIds, setFavoriteEntryIds] = useState<Set<string>>(new Set());
   const [entriesReady, setEntriesReady] = useState(false);
   const [videoCache, setVideoCache] = useState<VideoSubmission[]>([]);
   const [videoCacheReady, setVideoCacheReady] = useState(false);
@@ -152,6 +153,7 @@ export default function Home() {
             video_submissions (*)
           `)
           .eq('user_id', userId)
+          .not('submission_id', 'is', null)
           .order('created_at', { ascending: false }),
         supabase
           .from('video_submissions')
@@ -317,6 +319,31 @@ export default function Home() {
     }
   }
 
+  async function refreshEntryFavorites() {
+    if (!user?.id) {
+      setFavoriteEntryIds(new Set());
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('user_favorites')
+        .select('country_entry_id')
+        .eq('user_id', user.id)
+        .not('country_entry_id', 'is', null);
+
+      if (error) throw error;
+
+      const ids = new Set<string>();
+      for (const row of data || []) {
+        if (row.country_entry_id) ids.add(row.country_entry_id);
+      }
+      setFavoriteEntryIds(ids);
+    } catch (error) {
+      console.error('Error refreshing entry favorites:', error);
+    }
+  }
+
   // Fetch and cache ALL approved videos
   async function refreshVideoCache() {
     try {
@@ -430,6 +457,10 @@ export default function Home() {
   }, [user?.id]);
 
   useEffect(() => {
+    refreshEntryFavorites();
+  }, [user?.id]);
+
+  useEffect(() => {
     refreshCountryEntries();
 
     const subscription = supabase
@@ -526,6 +557,38 @@ export default function Home() {
   function handleRequireAuthForEntry() {
     setAuthMode('login');
     setShowAuthModal(true);
+  }
+
+  async function handleToggleEntryFavorite(entryId: string): Promise<boolean> {
+    if (!user?.id) {
+      handleRequireAuthForEntry();
+      return false;
+    }
+
+    try {
+      if (favoriteEntryIds.has(entryId)) {
+        const { error } = await supabase
+          .from('user_favorites')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('country_entry_id', entryId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('user_favorites')
+          .insert({
+            user_id: user.id,
+            country_entry_id: entryId,
+          });
+        if (error) throw error;
+      }
+
+      await refreshEntryFavorites();
+      return true;
+    } catch (error) {
+      console.error('Error toggling entry favorite:', error);
+      return false;
+    }
   }
 
   function handleOpenSubmitFromPlayer(countryCode: string, category: VideoCategory) {
@@ -1317,10 +1380,12 @@ export default function Home() {
           countryCode={activeCountryModal}
           entries={getCountryEntries(activeCountryModal)}
           authorNames={entryAuthorNames}
+          favoriteEntryIds={favoriteEntryIds}
           currentUserId={user?.id ?? null}
           onClose={handleCloseCountryModal}
           onRequireAuth={handleRequireAuthForEntry}
           onSaveEntry={handleSaveCountryEntry}
+          onToggleFavorite={handleToggleEntryFavorite}
         />
       )}
 
