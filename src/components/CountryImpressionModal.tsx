@@ -31,7 +31,7 @@ function toLabelCase(label: string): string {
 export default function CountryImpressionModal({ countryCode, recentPosts, onClose }: CountryImpressionModalProps) {
   const [isMobile, setIsMobile] = useState(false);
   const [impression, setImpression] = useState('');
-  const [isWriteOpen, setIsWriteOpen] = useState(recentPosts.length > 0);
+  const [isEntryMode, setIsEntryMode] = useState(false);
   const [pros, setPros] = useState<string[]>([]);
   const [cons, setCons] = useState<string[]>([]);
   const [prosInput, setProsInput] = useState('');
@@ -144,6 +144,20 @@ export default function CountryImpressionModal({ countryCode, recentPosts, onClo
     setConsInput('');
   }
 
+  function resetEntryFields() {
+    setImpression('');
+    setPros([]);
+    setCons([]);
+    setProsInput('');
+    setConsInput('');
+    setBeenThere(false);
+  }
+
+  function handleCancelEntry() {
+    resetEntryFields();
+    setIsEntryMode(false);
+  }
+
   return (
     <div
       style={{
@@ -214,69 +228,67 @@ export default function CountryImpressionModal({ countryCode, recentPosts, onClo
           }}
         >
           <div style={{ marginBottom: '24px' }}>
-            <div style={{ fontSize: isMobile ? '24px' : '30px', fontWeight: 700, lineHeight: 1.2 }}>
+            <div
+              style={{
+                fontSize: isMobile ? '24px' : '30px',
+                fontWeight: 700,
+                lineHeight: 1.2,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                flexWrap: 'wrap'
+              }}
+            >
               <span style={{ marginRight: '10px' }}>{flag}</span>
               {countryName}
-            </div>
-          </div>
-
-          <section style={{ marginBottom: '24px' }}>
-            <h3 style={{ margin: '0 0 10px', fontSize: '16px', fontWeight: 600 }}>Recent posts</h3>
-            <div style={{ display: 'grid', gap: '10px' }}>
-              {recentPosts.length > 0 ? (
-                recentPosts.map((post, idx) => (
-                  <div
-                    key={`${post.slice(0, 20)}-${idx}`}
-                    style={{
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '10px',
-                      padding: '12px 14px',
-                      backgroundColor: '#f8fafc',
-                      color: '#0f172a',
-                      lineHeight: 1.4,
-                      fontSize: '14px'
-                    }}
-                  >
-                    {post}
-                  </div>
-                ))
-              ) : (
-                <div style={{ color: '#94a3b8', fontSize: '14px' }}>No posts yet. Be the first to add one.</div>
-              )}
-            </div>
-          </section>
-
-          <section style={{ marginBottom: '24px' }}>
-            {recentPosts.length === 0 && (
               <button
                 type="button"
-                onClick={() => setIsWriteOpen((prev) => !prev)}
+                onClick={() => setIsEntryMode(true)}
                 style={{
-                  width: '100%',
-                  height: '44px',
-                  borderRadius: '10px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: '#f8fafc',
-                  color: '#0f172a',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '0 12px',
+                  border: 'none',
+                  background: 'transparent',
+                  color: '#475569',
                   fontSize: '14px',
                   fontWeight: 600,
+                  padding: 0,
                   cursor: 'pointer'
                 }}
               >
-                <span>Write what you think</span>
-                <span aria-hidden="true" style={{ fontSize: '16px' }}>{isWriteOpen ? '−' : '+'}</span>
+                (add entry)
               </button>
-            )}
+            </div>
+          </div>
 
-            {(recentPosts.length > 0 || isWriteOpen) && (
-              <div style={{ marginTop: recentPosts.length === 0 ? '10px' : '0' }}>
-                {recentPosts.length > 0 && (
-                  <h3 style={{ margin: '0 0 10px', fontSize: '16px', fontWeight: 600 }}>Write what you think</h3>
+          {!isEntryMode && (
+            <section style={{ marginBottom: '24px' }}>
+              <div style={{ display: 'grid', gap: '10px' }}>
+                {recentPosts.length > 0 ? (
+                  recentPosts.map((post, idx) => (
+                    <div
+                      key={`${post.slice(0, 20)}-${idx}`}
+                      style={{
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '10px',
+                        padding: '12px 14px',
+                        backgroundColor: '#f8fafc',
+                        color: '#0f172a',
+                        lineHeight: 1.4,
+                        fontSize: '14px'
+                      }}
+                    >
+                      {post}
+                    </div>
+                  ))
+                ) : (
+                  <div style={{ color: '#94a3b8', fontSize: '14px' }}>No posts yet. Be the first to add one.</div>
                 )}
+              </div>
+            </section>
+          )}
+
+          <section style={{ marginBottom: '24px' }}>
+            {isEntryMode && (
+              <div>
                 <textarea
                   value={impression}
                   onChange={(event) => setImpression(event.target.value.slice(0, 1000))}
@@ -295,159 +307,177 @@ export default function CountryImpressionModal({ countryCode, recentPosts, onClo
                   }}
                 />
                 <div style={{ marginTop: '8px', color: '#94a3b8', fontSize: '12px' }}>{impression.length}/1000</div>
+
+                <div
+                  style={{
+                    marginTop: '16px',
+                    display: 'grid',
+                    gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+                    gap: '16px'
+                  }}
+                >
+                  <section>
+                    <h3 style={{ margin: '0 0 8px', fontSize: '16px', fontWeight: 600 }}>Pros</h3>
+                    <div style={{ color: '#94a3b8', fontSize: '12px', marginBottom: '8px' }}>
+                      Separate labels with commas. Up to 5 labels, max 3 words each.
+                    </div>
+                    <input
+                      value={prosInput}
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        setProsInput(value);
+                        addTokenizedLabels(value, 'pros');
+                      }}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter') {
+                          event.preventDefault();
+                          commitRemaining(prosInput, 'pros');
+                        }
+                      }}
+                      onBlur={() => commitRemaining(prosInput, 'pros')}
+                      disabled={pros.length >= 5}
+                      placeholder="great food, friendly people"
+                      style={{
+                        width: '100%',
+                        height: '40px',
+                        borderRadius: '10px',
+                        border: '1px solid #cbd5e1',
+                        backgroundColor: '#ffffff',
+                        color: '#0f172a',
+                        padding: '0 12px',
+                        fontSize: '14px'
+                      }}
+                    />
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '10px' }}>
+                      {pros.map((label) => (
+                        <button
+                          key={label}
+                          type="button"
+                          onClick={() => setPros((prev) => prev.filter((item) => item !== label))}
+                          style={{
+                            borderRadius: '999px',
+                            border: '1px solid #86efac',
+                            backgroundColor: '#dcfce7',
+                            color: '#166534',
+                            fontSize: '12px',
+                            padding: '6px 10px',
+                            cursor: 'pointer'
+                          }}
+                          title="Remove"
+                        >
+                          {label} ×
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+
+                  <section>
+                    <h3 style={{ margin: '0 0 8px', fontSize: '16px', fontWeight: 600 }}>Cons</h3>
+                    <div style={{ color: '#94a3b8', fontSize: '12px', marginBottom: '8px' }}>
+                      Separate labels with commas. Up to 5 labels, max 3 words each.
+                    </div>
+                    <input
+                      value={consInput}
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        setConsInput(value);
+                        addTokenizedLabels(value, 'cons');
+                      }}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter') {
+                          event.preventDefault();
+                          commitRemaining(consInput, 'cons');
+                        }
+                      }}
+                      onBlur={() => commitRemaining(consInput, 'cons')}
+                      disabled={cons.length >= 5}
+                      placeholder="high prices, heavy traffic"
+                      style={{
+                        width: '100%',
+                        height: '40px',
+                        borderRadius: '10px',
+                        border: '1px solid #cbd5e1',
+                        backgroundColor: '#ffffff',
+                        color: '#0f172a',
+                        padding: '0 12px',
+                        fontSize: '14px'
+                      }}
+                    />
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '10px' }}>
+                      {cons.map((label) => (
+                        <button
+                          key={label}
+                          type="button"
+                          onClick={() => setCons((prev) => prev.filter((item) => item !== label))}
+                          style={{
+                            borderRadius: '999px',
+                            border: '1px solid #fca5a5',
+                            backgroundColor: '#fee2e2',
+                            color: '#991b1b',
+                            fontSize: '12px',
+                            padding: '6px 10px',
+                            cursor: 'pointer'
+                          }}
+                          title="Remove"
+                        >
+                          {label} ×
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+                </div>
+
+                <section style={{ marginTop: '16px' }}>
+                  <label style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={beenThere}
+                      onChange={(event) => setBeenThere(event.target.checked)}
+                      style={{ width: '16px', height: '16px' }}
+                    />
+                    <span style={{ fontSize: '14px' }}>I was here</span>
+                  </label>
+                </section>
+
+                <div style={{ marginTop: '18px', display: 'flex', justifyContent: 'flex-end' }}>
+                  <button
+                    type="button"
+                    onClick={handleCancelEntry}
+                    style={{
+                      height: '40px',
+                      borderRadius: '999px',
+                      border: '1px solid #cbd5e1',
+                      backgroundColor: '#ffffff',
+                      color: '#475569',
+                      padding: '0 16px',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      marginRight: '8px'
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    style={{
+                      height: '40px',
+                      borderRadius: '999px',
+                      border: '1px solid #cbd5e1',
+                      backgroundColor: '#f8fafc',
+                      color: '#0f172a',
+                      padding: '0 16px',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Save post
+                  </button>
+                </div>
               </div>
             )}
           </section>
-
-          <div
-            style={{
-              marginBottom: '24px',
-              display: 'grid',
-              gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
-              gap: '16px'
-            }}
-          >
-            <section>
-              <h3 style={{ margin: '0 0 8px', fontSize: '16px', fontWeight: 600 }}>Pros</h3>
-              <div style={{ color: '#94a3b8', fontSize: '12px', marginBottom: '8px' }}>
-                Separate labels with commas. Up to 5 labels, max 3 words each.
-              </div>
-              <input
-                value={prosInput}
-                onChange={(event) => {
-                  const value = event.target.value;
-                  setProsInput(value);
-                  addTokenizedLabels(value, 'pros');
-                }}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') {
-                    event.preventDefault();
-                    commitRemaining(prosInput, 'pros');
-                  }
-                }}
-                onBlur={() => commitRemaining(prosInput, 'pros')}
-                disabled={pros.length >= 5}
-                placeholder="great food, friendly people"
-                style={{
-                  width: '100%',
-                  height: '40px',
-                  borderRadius: '10px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: '#ffffff',
-                  color: '#0f172a',
-                  padding: '0 12px',
-                  fontSize: '14px'
-                }}
-              />
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '10px' }}>
-                {pros.map((label) => (
-                  <button
-                    key={label}
-                    type="button"
-                    onClick={() => setPros((prev) => prev.filter((item) => item !== label))}
-                    style={{
-                      borderRadius: '999px',
-                      border: '1px solid #86efac',
-                      backgroundColor: '#dcfce7',
-                      color: '#166534',
-                      fontSize: '12px',
-                      padding: '6px 10px',
-                      cursor: 'pointer'
-                    }}
-                    title="Remove"
-                  >
-                    {label} ×
-                  </button>
-                ))}
-              </div>
-            </section>
-
-            <section>
-              <h3 style={{ margin: '0 0 8px', fontSize: '16px', fontWeight: 600 }}>Cons</h3>
-              <div style={{ color: '#94a3b8', fontSize: '12px', marginBottom: '8px' }}>
-                Separate labels with commas. Up to 5 labels, max 3 words each.
-              </div>
-              <input
-                value={consInput}
-                onChange={(event) => {
-                  const value = event.target.value;
-                  setConsInput(value);
-                  addTokenizedLabels(value, 'cons');
-                }}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') {
-                    event.preventDefault();
-                    commitRemaining(consInput, 'cons');
-                  }
-                }}
-                onBlur={() => commitRemaining(consInput, 'cons')}
-                disabled={cons.length >= 5}
-                placeholder="high prices, heavy traffic"
-                style={{
-                  width: '100%',
-                  height: '40px',
-                  borderRadius: '10px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: '#ffffff',
-                  color: '#0f172a',
-                  padding: '0 12px',
-                  fontSize: '14px'
-                }}
-              />
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '10px' }}>
-                {cons.map((label) => (
-                  <button
-                    key={label}
-                    type="button"
-                    onClick={() => setCons((prev) => prev.filter((item) => item !== label))}
-                    style={{
-                      borderRadius: '999px',
-                      border: '1px solid #fca5a5',
-                      backgroundColor: '#fee2e2',
-                      color: '#991b1b',
-                      fontSize: '12px',
-                      padding: '6px 10px',
-                      cursor: 'pointer'
-                    }}
-                    title="Remove"
-                  >
-                    {label} ×
-                  </button>
-                ))}
-              </div>
-            </section>
-          </div>
-
-          <section style={{ marginBottom: '24px' }}>
-            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-              <input
-                type="checkbox"
-                checked={beenThere}
-                onChange={(event) => setBeenThere(event.target.checked)}
-                style={{ width: '16px', height: '16px' }}
-              />
-              <span style={{ fontSize: '14px' }}>I was here</span>
-            </label>
-          </section>
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <button
-              type="button"
-              style={{
-                height: '40px',
-                borderRadius: '999px',
-                border: '1px solid #cbd5e1',
-                backgroundColor: '#f8fafc',
-                color: '#0f172a',
-                padding: '0 16px',
-                fontSize: '14px',
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
-            >
-              Save post
-            </button>
-          </div>
         </div>
       </div>
     </div>

@@ -686,7 +686,7 @@ export default function Home() {
   return (
     <div className="home-layout h-screen overflow-hidden">
       {/* Sidebar - bottom on mobile, left on desktop */}
-      {!hideSidebarOnMobileList && (
+      {!hideSidebarOnMobileList && !activeCountryModal && (
       <div className="home-sidebar" style={{
         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
         flexShrink: 0,
