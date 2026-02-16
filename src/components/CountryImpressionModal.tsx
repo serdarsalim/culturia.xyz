@@ -515,33 +515,85 @@ export default function CountryImpressionModal({
         }}
         onClick={(event) => event.stopPropagation()}
       >
-        <button
-          onClick={handleRequestClose}
-          aria-label="Close"
-          title="Close"
+        <div
           style={{
-            position: 'absolute',
-            top: isMobile ? 'max(env(safe-area-inset-top, 0px) + 12px, 48px)' : '12px',
-            right: isMobile ? 'max(env(safe-area-inset-right, 0px) + 12px, 16px)' : '12px',
-            width: isMobile ? '44px' : '40px',
-            height: isMobile ? '44px' : '40px',
-            borderRadius: '9999px',
-            backgroundColor: isMobile ? '#f8fafc' : 'transparent',
-            border: 'none',
-            color: '#0f172a',
+            position: 'sticky',
+            top: 0,
+            zIndex: 3,
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            transition: 'all 0.15s ease',
-            zIndex: 2,
-            fontSize: isMobile ? '24px' : '22px',
-            fontWeight: '300',
-            boxShadow: isMobile ? '0 4px 12px rgba(0, 0, 0, 0.5)' : 'none'
+            justifyContent: 'space-between',
+            gap: '12px',
+            paddingTop: 'max(env(safe-area-inset-top, 0px), 10px)',
+            paddingLeft: 'max(env(safe-area-inset-left, 0px), 16px)',
+            paddingRight: 'max(env(safe-area-inset-right, 0px), 16px)',
+            paddingBottom: '10px',
+            backgroundColor: '#ffffff',
+            borderBottom: '1px solid #e2e8f0',
           }}
         >
-          ✕
-        </button>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              flex: 1,
+              minWidth: 0,
+              color: '#0f172a',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            <span style={{ fontSize: isMobile ? '26px' : '22px', lineHeight: 1 }}>{flag}</span>
+            <span
+              style={{
+                fontSize: isMobile ? '24px' : '22px',
+                fontWeight: 700,
+                lineHeight: 1.1,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                letterSpacing: '-0.01em',
+              }}
+            >
+              {countryName}
+            </span>
+            <button
+              type="button"
+              onClick={handleToggleEntryMode}
+              style={{
+                border: 'none',
+                background: 'transparent',
+                color: '#475569',
+                fontSize: '14px',
+                fontWeight: 600,
+                padding: 0,
+                cursor: 'pointer',
+                flexShrink: 0
+              }}
+            >
+              {entryActionLabel}
+            </button>
+          </div>
+          <button
+            type="button"
+            onClick={handleRequestClose}
+            aria-label="Close"
+            title="Close"
+            style={{
+              width: '44px',
+              height: '44px',
+              borderRadius: '9999px',
+              border: 'none',
+              background: '#f8fafc',
+              color: '#0f172a',
+              fontSize: '24px',
+              fontWeight: 300,
+              cursor: 'pointer',
+              flexShrink: 0,
+            }}
+          >
+            ✕
+          </button>
+        </div>
 
         <div
           className="country-modal-scroll"
@@ -549,7 +601,7 @@ export default function CountryImpressionModal({
             flex: 1,
             overflowY: 'auto',
             scrollbarGutter: 'stable',
-            paddingTop: isMobile ? '64px' : '56px',
+            paddingTop: isMobile ? '20px' : '24px',
             paddingLeft: isMobile ? '24px' : '120px',
             paddingRight: isMobile ? '24px' : '120px',
             paddingBottom: isMobile ? '16px' : '28px',
@@ -557,38 +609,6 @@ export default function CountryImpressionModal({
             fontFamily: "'Manrope', 'Avenir Next', 'Segoe UI', sans-serif"
           }}
         >
-          <div style={{ margin: '0 auto 24px', maxWidth: '650px', width: '100%' }}>
-            <div
-              style={{
-                fontSize: isMobile ? '24px' : '30px',
-                fontWeight: 700,
-                lineHeight: 1.2,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                flexWrap: 'wrap'
-              }}
-            >
-              <span style={{ marginRight: '10px' }}>{flag}</span>
-              {countryName}
-              <button
-                type="button"
-                onClick={handleToggleEntryMode}
-                style={{
-                  border: 'none',
-                  background: 'transparent',
-                  color: '#475569',
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  padding: 0,
-                  cursor: 'pointer'
-                }}
-              >
-                {entryActionLabel}
-              </button>
-            </div>
-          </div>
-
           {!isEntryMode && (
             <section style={{ margin: '0 auto 24px', maxWidth: '650px', width: '100%' }}>
               {sortedEntries.length >= 5 && (topPros.length > 0 || topCons.length > 0) && (
